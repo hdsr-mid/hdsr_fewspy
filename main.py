@@ -1,4 +1,4 @@
-from collector.timeseries import get_filters
+from collector.filters import get_filters
 
 import logging
 import sys

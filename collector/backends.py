@@ -3,7 +3,10 @@ from collector.custom_requests import RequestsRetrySession
 from typing import Type
 
 import hkvfewspy
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 PiRestType = Type[hkvfewspy.io.rest_fewspi.PiRest]  # noqa
 
@@ -23,10 +26,12 @@ def get_pi_rest_instance() -> PiRestType:
     get_filter_url = f"{constants.PIWEBSERVICE_URL}filters"
     response = session.get(url=get_filter_url)
     if response.status_code not in (200,):
-        raise AssertionError(
-            f"normal request (without hkvfewspy) for url {constants.PIWEBSERVICE_URL} resulted in "
-            f"code={response.status_code} text={response.text}"
+        msg = (
+            f"normal request (without hkvfewspy) for url {constants.PIWEBSERVICE_URL} resulted "
+            f"in code={response.status_code} text={response.text}"
         )
+        logger.error(msg)
+        raise AssertionError(msg)
     return pi
 
 
@@ -35,7 +40,8 @@ def get_pi_soap_instance():
     # pi.setClient(wsdl=constants.SOAP_PIWEBSERVICE_WSDL)
     msg = (
         "The SOAP service is deprecated and should not be used anymore. "
-        "It will be removed in a future release of Delft-FEWS. "
+        "It is or will be removed in a future release of Delft-FEWS. "
         "See: Delft-FEWS End of Life Modules and Displays"
     )
+    logger.error(msg)
     raise AssertionError(msg)
