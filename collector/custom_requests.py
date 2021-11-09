@@ -14,7 +14,7 @@ class RequestsRetrySession:
     """
     Class that provides backup/retry strategy for requests. Why?
     - We need to be tolerant for network failures: set retry + backoff_factor
-    - We want to avoid this app (vdsat_download = synchronous code) to hang: set timeout
+    - We want to avoid this app to hang: set timeout
     Moreover, this class provides helpful debugging traces
 
     Example Usage 1:
