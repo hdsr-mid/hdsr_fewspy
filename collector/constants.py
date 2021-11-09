@@ -6,7 +6,7 @@ PIWEBSERVICE_URL = "http://webwis-prd01.ad.hdsr.nl:8081/OwdPiService/rest/fewspi
 # http://webwis-prd01.ad.hdsr.nl:8081/OwdPiService/test/fewspiservicerest/index.jsp
 
 # Cannot find url?
-# As a FEWS databeheerder:
+# As a FEWS databeheerder you find urls the following way:
 # 1. open VDI
 # 2. START (windows key)
 # 3. unfold FEWS folder

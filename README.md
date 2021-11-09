@@ -5,7 +5,7 @@
 
 ### Description
 A python project that uses [hkvfewspy][hkvfewspy_link] - which is a Python wrapper for Delft 
-Fews-PI sevices developed by HKV- to retrieve data from HDSR FEWS-WIS
+Fews-PI sevices developed by HKV - to retrieve data from HDSR FEWS-WIS.
 
 ### Usage
 1. build conda environment from file if you don't have environment already
@@ -21,7 +21,7 @@ Fews-PI sevices developed by HKV- to retrieve data from HDSR FEWS-WIS
 ### License 
 [MIT][mit]
 
-[hkvfewspy_link] https://github.com/HKV-products-services/hkvfewspy
+[hkvfewspy_link]: https://github.com/HKV-products-services/hkvfewspy
 [mit]: https://github.com/hdsr-mid/mwm_ps_update/blob/main/LICENSE.txt
 
 ### Releases
@@ -110,5 +110,3 @@ You can also write a requirements.txt file:
 ```
 > pip list --format=freeze > <path_to_project>/requirements.txt
 ```
-
-
