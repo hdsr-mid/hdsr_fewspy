@@ -10,18 +10,20 @@ Fews-PI sevices developed by HKV - to retrieve data from HDSR FEWS-WIS.
 ### Usage
 1. build conda environment from file if you don't have environment already
 ```
-> conda env create --name mwm_ps_update --file <path_to_project>/environment.yml
+> conda env create --name hdsr_hkvfewspy --file <path_to_project>/environment.yml
 ```
 2. run project:
 ```
 > conda activate hdsr_hkvfewspy
 > python <path_to_project>/main.py
 ```
+3. example how to use see [these notebooks][notebooks] 
 
 ### License 
 [MIT][mit]
 
 [hkvfewspy_link]: https://github.com/HKV-products-services/hkvfewspy
+[notebooks]: https://github.com/HKV-products-services/hkvfewspy/tree/master/notebooks 
 [mit]: https://github.com/hdsr-mid/mwm_ps_update/blob/main/LICENSE.txt
 
 ### Releases
