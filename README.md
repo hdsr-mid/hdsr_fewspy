@@ -36,21 +36,25 @@ and ideas are welcome on https://github.com/hdsr-mid/hdsr_hkvfewspy/issues
 ### Test Coverage 
 Project holds no tests
 
+
 ### Conda general tips
 #### Build conda environment (on Windows) from any directory using environment.yml:
+Note1: prefix is not set in the enviroment.yml as then conda does not handle it very well
+Note2: env_directory can be anywhere, it does not have to be in your code project
 ```
-> conda env create --name <conda_env_name> --file <path_to_project>/environment.yml python=<python_version>
-> conda info --envs  # verify that <conda_env_name> is in this list 
+> conda env create --prefix <env_directory><env_name> --file <path_to_project>/environment.yml
+# example: conda env create --prefix C:/Users/xxx/.conda/envs/project_xx --file C:/Users/code_projects/xx/environment.yml
+> conda info --envs  # verify that <env_name> (project_xx) is in this list 
 ```
 #### Start the application from any directory:
 ```
-> conda activate <conda_env_name>
+> conda activate <env_name>
 At any location:
-> (<conda_env_name>) python <path_to_project>/main.py
+> (<env_name>) python <path_to_project>/main.py
 ```
 #### Test the application:
 ```
-> conda activate <conda_env_name>
+> conda activate <env_name>
 > cd <path_to_project>
 > pytest  # make sure pytest is installed (conda install pytest)
 ```
@@ -64,7 +68,7 @@ At any location:
 Get directory where environment is located 
 > conda info --envs
 Remove the enviroment
-> conda env remove --name <conda_env_name>
+> conda env remove --name <env_name>
 Finally, remove the left-over directory by hand
 ```
 #### Write dependencies to environment.yml:
@@ -94,7 +98,7 @@ If a package is not available on all conda channels, but available as pip packag
 Note that mixing packages from conda and pip is always a potential problem: conda calls pip, but pip does not know 
 how to satisfy missing dependencies with packages from Anaconda repositories. 
 ```
-> conda activate <conda_env_name>
+> conda activate <env_name>
 > conda install pip
 > pip install <pip_package>
 ```
