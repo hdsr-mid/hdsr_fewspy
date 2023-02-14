@@ -1,5 +1,5 @@
-from collector import constants
-from collector.custom_requests import RequestsRetrySession
+from fewspy.renier.collector import constants
+from fewspy.renier.collector import RequestsRetrySession
 from typing import Type
 
 import hkvfewspy

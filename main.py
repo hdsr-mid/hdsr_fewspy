@@ -1,4 +1,4 @@
-from collector.filters import get_filters
+from fewspy.renier.collector.filters import get_filters
 
 import logging
 import sys

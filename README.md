@@ -3,39 +3,32 @@
 * Author: Renier Kramer, renier.kramer@hdsr.nl
 * Python version: >3.5
 
-### Description
-A python project that uses [hkvfewspy][hkvfewspy_link] - which is a Python wrapper for Delft 
-Fews-PI sevices developed by HKV - to retrieve data from HDSR FEWS-WIS.
+[hkvfewspy]: https://github.com/HKV-products-services/hkvfewspy
+[fewspy]: https://github.com/d2hydro/fewspy
+[MIT]: https://github.com/hdsr-mid/hdsr_fewspy/blob/main/LICENSE.txt
+[Deltares FEWS PI]: https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
+[issues page]: https://github.com/hdsr-mid/hdsr_fewspy/issues
 
-### Usage
-1. build conda environment from file if you don't have environment already
-```
-> conda env create --name hdsr_hkvfewspy --file <path_to_project>/environment.yml
-```
-2. run project:
-```
-> conda activate hdsr_hkvfewspy
-> python <path_to_project>/main.py
-```
-3. example how to use see [these notebooks][notebooks] 
+### Description
+A python project that can be used to get data (locations, timeseries, etc.) from two HDSR FEWS APIs: WIS and EFCIS.
+Note that this project only works on HDSR's internal network, so within the VDI.
+The project combines the best from two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds 
+"authentication" and "throttling" to minimize request load on HDSR's internal FEWS instances.
+
+### Usage 
+TODO
 
 ### License 
-[MIT][mit]
-
-[hkvfewspy_link]: https://github.com/HKV-products-services/hkvfewspy
-[notebooks]: https://github.com/HKV-products-services/hkvfewspy/tree/master/notebooks 
-[mit]: https://github.com/hdsr-mid/mwm_ps_update/blob/main/LICENSE.txt
+[MIT]
 
 ### Releases
-None
+TODO
 
 ### Contributions
-All contributions, bug reports, bug fixes, documentation improvements, enhancements 
-and ideas are welcome on https://github.com/hdsr-mid/hdsr_hkvfewspy/issues
+All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
 ### Test Coverage 
 Project holds no tests
-
 
 ### Conda general tips
 #### Build conda environment (on Windows) from any directory using environment.yml:
