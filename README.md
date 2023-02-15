@@ -10,8 +10,8 @@
 [issues page]: https://github.com/hdsr-mid/hdsr_fewspy/issues
 
 ### Description
-A python project that can be used to get data (locations, timeseries, etc.) from two HDSR FEWS APIs: WIS and EFCIS.
-Note that this project only works on HDSR's internal network, so within the VDI.
+A python project to request data (locations, timeseries, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
+Note that this project only works on HDSR's internal network, so within the VDI. 
 The project combines the best from two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds 
 "authentication" and "throttling" to minimize request load on HDSR's internal FEWS instances.
 
