@@ -1,5 +1,3 @@
-from collector.filters import get_filters
-
 import logging
 import sys
 
@@ -29,14 +27,27 @@ def setup_logging() -> None:
     _logger.addHandler(stream_handler)
 
 
+# DONE: move all constants to constants
+
+# TODO: create one central location where all requests.get() happens
+
+# TODO: Use BackoffRetry strategy
+
+# TODO: add rate_limiting to requests (freq and size)
+
+# TODO: don't use strings as urls...
+
+# TODO: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
+
+# TODO: test other get requests than get_timeseries
+
+# TODO: create documentation
+
+
 if __name__ == "__main__":
     check_python_version()
     setup_logging()
     logger = logging.getLogger(__name__)
     logger.info("starting app")
-
-    # TODO: do something useful here
-    df_filters = get_filters()
-    assert not df_filters.empty
 
     logger.info("shutting down app")
