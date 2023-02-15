@@ -1,6 +1,6 @@
 from fewspy.constants import ApiKeys
-from fewspy.daniel.src.fewspy.utils.conversions import datetime_to_fews_str
-from fewspy.daniel.src.fewspy.utils.conversions import snake_to_camel_case
+from fewspy.utils.conversions import datetime_to_fews_str
+from fewspy.utils.conversions import snake_to_camel_case
 from typing import Any
 from typing import Tuple
 
@@ -21,6 +21,7 @@ api_keys_non_datetime = [
     ApiKeys.start_time,
     ApiKeys.thinning,
 ]
+all_keys = api_keys_datetime + api_keys_non_datetime
 
 
 def parameters_to_fews(parameters: dict) -> dict:
@@ -35,7 +36,7 @@ def parameters_to_fews(parameters: dict) -> dict:
         k = snake_to_camel_case(k)
         return k, v
 
-    args = (_convert_kv(k, v) for k, v in parameters.items() if k in api_keys_non_datetime)
+    args = (_convert_kv(k, v) for k, v in parameters.items() if k in all_keys)
     args = (i for i in args if i[1] is not None)
     fews_parameters = {i[0]: i[1] for i in args}
     return fews_parameters

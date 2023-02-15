@@ -1,5 +1,5 @@
 ### Context
-* Created: November 2021
+* Created: February 2023
 * Author: Renier Kramer, renier.kramer@hdsr.nl
 * Python version: >3.5
 
@@ -27,8 +27,40 @@ TODO
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage 
-Project holds no tests
+### Test Coverage (15 feb 2023)
+```
+---------- coverage: platform win32, python 3.7.12-final-0 -----------
+Name                                            Stmts   Miss  Cover
+-------------------------------------------------------------------
+fewspy\api.py                                      58     16    72%
+fewspy\constants.py                                19      0   100%
+fewspy\exceptions.py                               28      2    93%
+fewspy\old_tests\get_filters_test.py                9      9     0%
+fewspy\old_tests\get_locations_test.py             13     13     0%
+fewspy\old_tests\get_parameters_test.py            11     11     0%
+fewspy\old_tests\get_qualifiers_test.py            14     14     0%
+fewspy\old_tests\get_time_zone_id_test.py           4      4     0%
+fewspy\old_tests\get_timeseries_async_test.py      20     20     0%
+fewspy\old_tests\get_timeseries_test.py            18     18     0%
+fewspy\old_tests\timeseries_test.py                21     21     0%
+fewspy\retry_session.py                            64     64     0%
+fewspy\time_series.py                              97      8    92%
+fewspy\utils\conversions.py                        37     18    51%
+fewspy\utils\timer.py                              16      5    69%
+fewspy\utils\transformations.py                    21      2    90%
+fewspy\webservices.py                             103    103     0%
+fewspy\wrappers\__init__.py                        14      0   100%
+fewspy\wrappers\get_filters.py                     19     11    42%
+fewspy\wrappers\get_locations.py                   30     17    43%
+fewspy\wrappers\get_parameters.py                  25     14    44%
+fewspy\wrappers\get_qualifiers.py                  29     19    34%
+fewspy\wrappers\get_time_series.py                 26      1    96%
+fewspy\wrappers\get_time_series_async.py           70     55    21%
+fewspy\wrappers\get_timezone_id.py                 16      9    44%
+main.py                                            27     27     0%
+-------------------------------------------------------------------
+TOTAL                                             809    481    41%
+```
 
 ### Conda general tips
 #### Build conda environment (on Windows) from any directory using environment.yml:

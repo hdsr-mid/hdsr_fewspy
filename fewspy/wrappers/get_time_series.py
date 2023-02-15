@@ -1,8 +1,8 @@
 from datetime import datetime
 from fewspy.constants import API_DOCUMENT_FORMAT
-from fewspy.daniel.src.fewspy.time_series import TimeSeriesSet
-from fewspy.daniel.src.fewspy.utils.timer import Timer
-from fewspy.daniel.src.fewspy.utils.transformations import parameters_to_fews
+from fewspy.time_series import TimeSeriesSet
+from fewspy.utils.timer import Timer
+from fewspy.utils.transformations import parameters_to_fews
 from typing import List
 from typing import Union
 
@@ -52,7 +52,7 @@ def get_time_series(
     # do the request
     timer = Timer(logger)
     parameters = parameters_to_fews(parameters=locals())
-    response = requests.get(url, parameters, verify=verify)
+    response = requests.get(url=url, params=parameters, verify=True)
     timer.report(message=report_string.format(status="request"))
 
     # parse the response

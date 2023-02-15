@@ -1,10 +1,10 @@
 from fewspy.constants import API_DOCUMENT_FORMAT
-from fewspy.daniel.src.fewspy.utils.conversions import attributes_to_array
-from fewspy.daniel.src.fewspy.utils.conversions import camel_to_snake_case
-from fewspy.daniel.src.fewspy.utils.conversions import geo_datum_to_crs
-from fewspy.daniel.src.fewspy.utils.conversions import xy_array_to_point
-from fewspy.daniel.src.fewspy.utils.timer import Timer
-from fewspy.daniel.src.fewspy.utils.transformations import parameters_to_fews
+from fewspy.utils.conversions import attributes_to_array
+from fewspy.utils.conversions import camel_to_snake_case
+from fewspy.utils.conversions import geo_datum_to_crs
+from fewspy.utils.conversions import xy_array_to_point
+from fewspy.utils.timer import Timer
+from fewspy.utils.transformations import parameters_to_fews
 
 import geopandas as gpd
 import logging
@@ -19,8 +19,7 @@ def get_locations(
     url: str,
     filter_id: str = None,
     document_format: str = API_DOCUMENT_FORMAT,
-    attributes: list = [],
-    verify: bool = False,
+    attributes: list = None,
 ) -> pd.DataFrame:
     """Get FEWS qualifiers as a pandas DataFrame.
     Args:
@@ -36,7 +35,7 @@ def get_locations(
     # do the request
     timer = Timer(logger)
     parameters = parameters_to_fews(parameters=locals())
-    response = requests.get(url, parameters, verify=verify)
+    response = requests.get(url, parameters, verify=True)
     timer.report(message="Locations request")
 
     # parse the response
@@ -47,12 +46,14 @@ def get_locations(
         gdf.set_index("location_id", inplace=True)
 
         # handle geometry and crs
-        gdf["geometry"] = xy_array_to_point(gdf[["x", "y"]].values)
+        gdf["geometry"] = xy_array_to_point(xy_array=gdf[["x", "y"]].values)
         gdf.crs = geo_datum_to_crs(response.json()["geoDatum"])
 
         # handle attributes
         if attributes:
-            gdf.loc[:, attributes] = attributes_to_array(gdf["attributes"].values, attributes)
+            gdf.loc[:, attributes] = attributes_to_array(
+                attribute_values=gdf["attributes"].values, attributes=attributes
+            )
         gdf.drop(columns=["attributes"], inplace=True)
 
         timer.report(message="Locations parsed")

@@ -1,6 +1,6 @@
 from fewspy.constants import API_DOCUMENT_FORMAT
-from fewspy.daniel.src.fewspy.utils.timer import Timer
-from fewspy.daniel.src.fewspy.utils.transformations import parameters_to_fews
+from fewspy.utils.timer import Timer
+from fewspy.utils.transformations import parameters_to_fews
 
 import logging
 import requests
@@ -13,7 +13,6 @@ def get_timezone_id(
     url: str,
     filter_id: str = None,
     document_format: str = API_DOCUMENT_FORMAT,
-    verify: bool = False,
 ) -> str:
     """Get FEWS timezone id.
     Args:
@@ -29,7 +28,7 @@ def get_timezone_id(
     # do the request
     timer = Timer(logger)
     parameters = parameters_to_fews(parameters=locals())
-    response = requests.get(url=url, params=parameters, verify=verify)
+    response = requests.get(url=url, params=parameters, verify=True)
     timer.report(message="Timezone request")
 
     # parse the response

@@ -1,4 +1,4 @@
-from ..utils.timer import Timer
+from fewspy.utils.timer import Timer
 from xml.etree import ElementTree
 
 import logging
@@ -9,7 +9,6 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-# renier
 NS = "{http://www.wldelft.nl/fews/PI}"
 COLUMNS = ["id", "name", "group_id"]
 
@@ -23,36 +22,27 @@ def _element_to_tuple(qualifier_element: ElementTree.Element) -> tuple:
     """
 
     def __get_text(element):
-        if element is not None:
-            return element.text
-        else:
-            return element
+        return element.text if element is not None else element
 
     ident = qualifier_element.get("id")
-    name = __get_text(next(qualifier_element.iter(tag=f"{NS}name"), None))
-    group_id = __get_text(next(qualifier_element.iter(tag=f"{NS}groupId"), None))
+    name = __get_text(element=next(qualifier_element.iter(tag=f"{NS}name"), None))
+    group_id = __get_text(element=next(qualifier_element.iter(tag=f"{NS}groupId"), None))
 
-    return (ident, name, group_id)
+    return ident, name, group_id
 
 
-def get_qualifiers(url: str, verify: bool = False) -> pd.DataFrame:
-    """Get FEWS qualifiers as Pandas DataFrame
-
+def get_qualifiers(url: str) -> pd.DataFrame:
+    """Get FEWS qualifiers as Pandas DataFrame.
     Args:
-        url (str): url Delft-FEWS PI REST WebService.
-        E.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-        verify (bool, optional): passed to requests.get verify parameter.
-        Defaults to False.
-
+        - url (str): url Delft-FEWS PI REST WebService.
+          e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
+        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
     Returns:
-        df (pandas.DataFrame): Pandas dataframe with index "id" and columns
-        "name" and "group_id".
-
+        df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
     """
-
     # do the request
     timer = Timer(logger)
-    response = requests.get(url, verify=verify)
+    response = requests.get(url, verify=True)
     timer.report(message="Qualifiers request")
 
     # parse the response

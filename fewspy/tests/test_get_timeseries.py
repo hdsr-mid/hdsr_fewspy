@@ -5,7 +5,6 @@ from fewspy.tests.fixtures import api_fixture
 
 import json
 import pandas as pd
-import requests
 import responses
 
 
@@ -31,19 +30,24 @@ class RequestData1:
 
 
 @responses.activate
-def test_mock_google_response_works():
-    # mock response
-    url = "https://www.google.nl/"
-    response_json = {"error": "not found"}
-    status_code = 404
-    responses.add(method=responses.GET, url=url, json=response_json, status=status_code)
+def test_mock_empty_response(api_fixture):
+    request_data = RequestData1
+    response_json = {"error": "bla bla bla"}
+    responses.add(responses.GET, url=f"{API_BASE_URL_TEST}timeseries", json=response_json, status=404)
 
-    # check response
-    resp = requests.get(url=url)
-    assert resp.status_code == status_code
-    assert resp.json() == response_json
-    assert len(responses.calls) == 1
-    assert responses.calls[0].request.url == url
+    ts_set_mock_empty_json = api_fixture.get_time_series(
+        filter_id=request_data.filter_id,
+        location_ids=request_data.location_ids,
+        parameter_ids=request_data.parameter_ids,
+        start_time=request_data.start_time,
+        end_time=request_data.end_time,
+    )
+    assert isinstance(ts_set_mock_empty_json.time_series, list) and len(ts_set_mock_empty_json.time_series) == 0
+    assert not ts_set_mock_empty_json.location_ids
+    # TODO: why does property 'parameter_id' not exist?
+    # assert not ts_set_mock_empty_json.parameter_id
+    assert not ts_set_mock_empty_json.time_zone
+    assert not ts_set_mock_empty_json.version
 
 
 @responses.activate
@@ -84,24 +88,3 @@ def test_mock_filled_response(api_fixture):
 
     assert ts_set_mock_filled_json.time_zone == 0.0
     assert ts_set_mock_filled_json.version == "1.32"
-
-
-@responses.activate
-def test_mock_empty_response(api_fixture):
-    request_data = RequestData1
-    response_json = {"error": "bla bla bla"}
-    responses.add(responses.GET, url=f"{API_BASE_URL_TEST}timeseries", json=response_json, status=404)
-
-    ts_set_mock_empty_json = api_fixture.get_time_series(
-        filter_id=request_data.filter_id,
-        location_ids=request_data.location_ids,
-        parameter_ids=request_data.parameter_ids,
-        start_time=request_data.start_time,
-        end_time=request_data.end_time,
-    )
-    assert isinstance(ts_set_mock_empty_json.time_series, list) and len(ts_set_mock_empty_json.time_series) == 0
-    assert not ts_set_mock_empty_json.location_ids
-    # TODO: why does property 'parameter_id' not exist?
-    # assert not ts_set_mock_empty_json.parameter_id
-    assert not ts_set_mock_empty_json.time_zone
-    assert not ts_set_mock_empty_json.version

@@ -27,7 +27,7 @@ def setup_logging() -> None:
     _logger.addHandler(stream_handler)
 
 
-# TODO: move all constants to constants
+# DONE: move all constants to constants
 
 # TODO: create one central location where all requests.get() happens
 
@@ -36,8 +36,6 @@ def setup_logging() -> None:
 # TODO: add rate_limiting to requests (freq and size)
 
 # TODO: don't use strings as urls...
-
-# TODO: Can we get rid of ssl_verify?
 
 # TODO: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
 

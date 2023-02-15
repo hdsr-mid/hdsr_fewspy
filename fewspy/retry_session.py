@@ -1,3 +1,4 @@
+from fewspy import exceptions
 from fewspy.webservices import PiWebServiceSettingsBase
 from fewspy.webservices import ProductionWebServiceSettings
 from fewspy.webservices import StandAloneWebServiceSettings

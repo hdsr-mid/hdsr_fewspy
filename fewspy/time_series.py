@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
-from fewspy.daniel.src.fewspy.utils.conversions import camel_to_snake_case
-from fewspy.daniel.src.fewspy.utils.conversions import dict_to_datetime
+from fewspy.utils.conversions import camel_to_snake_case
+from fewspy.utils.conversions import dict_to_datetime
 from typing import List
 
 import pandas as pd

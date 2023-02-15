@@ -1,7 +1,7 @@
 from datetime import datetime
 from fewspy.constants import API_DOCUMENT_FORMAT
-from fewspy.daniel.src.fewspy.time_series import TimeSeriesSet
-from fewspy.daniel.src.fewspy.utils.transformations import parameters_to_fews
+from fewspy.time_series import TimeSeriesSet
+from fewspy.utils.transformations import parameters_to_fews
 from typing import List
 from typing import Union
 

@@ -1,13 +1,13 @@
 from fewspy.constants import API_DOCUMENT_FORMAT
-from fewspy.daniel.src.fewspy.wrappers import get_filters
-from fewspy.daniel.src.fewspy.wrappers import get_locations
-from fewspy.daniel.src.fewspy.wrappers import get_parameters
-from fewspy.daniel.src.fewspy.wrappers import get_qualifiers
-from fewspy.daniel.src.fewspy.wrappers import get_time_series
-from fewspy.daniel.src.fewspy.wrappers import get_time_series_async
-from fewspy.daniel.src.fewspy.wrappers import get_timezone_id
-from fewspy.expections import URLNotFoundError
-from fewspy.daniel.src.fewspy.utils.timer import Timer
+from fewspy.exceptions import URLNotFoundError
+from fewspy.utils.timer import Timer
+from fewspy.wrappers import get_filters
+from fewspy.wrappers import get_locations
+from fewspy.wrappers import get_parameters
+from fewspy.wrappers import get_qualifiers
+from fewspy.wrappers import get_time_series
+from fewspy.wrappers import get_time_series_async
+from fewspy.wrappers import get_timezone_id
 
 import logging
 import pandas as pd
@@ -28,40 +28,26 @@ class Api:
     https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
     """
 
-    def __init__(self, base_url, logger=None, ssl_verify: bool = False):
+    def __init__(self, base_url, logger=None):
         self.document_format: str = API_DOCUMENT_FORMAT
         self.base_url = self._validate_base_url(base_url=base_url)
-        self.ssl_verify = True
         self.timer = Timer(logger)
-
-    @staticmethod
-    def _determine_ssl_verify():
-        # # set ssl_verify
-        # if ssl_verify is None:
-        #     self.ssl_verify = verify
-        # else:
-        #     self.ssl_verify = ssl_verify
-        #
-        # # estimate ssl_verify
-        # if not ssl_verify:
-        #     ssl_verify = True if base_url.startswith("https") else False
-        ssl_verify = True
 
     @staticmethod
     def _validate_base_url(base_url: str) -> str:
         base_url = f"{base_url}/" if not base_url.endswith("/") else base_url
-        response = requests.get(url=base_url, verify=False)
+        response = requests.get(url=base_url, verify=True)
         if response.ok:
             return base_url
         raise URLNotFoundError(message=f"{base_url} is not a root to a live FEWS PI Rest WebService")
 
     def __kwargs(self, url_post_fix: str, kwargs: dict) -> dict:
+        """TODO docstring..."""
         kwargs = {
             **kwargs,
             **dict(
                 url=f"{self.base_url}{url_post_fix}",
                 document_format=self.document_format,
-                verify=self.ssl_verify,
             ),
         }
         kwargs.pop("self")
@@ -69,7 +55,7 @@ class Api:
         return kwargs
 
     def get_parameters(self, filter_id=None):
-        """Get FEWS qualifiers as a pandas DataFrame
+        """Get FEWS qualifiers as a pandas DataFrame.
         Args:
             filter_id (str): the FEWS id of the filter to pass as request parameter
         Returns:
@@ -90,7 +76,7 @@ class Api:
         result = get_filters(**kwargs)
         return result
 
-    def get_locations(self, filter_id=None, attributes=[]):
+    def get_locations(self, filter_id=None, attributes: list = None):
         """Get FEWS qualifiers as a pandas DataFrame.
         Args:
             - filter_id (str): the FEWS id of the filter to pass as request parameter
@@ -98,6 +84,7 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
+        attributes = attributes if attributes else []
         kwargs = self.__kwargs(url_post_fix="locations", kwargs=locals())
         result = get_locations(**kwargs)
         return result
@@ -108,15 +95,11 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        url = f"{self.base_url}qualifiers"
-        result = get_qualifiers(url, verify=self.ssl_verify)
-        return result
+        return get_qualifiers(url=f"{self.base_url}qualifiers")
 
     def get_timezone_id(self) -> str:
         """Get FEWS timezone_id the FEWS API is running on."""
-        url = f"{self.base_url}timezoneid"
-        result = get_timezone_id(url, verify=self.ssl_verify)
-        return result
+        return get_timezone_id(url=f"{self.base_url}timezoneid")
 
     def get_time_series(
         self,

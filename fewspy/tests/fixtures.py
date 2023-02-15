@@ -1,5 +1,5 @@
+from fewspy.api import Api
 from fewspy.constants import API_BASE_URL_TEST
-from fewspy.daniel.src.fewspy.api import Api
 
 import pytest
 import responses

@@ -1,7 +1,7 @@
 from fewspy.constants import API_DOCUMENT_FORMAT
-from fewspy.daniel.src.fewspy.utils.conversions import camel_to_snake_case
-from fewspy.daniel.src.fewspy.utils.timer import Timer
-from fewspy.daniel.src.fewspy.utils.transformations import parameters_to_fews
+from fewspy.utils.conversions import camel_to_snake_case
+from fewspy.utils.timer import Timer
+from fewspy.utils.transformations import parameters_to_fews
 from typing import List
 
 import logging
@@ -27,7 +27,6 @@ def get_parameters(
     url: str,
     filter_id: str = None,
     document_format: str = API_DOCUMENT_FORMAT,
-    verify: bool = False,
 ) -> List[dict]:
     """Get FEWS qualifiers as a pandas DataFrame.
     Args:
@@ -42,7 +41,7 @@ def get_parameters(
     # do the request
     timer = Timer(logger)
     parameters = parameters_to_fews(parameters=locals())
-    response = requests.get(url, parameters, verify=verify)
+    response = requests.get(url, parameters, verify=True)
     timer.report(message="Parameters request")
 
     # parse the response
