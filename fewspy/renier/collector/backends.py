@@ -1,14 +1,14 @@
-from fewspy.renier.collector import constants
-from fewspy.renier.collector import RequestsRetrySession
-from typing import Type
-
-import hkvfewspy
-import logging
-
-
-logger = logging.getLogger(__name__)
-
-PiRestType = Type[hkvfewspy.io.rest_fewspi.PiRest]  # noqa
+# from fewspy.renier.collector import constants
+# from fewspy.renier.collector import RequestsRetrySession
+# from typing import Type
+#
+# import hkvfewspy
+# import logging
+#
+#
+# logger = logging.getLogger(__name__)
+#
+# PiRestType = Type[hkvfewspy.io.rest_fewspi.PiRest]  # noqa
 
 
 def get_pi_rest_instance() -> PiRestType:

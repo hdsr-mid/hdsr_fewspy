@@ -58,7 +58,7 @@ def get_qualifiers(url: str, verify: bool = False, logger=LOGGER) -> pd.DataFram
 
     # do the request
     timer = Timer(logger)
-    response = requests.get(url, verify=False)
+    response = requests.get(url, verify=verify)
     timer.report("Qualifiers request")
 
     # parse the response

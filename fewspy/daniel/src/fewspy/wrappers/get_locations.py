@@ -5,6 +5,7 @@ from ..utils.conversions import xy_array_to_point
 from ..utils.timer import Timer
 from ..utils.transformations import parameters_to_fews
 
+# this import creates a lot of DEBUG logs eg. 'env.py DEBUG No GDAL environment exists'
 import geopandas as gpd
 import logging
 import pandas as pd

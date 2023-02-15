@@ -5,21 +5,12 @@ from datetime import datetime
 from typing import List
 from typing import Union
 
-import aiohttp
-import asyncio
 import logging
 import pandas as pd
 import requests
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _ts_or_headers(only_headers=False):
-    if only_headers:
-        return "Headers {status}"
-    else:
-        return "TimeSeries {status}"
 
 
 def get_time_series(
@@ -63,13 +54,18 @@ def get_time_series(
         "name" and "group_id".
 
     """
-    report_string = _ts_or_headers(only_headers)
+    report_string = "Headers {status}" if only_headers else "TimeSeries {status}"
 
     # do the request
     timer = Timer(logger)
     parameters = parameters_to_fews(locals())
     response = requests.get(url, parameters, verify=verify)
     timer.report(report_string.format(status="request"))
+
+    import json
+
+    with open("aaa.json", "w") as f:
+        json.dump(response.json(), f)
 
     # parse the response
     if response.ok:

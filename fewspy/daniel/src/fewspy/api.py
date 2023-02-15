@@ -6,7 +6,6 @@ https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
 """
 
 from .utils.timer import Timer
-from .utils.url import validate_url
 from .wrappers import get_filters
 from .wrappers import get_locations
 from .wrappers import get_parameters
@@ -14,9 +13,11 @@ from .wrappers import get_qualifiers
 from .wrappers import get_time_series
 from .wrappers import get_time_series_async
 from .wrappers import get_timezone_id
+from typing import Tuple
 
 import logging
 import pandas as pd
+import requests
 import urllib3
 
 
@@ -25,30 +26,51 @@ LOGGER = logging.getLogger(__name__)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+class URLNotFoundError(Exception):
+    pass
+
+
 class Api:
-    """
-    Python API for the Deltares FEWS PI REST Web Service.
+    """Python API for the Deltares FEWS PI REST Web Service.
 
-    For more info on how-to work with the FEWS REST Web Service, visit the Deltares Website: https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
+    For more info on how-to work with the FEWS REST Web Service, visit the Deltares Website:
+    https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
     """
 
-    def __init__(self, url, logger=None, ssl_verify=None):
+    def __init__(self, base_url, logger=None, ssl_verify: bool = False):
         self.document_format = "PI_JSON"
         self.logger = logger
         self.timer = Timer(logger)
-        self.url, verify = validate_url(url)
-
-        # set ssl_verify
-        if ssl_verify is None:
-            self.ssl_verify = verify
-        else:
-            self.ssl_verify = ssl_verify
+        self.url = self._validate_base_url(base_url=base_url)
+        self.ssl_verify = True
 
         # set logger
         if logger is None:
             self.logger = LOGGER
         else:
             self.logger = logger
+
+    @staticmethod
+    def _determine_ssl_verify():
+        # # set ssl_verify
+        # if ssl_verify is None:
+        #     self.ssl_verify = verify
+        # else:
+        #     self.ssl_verify = ssl_verify
+        #
+        # # estimate ssl_verify
+        # if not ssl_verify:
+        #     ssl_verify = True if base_url.startswith("https") else False
+        ssl_verify = True
+
+    @staticmethod
+    def _validate_base_url(base_url: str) -> str:
+        base_url = f"{base_url}/" if not base_url.endswith("/") else base_url
+        test_url = f"{base_url}timezoneid"
+        response = requests.get(url=test_url, verify=False)
+        if response.ok:
+            return base_url
+        raise URLNotFoundError(f"{base_url} is not a root to a live FEWS PI Rest WebService")
 
     def __kwargs(self, url_post_fix: str, kwargs: dict) -> dict:
         kwargs = {
@@ -150,10 +172,10 @@ class Api:
         self,
         filter_id,
         location_ids=None,
-        start_time=None,
-        end_time=None,
         parameter_ids=None,
         qualifier_ids=None,
+        start_time=None,
+        end_time=None,
         thinning=None,
         only_headers=False,
         show_statistics=False,
