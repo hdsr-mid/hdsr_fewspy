@@ -1,8 +1,7 @@
-from ..time_series import TimeSeriesSet
-from ..utils.timer import Timer
-from ..utils.transformations import parameters_to_fews
-from aiohttp import ClientSession
 from datetime import datetime
+from fewspy.constants import API_DOCUMENT_FORMAT
+from fewspy.daniel.src.fewspy.time_series import TimeSeriesSet
+from fewspy.daniel.src.fewspy.utils.transformations import parameters_to_fews
 from typing import List
 from typing import Union
 
@@ -11,17 +10,15 @@ import asyncio
 import logging
 import nest_asyncio
 import pandas as pd
-import requests
 
 
 nest_asyncio.apply()
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def __result_async_to_time_series_set(async_result):
     time_series_set = TimeSeriesSet()
-    time_series_set_gen = (i for i in async_result if "timeSeries" if type(i) == dict)
     time_series_set_list = [i for i in async_result if "timeSeries" in i.keys()]
 
     version = next((i for i in time_series_set_list if "version" in i.keys()), None)
@@ -43,34 +40,26 @@ def get_time_series_async(
     start_time: datetime = None,
     end_time: datetime = None,
     thinning: int = None,
-    document_format: str = "PI_JSON",
+    document_format: str = API_DOCUMENT_FORMAT,
     verify: bool = False,
-    logger=LOGGER,
 ) -> pd.DataFrame:
     """
-
     Args:
-        url (str): url Delft-FEWS PI REST WebService.
-        E.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-        filter_id (str): the FEWS id of the filter to pass as request parameter
-        location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
-        parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
-        qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
-        start_time (datetime.datetime): datetime-object with start datetime to use in request. Defaults to None.
-        end_time (datetime.datetime): datetime-object with end datetime to use in request. Defaults to None.
-        thinning (int): integer value for thinning parameter to use in request. Defaults to None.
-        document_format (str): request document format to return. Defaults to PI_JSON.
-        verify (bool, optional): passed to requests.get verify parameter.
-        Defaults to False.
-        logger (logging.Logger, optional): Logger to pass logging to. By
-        default, a logger will ge created.
-
+        - url (str): url Delft-FEWS PI REST WebService.
+          e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
+        - filter_id (str): the FEWS id of the filter to pass as request parameter
+        - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
+        - parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
+        - qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
+        - start_time (datetime.datetime): datetime-object with start datetime to use in request. Defaults to None.
+        - end_time (datetime.datetime): datetime-object with end datetime to use in request. Defaults to None.
+        - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
+        - document_format (str): request document format to return. Defaults to PI_JSON.
+        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
     Returns:
-        df (pandas.DataFrame): Pandas dataframe with index "id" and columns
-        "name" and "group_id".
-
+        df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
     """
-    parameters = parameters_to_fews(locals())
+    parameters = parameters_to_fews(parameters=locals())
 
     def _get_loop():
         try:
@@ -84,7 +73,7 @@ def get_time_series_async(
             return loop
 
     async def get_timeseries_async(location_id, parameter_id, qualifier_id, session):
-        """Get timerseries using FEWS (asynchronously)"""
+        """Get timerseries using FEWS (asynchronously)."""
         parameters["locationIds"] = [location_id]
         parameters["parameterIds"] = [parameter_id]
         if qualifier_id is not None:
@@ -99,8 +88,7 @@ def get_time_series_async(
         return response_json
 
     async def run_program(location_id, parameter_id, qualifier_id, session):
-
-        """Wrapper for running program in an asynchronous manner"""
+        """Wrapper for running program in an asynchronous manner."""
         try:
             response = await get_timeseries_async(location_id, parameter_id, qualifier_id, session)
         except Exception as err:

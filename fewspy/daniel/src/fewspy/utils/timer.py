@@ -1,5 +1,3 @@
-"""Timer for fewsbokeh."""
-
 import time
 
 
@@ -15,12 +13,12 @@ class Timer(object):
         """Start the timer."""
         self.start = time.time()
 
-    def report(self, message=""):
+    def report(self, message: str = ""):
         """Set milestone and report."""
         self.logger.debug(f"{message} in {(time.time() - self.milestone):.3f} sec")
         self.milestone = time.time()
 
-    def reset(self, message=None):
+    def reset(self, message: str = ""):
         """Report task-efficiency and reset."""
         if message:
             self.logger.debug(f"{message} in {(time.time() - self.start):.3f} sec")

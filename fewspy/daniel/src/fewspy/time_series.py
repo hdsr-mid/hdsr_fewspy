@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from .utils.conversions import camel_to_snake_case
-from .utils.conversions import dict_to_datetime
-from .utils.transformations import flatten_list
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
+from fewspy.daniel.src.fewspy.utils.conversions import camel_to_snake_case
+from fewspy.daniel.src.fewspy.utils.conversions import dict_to_datetime
 from typing import List
 
 import pandas as pd
 
 
+# renier
 DATETIME_KEYS = ["start_date", "end_date"]
 FLOAT_KEYS = ["miss_val", "lat", "lon", "x", "y", "z"]
 EVENT_COLUMNS = ["datetime", "value", "flag"]
@@ -39,15 +39,11 @@ class Header:
 
     @classmethod
     def from_pi_header(cls, pi_header: dict) -> Header:
-        """
-        Parse Header from FEWS PI header dict.
-
+        """Parse Header from FEWS PI header dict.
         Args:
             pi_header (dict): FEWS PI header as dictionary
-
         Returns:
             Header: FEWS-PI header-style dataclass
-
         """
 
         def _convert_kv(k: str, v) -> dict:
@@ -162,4 +158,5 @@ class TimeSeriesSet:
     def qualifier_ids(self):
         qualifiers = (i.header.qualifier_id for i in self.time_series)
         qualifiers = [i for i in qualifiers if i is not None]
-        return list(set(flatten_list(qualifiers)))
+        flat_list = [i for j in qualifiers for i in j]
+        return list(set(flat_list))

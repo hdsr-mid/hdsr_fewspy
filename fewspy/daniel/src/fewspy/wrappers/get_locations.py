@@ -1,52 +1,43 @@
-from ..utils.conversions import attributes_to_array
-from ..utils.conversions import camel_to_snake_case
-from ..utils.conversions import geo_datum_to_crs
-from ..utils.conversions import xy_array_to_point
-from ..utils.timer import Timer
-from ..utils.transformations import parameters_to_fews
+from fewspy.constants import API_DOCUMENT_FORMAT
+from fewspy.daniel.src.fewspy.utils.conversions import attributes_to_array
+from fewspy.daniel.src.fewspy.utils.conversions import camel_to_snake_case
+from fewspy.daniel.src.fewspy.utils.conversions import geo_datum_to_crs
+from fewspy.daniel.src.fewspy.utils.conversions import xy_array_to_point
+from fewspy.daniel.src.fewspy.utils.timer import Timer
+from fewspy.daniel.src.fewspy.utils.transformations import parameters_to_fews
 
-# this import creates a lot of DEBUG logs eg. 'env.py DEBUG No GDAL environment exists'
 import geopandas as gpd
 import logging
 import pandas as pd
 import requests
 
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_locations(
     url: str,
     filter_id: str = None,
-    document_format: str = "PI_JSON",
+    document_format: str = API_DOCUMENT_FORMAT,
     attributes: list = [],
     verify: bool = False,
-    logger=LOGGER,
 ) -> pd.DataFrame:
-    """
-    Get FEWS qualifiers as a pandas DataFrame
-
+    """Get FEWS qualifiers as a pandas DataFrame.
     Args:
-        url (str): url Delft-FEWS PI REST WebService.
-        E.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-        filter_id (str): the FEWS id of the filter to pass as request parameter
-        document_format (str): request document format to return. Defaults to PI_JSON.
-        attributes (list): if not emtpy, the location attributes to include as columns in the pandas DataFrame.
-        verify (bool, optional): passed to requests.get verify parameter.
-        Defaults to False.
-        logger (logging.Logger, optional): Logger to pass logging to. By default, a logger will ge created.
-
+        - url (str): url Delft-FEWS PI REST WebService.
+          e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
+        - filter_id (str): the FEWS id of the filter to pass as request parameter
+        - document_format (str): request document format to return. Defaults to PI_JSON.
+        - attributes (list): if not emtpy, the location attributes to include as columns in the pandas DataFrame.
+        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
     Returns:
-        df (pandas.DataFrame): Pandas dataframe with index "id" and columns
-        "name" and "group_id".
-
+        df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
     """
-
     # do the request
     timer = Timer(logger)
-    parameters = parameters_to_fews(locals())
+    parameters = parameters_to_fews(parameters=locals())
     response = requests.get(url, parameters, verify=verify)
-    timer.report("Locations request")
+    timer.report(message="Locations request")
 
     # parse the response
     if response.status_code == 200:
@@ -64,7 +55,7 @@ def get_locations(
             gdf.loc[:, attributes] = attributes_to_array(gdf["attributes"].values, attributes)
         gdf.drop(columns=["attributes"], inplace=True)
 
-        timer.report("Locations parsed")
+        timer.report(message="Locations parsed")
 
     else:
         logger.error(f"FEWS Server responds {response.text}")

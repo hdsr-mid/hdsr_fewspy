@@ -6,23 +6,20 @@ import pandas as pd
 import requests
 
 
+logger = logging.getLogger(__name__)
+
+
+# renier
 NS = "{http://www.wldelft.nl/fews/PI}"
-LOGGER = logging.getLogger(__name__)
 COLUMNS = ["id", "name", "group_id"]
 
 
 def _element_to_tuple(qualifier_element: ElementTree.Element) -> tuple:
-    """
-    Parses a qualifier element to a tuple
-
+    """Parses a qualifier element to a tuple.
     Args:
-        qualifier_element (xml.etree.ElementTree.Element): ET.Element with
-        Delft-FEWS qualifier tags.
-
+        - qualifier_element (xml.etree.ElementTree.Element): ET.Element with Delft-FEWS qualifier tags.
     Returns:
-        tuple: qualifier properties (id, name, group_id). If not present they
-        will be None.
-
+        tuple: qualifier properties (id, name, group_id). If not present they will be None.
     """
 
     def __get_text(element):
@@ -38,17 +35,14 @@ def _element_to_tuple(qualifier_element: ElementTree.Element) -> tuple:
     return (ident, name, group_id)
 
 
-def get_qualifiers(url: str, verify: bool = False, logger=LOGGER) -> pd.DataFrame:
-    """
-    Get FEWS qualifiers as Pandas DataFrame
+def get_qualifiers(url: str, verify: bool = False) -> pd.DataFrame:
+    """Get FEWS qualifiers as Pandas DataFrame
 
     Args:
         url (str): url Delft-FEWS PI REST WebService.
         E.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
         verify (bool, optional): passed to requests.get verify parameter.
         Defaults to False.
-        logger (logging.Logger, optional): Logger to pass logging to. By
-        default, a new logger will ge created.
 
     Returns:
         df (pandas.DataFrame): Pandas dataframe with index "id" and columns
@@ -59,7 +53,7 @@ def get_qualifiers(url: str, verify: bool = False, logger=LOGGER) -> pd.DataFram
     # do the request
     timer = Timer(logger)
     response = requests.get(url, verify=verify)
-    timer.report("Qualifiers request")
+    timer.report(message="Qualifiers request")
 
     # parse the response
     if response.status_code == 200:
@@ -67,7 +61,7 @@ def get_qualifiers(url: str, verify: bool = False, logger=LOGGER) -> pd.DataFram
         qualifiers_tree = [i for i in tree.iter(tag=f"{NS}qualifier")]
         qualifiers_tuple = (_element_to_tuple(i) for i in qualifiers_tree)
         df = pd.DataFrame(qualifiers_tuple, columns=COLUMNS)
-        timer.report("Qualifiers parsed")
+        timer.report(message="Qualifiers parsed")
     else:
         logger.error(f"FEWS Server responds {response.text}")
         df = pd.DataFrame(columns=COLUMNS)

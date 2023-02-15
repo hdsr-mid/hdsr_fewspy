@@ -1,14 +1,16 @@
 from datetime import datetime
+from fewspy.constants import API_BASE_URL_TEST
 from fewspy.constants import BASE_DIR
-from fewspy.daniel.src.fewspy.api import Api
+from fewspy.tests.fixtures import api_fixture
 
+import json
 import pandas as pd
-import pytest
 import requests
 import responses
 
 
-API_BASE_URL_TEST = "http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/"
+# silence flake8
+api_fixture = api_fixture
 
 
 class RequestData1:
@@ -19,16 +21,13 @@ class RequestData1:
     start_time = datetime(2022, 5, 1)
     end_time = datetime(2022, 5, 2)
 
-
-@pytest.fixture(scope="session")
-@responses.activate
-def api_fixture():
-    """Avoid mocking 2 responses in every test as instantiating Api does an additional GET request to check base url."""
-    # TODO: 'timezoneid' must be also a constant
-    url = f"{API_BASE_URL_TEST}timezoneid"
-    responses.add(method=responses.GET, url=url, status=200)
-    api = Api(base_url=API_BASE_URL_TEST)
-    return api
+    @classmethod
+    def get_expected_json(cls):
+        file_path = BASE_DIR / "fewspy" / "tests" / "data" / "input" / "expected_json.json"
+        assert file_path.is_file()
+        with open(file_path.as_posix()) as src:
+            response_json = json.load(src)
+        return response_json
 
 
 @responses.activate
@@ -51,21 +50,9 @@ def test_mock_google_response_works():
 def test_mock_filled_response(api_fixture):
     request_data = RequestData1
 
-    import json
-
-    file_path = BASE_DIR / "fewspy" / "tests" / "expected_json.json"
-    assert file_path.is_file()
-    with open(file_path.as_posix()) as src:
-        response_json = json.load(src)
-
     # mock response
     url = f"{API_BASE_URL_TEST}timeseries"
-    responses.add(responses.GET, url=url, json=response_json, status=200)
-
-    # url = API_BASE_URL_TEST
-    # response_json = {"error": "not found"}
-    # status_code = 404
-    # responses.add(method=responses.GET, url=url, json=response_json, status=status_code)
+    responses.add(responses.GET, url=url, json=request_data.get_expected_json(), status=200)
 
     ts_set_mock_filled_json = api_fixture.get_time_series(
         filter_id=request_data.filter_id,
