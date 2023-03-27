@@ -19,16 +19,14 @@ def get_timezone_id(
         - url (str): url Delft-FEWS PI REST WebService.
           e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/timezoneid
         - filter_id (str): the FEWS id of the filter to pass as request parameter
-        - document_format (str): request document format to return. Defaults to PI_JSON.
-        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
     Returns:
         str: timezone string, e.g. GMT+01:00 (expressing a GMT + 1 hour offset)
     """
 
     # do the request
-    timer = Timer(logger)
+    timer = Timer()
     parameters = parameters_to_fews(parameters=locals())
-    response = requests.get(url=url, params=parameters, verify=True)
+    response = requests.get(url=url, params=parameters)
     timer.report(message="Timezone request")
 
     # parse the response

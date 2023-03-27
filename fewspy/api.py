@@ -1,21 +1,17 @@
 from fewspy.constants import API_DOCUMENT_FORMAT
+from fewspy.constants import SSL_VERIFY
 from fewspy.exceptions import URLNotFoundError
-from fewspy.utils.timer import Timer
 from fewspy.wrappers import get_filters
 from fewspy.wrappers import get_locations
 from fewspy.wrappers import get_parameters
 from fewspy.wrappers import get_qualifiers
 from fewspy.wrappers import get_time_series
-from fewspy.wrappers import get_time_series_async
 from fewspy.wrappers import get_timezone_id
 
-import logging
 import pandas as pd
 import requests
 import urllib3
 
-
-LOGGER = logging.getLogger(__name__)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -26,12 +22,14 @@ class Api:
     The methods corresponding with the FEWS PI-REST requests (see Deltares website). For more info on how to work
     with the FEWS REST Web Service, visit the Deltares website:
     https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
+
+    Example: api = Api(base_url='http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/')
     """
 
-    def __init__(self, base_url, logger=None):
-        self.document_format: str = API_DOCUMENT_FORMAT
+    def __init__(self, base_url, document_format: str = API_DOCUMENT_FORMAT, ssl_verify: bool = SSL_VERIFY):
         self.base_url = self._validate_base_url(base_url=base_url)
-        self.timer = Timer(logger)
+        self.document_format = document_format
+        self.ssl_verify = SSL_VERIFY
 
     @staticmethod
     def _validate_base_url(base_url: str) -> str:
@@ -48,6 +46,7 @@ class Api:
             **dict(
                 url=f"{self.base_url}{url_post_fix}",
                 document_format=self.document_format,
+                ssl_verify=self.ssl_verify,
             ),
         }
         kwargs.pop("self")
@@ -112,7 +111,6 @@ class Api:
         thinning=None,
         only_headers=False,
         show_statistics=False,
-        parallel=False,
     ):
         """Get FEWS qualifiers as a pandas DataFrame.
 
@@ -126,15 +124,9 @@ class Api:
             - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
             - only_headers (bool): if True, only headers will be returned. Defaults to False.
             - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
-            - parallel (bool): if True, timeseries are requested by the asynchronous wrapper. Defaults to False
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
         kwargs = self.__kwargs(url_post_fix="timeseries", kwargs=locals())
-        if parallel:
-            kwargs.pop("only_headers")
-            kwargs.pop("show_statistics")
-            result = get_time_series_async(**kwargs)
-        else:
-            result = get_time_series(**kwargs)
+        result = get_time_series(**kwargs)
         return result

@@ -29,8 +29,6 @@ def setup_logging() -> None:
 
 # DONE: move all constants to constants
 
-# TODO: create one central location where all requests.get() happens
-
 # TODO: Use BackoffRetry strategy
 
 # TODO: add rate_limiting to requests (freq and size)

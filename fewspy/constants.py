@@ -7,6 +7,7 @@ assert BASE_DIR.name == "hdsr_fewspy", f"BASE_DIR must be hdsr_fewspy, but is {B
 
 API_BASE_URL_TEST = "http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/"
 API_DOCUMENT_FORMAT = "PI_JSON"
+SSL_VERIFY = True
 
 
 class ApiKeys:

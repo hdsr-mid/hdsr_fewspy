@@ -6,7 +6,7 @@ from datetime import datetime
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.conversions import dict_to_datetime
 from typing import List
-
+from typing import Tuple
 import pandas as pd
 
 
@@ -46,7 +46,7 @@ class Header:
             Header: FEWS-PI header-style dataclass
         """
 
-        def _convert_kv(k: str, v) -> dict:
+        def _convert_kv(k: str, v) -> Tuple:
             k = camel_to_snake_case(k)
             if k in DATETIME_KEYS:
                 v = dict_to_datetime(v)
