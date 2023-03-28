@@ -15,9 +15,11 @@ logger = logging.getLogger(__name__)
 
 def get_locations(
     url: str,
-    document_format: str,
+    #
     ssl_verify: bool,
     retry_backoff_session: RequestsRetrySession,
+    #
+    document_format: str,
     filter_id: str = None,
     attributes: list = None,
 ) -> gpd.GeoDataFrame:

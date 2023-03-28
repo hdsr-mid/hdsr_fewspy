@@ -33,7 +33,8 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 Name                                   Stmts   Miss  Cover
 ----------------------------------------------------------
 fewspy\api.py                             56     17    70%
-fewspy\constants\lala.py                  32      2    94%
+fewspy\constants\choices.py               29      2    93%
+fewspy\constants\paths.py                  3      0   100%
 fewspy\constants\pi_settings.py           26      1    96%
 fewspy\constants\request_settings.py      11      0   100%
 fewspy\exceptions.py                      28      2    93%
@@ -47,12 +48,12 @@ fewspy\wrappers\get_filters.py            18     11    39%
 fewspy\wrappers\get_locations.py          28     17    39%
 fewspy\wrappers\get_parameters.py         23     14    39%
 fewspy\wrappers\get_qualifiers.py         33     19    42%
-fewspy\wrappers\get_samples.py            12      5    58%
+fewspy\wrappers\get_samples.py            13      5    62%
 fewspy\wrappers\get_time_series.py        24      1    96%
 fewspy\wrappers\get_timezone_id.py        15      9    40%
 main.py                                   27     27     0%
 ----------------------------------------------------------
-TOTAL                                    584    170    71%
+TOTAL                                    585    170    71%
 ```
 
 ### Conda general tips

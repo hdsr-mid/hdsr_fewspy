@@ -1,3 +1,4 @@
+from datetime import datetime
 from fewspy import wrappers
 from fewspy.constants.pi_settings import pi_settings_production
 from fewspy.constants.pi_settings import PiSettings
@@ -5,6 +6,8 @@ from fewspy.constants.request_settings import request_settings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.exceptions import URLNotFoundError
 from fewspy.retry_session import RequestsRetrySession
+from typing import List
+from typing import Union
 
 import pandas as pd
 import requests
@@ -42,7 +45,7 @@ class Api:
             return base_url
         raise URLNotFoundError(message=f"{base_url} is not a root to a live FEWS PI Rest WebService")
 
-    def _wrapped_kwargs(self, url_post_fix: str, kwargs: dict) -> dict:
+    def _get_kwargs_for_wrapper(self, url_post_fix: str, kwargs: dict) -> dict:
         """Update kwargs for wrapped function
 
         For example:
@@ -93,7 +96,7 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self._wrapped_kwargs(url_post_fix="parameters", kwargs=locals())
+        kwargs = self._get_kwargs_for_wrapper(url_post_fix="parameters", kwargs=locals())
         result = wrappers.get_parameters(**kwargs)
         return result
 
@@ -104,7 +107,7 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self._wrapped_kwargs(url_post_fix="filters", kwargs=locals())
+        kwargs = self._get_kwargs_for_wrapper(url_post_fix="filters", kwargs=locals())
         result = wrappers.get_filters(**kwargs)
         return result
 
@@ -117,7 +120,7 @@ class Api:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
         attributes = attributes if attributes else []
-        kwargs = self._wrapped_kwargs(url_post_fix="locations", kwargs=locals())
+        kwargs = self._get_kwargs_for_wrapper(url_post_fix="locations", kwargs=locals())
         result = wrappers.get_locations(**kwargs)
         return result
 
@@ -127,48 +130,56 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self._wrapped_kwargs(url_post_fix="qualifiers/", kwargs=locals())
+        kwargs = self._get_kwargs_for_wrapper(url_post_fix="qualifiers/", kwargs=locals())
         return wrappers.get_qualifiers(**kwargs)
-
-    def get_samples(self) -> pd.DataFrame:
-        """
-        # TODO
-        """
-        kwargs = self._wrapped_kwargs(url_post_fix="samples/", kwargs=locals())
-        return wrappers.get_samples(**kwargs)
 
     def get_timezone_id(self) -> str:
         """Get FEWS timezone_id the FEWS API is running on."""
-        kwargs = self._wrapped_kwargs(url_post_fix="timezoneid/", kwargs=locals())
+        kwargs = self._get_kwargs_for_wrapper(url_post_fix="timezoneid/", kwargs=locals())
         return wrappers.get_timezone_id(**kwargs)
+
+    def get_samples(self, start_time, end_time) -> pd.DataFrame:
+        """Get FEWS samples as a pandas DataFrame."""
+        kwargs = self._get_kwargs_for_wrapper(url_post_fix="samples/", kwargs=locals())
+        return wrappers.get_samples(**kwargs)
 
     def get_time_series(
         self,
-        filter_id,
-        location_ids=None,
-        parameter_ids=None,
-        qualifier_ids=None,
-        start_time=None,
-        end_time=None,
-        thinning=None,
-        only_headers=False,
-        show_statistics=False,
+        filter_id: str,
+        start_time: datetime,
+        end_time: datetime,
+        location_ids: Union[str, List[str]] = None,
+        parameter_ids: Union[str, List[str]] = None,
+        qualifier_ids: Union[str, List[str]] = None,
+        thinning: int = None,
+        only_headers: bool = False,
+        show_statistics: bool = False,
+        omit_empty_timeseries: bool = True,
     ):
         """Get FEWS qualifiers as a pandas DataFrame.
 
         Args:
-            - filter_id (str): the FEWS id of the filter to pass as request parameter
+            - filter_id (str): the FEWS id of the filter to pass as request parameter.
+            - start_time (datetime.datetime): datetime-object with start datetime to use in request.
+            - end_time (datetime.datetime): datetime-object with end datetime to use in request.
             - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
             - parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
             - qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
-            - start_time (datetime.datetime): datetime-object with start datetime to use in request. Defaults to None.
-            - end_time (datetime.datetime): datetime-object with end datetime to use in request. Defaults to None.
             - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
             - only_headers (bool): if True, only headers will be returned. Defaults to False.
             - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self._wrapped_kwargs(url_post_fix="timeseries/", kwargs=locals())
+        kwargs = self._get_kwargs_for_wrapper(url_post_fix="timeseries/", kwargs=locals())
+        # start_time
+        # assert start_time and  < xml_end_max_today
+        # uuid = RedisOuterKeys.uuid(row=row)
+        # date_range_frequency = self.pi_rest.settings.default_request_period
+        # request_date_ranges, date_range_frequency = self._create_date_ranges(
+        #     startdate_obj=xml_start,
+        #     enddate_obj=xml_end_max_today,
+        #     frequency=date_range_frequency,
+        # )
         result = wrappers.get_time_series(**kwargs)
         return result

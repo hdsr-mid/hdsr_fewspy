@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
-from fewspy.constants.lala import TimeZoneChoices
+from fewspy.constants.choices import TimeZoneChoices
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.conversions import dict_to_datetime
 from typing import List

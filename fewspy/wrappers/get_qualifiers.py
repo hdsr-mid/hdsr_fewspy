@@ -17,7 +17,13 @@ COLUMNS = ["id", "name", "group_id"]
 class GetQualifiers:
     @classmethod
     def get_qualifiers(
-        cls, url: str, document_format: str, ssl_verify: bool, retry_backoff_session: RequestsRetrySession
+        cls,
+        url: str,
+        #
+        ssl_verify: bool,
+        retry_backoff_session: RequestsRetrySession,
+        #
+        document_format: str,
     ) -> pd.DataFrame:
         """Get FEWS qualifiers as Pandas DataFrame.
         Args:

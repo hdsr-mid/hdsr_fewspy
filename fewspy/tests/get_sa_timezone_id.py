@@ -1,5 +1,5 @@
 from datetime import datetime
-from fewspy.constants.lala import BASE_DIR
+from fewspy.constants.paths import BASE_DIR
 from fewspy.tests.fixtures import api_sa_fixture
 
 import json

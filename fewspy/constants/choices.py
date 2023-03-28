@@ -1,10 +1,5 @@
 from enum import Enum
-from pathlib import Path
 from typing import List
-
-
-BASE_DIR = Path(__file__).parent.parent.parent
-assert BASE_DIR.name == "hdsr_fewspy", f"BASE_DIR must be hdsr_fewspy, but is {BASE_DIR.name}"
 
 
 class PiRestDocumentFormatChoices(Enum):
@@ -24,6 +19,10 @@ class TimeZoneChoices(Enum):
     @classmethod
     def get_all(cls) -> List[str]:
         return [x.value for x in cls.__members__.values()]
+
+    @classmethod
+    def date_string_format(cls) -> str:
+        return "%Y-%m-%dT%H:%M:%SZ"
 
 
 class ApiKeys:

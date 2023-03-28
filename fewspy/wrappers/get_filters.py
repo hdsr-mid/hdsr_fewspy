@@ -11,9 +11,11 @@ logger = logging.getLogger(__name__)
 
 def get_filters(
     url: str,
-    document_format: str,
+    #
     ssl_verify: bool,
     retry_backoff_session: RequestsRetrySession,
+    #
+    document_format: str,
     filter_id: str = None,
 ) -> List[dict]:
     """Get FEWS qualifiers as a pandas DataFrame.

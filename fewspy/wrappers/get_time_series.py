@@ -14,15 +14,17 @@ logger = logging.getLogger(__name__)
 
 def get_time_series(
     url: str,
-    document_format: str,
+    #
     ssl_verify: bool,
-    filter_id: str,
     retry_backoff_session: RequestsRetrySession,
+    #
+    document_format: str,
+    filter_id: str,
+    start_time: datetime,
+    end_time: datetime,
     location_ids: Union[str, List[str]] = None,
     parameter_ids: Union[str, List[str]] = None,
     qualifier_ids: Union[str, List[str]] = None,
-    start_time: datetime = None,
-    end_time: datetime = None,
     thinning: int = None,
     only_headers: bool = False,
     show_statistics: bool = False,
@@ -33,11 +35,11 @@ def get_time_series(
         - url (str): url Delft-FEWS PI REST WebService.
           e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
         - filter_id (str): the FEWS id of the filter to pass as request parameter
+        - start_time (datetime.datetime): datetime-object with start datetime to use in request.
+        - end_time (datetime.datetime): datetime-object with end datetime to use in request.
         - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
         - parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
         - qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
-        - start_time (datetime.datetime): datetime-object with start datetime to use in request. Defaults to None.
-        - end_time (datetime.datetime): datetime-object with end datetime to use in request. Defaults to None.
         - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
         - only_headers (bool): if True, only headers will be returned. Defaults to False.
         - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.

@@ -21,7 +21,13 @@ COLUMNS = [
 
 
 def get_parameters(
-    url: str, document_format: str, ssl_verify: bool, retry_backoff_session: RequestsRetrySession, filter_id: str = None
+    url: str,
+    #
+    ssl_verify: bool,
+    retry_backoff_session: RequestsRetrySession,
+    #
+    document_format: str,
+    filter_id: str = None,
 ) -> pd.DataFrame:
     """Get FEWS qualifiers as a pandas DataFrame.
 

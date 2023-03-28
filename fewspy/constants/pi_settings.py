@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from fewspy.constants.lala import PiRestDocumentFormatChoices
-from fewspy.constants.lala import TimeZoneChoices
+from fewspy.constants.choices import PiRestDocumentFormatChoices
+from fewspy.constants.choices import TimeZoneChoices
 from typing import List
 
 
@@ -60,9 +60,9 @@ pi_settings_sa = PiSettings(
     missing_value=-999.0,
     allowed_flags=[0, 1, 2, 3, 4, 5],
     domain="localhost",
-    port=8081,
+    port=8080,
     service="FewsWebServices",
-    filter_id="INTERAL-API.RUW_OPVL",
+    filter_id="INTERAL-API",
     module_instance_id="ImportOpvlWater",
     time_zone=TimeZoneChoices.gmt_0.value,
 )

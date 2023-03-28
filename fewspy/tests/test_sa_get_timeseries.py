@@ -1,33 +1,66 @@
+from copy import deepcopy
 from fewspy.tests.fixtures import api_sa_fixture
 from fewspy.tests.fixtures_requests import RequestData1
 
 import pandas as pd
-import responses
+import pytest
 
 
 # silence flake8
 api_sa_fixture = api_sa_fixture
 
 
-@responses.activate
-def test_sa_filled_response(api_sa_fixture):
+def test_sa_wrong_request1(api_sa_fixture):
+    """Arguments start and end are required for get_timeseries."""
     request_data = RequestData1
 
-    # mock response
-    url = f"{api_sa_fixture.base_url}timeseries/"
-    responses.add(responses.GET, url=url, json=request_data.get_expected_json(), status=200)
+    # args start is required for get_timeseries
+    with pytest.raises(TypeError):  # get_time_series() missing 1 required positional argument: 'start_time'
+        api_sa_fixture.get_time_series(
+            filter_id=request_data.filter_id,
+            location_ids=request_data.location_ids,
+            parameter_ids=request_data.parameter_ids,
+            # skip start: start_time=request_data.start_time
+            end_time=request_data.end_time,
+        )
+    # args end is required for get_timeseries
+    with pytest.raises(Exception):  # get_time_series() missing 1 required positional argument: 'end_time'
+        api_sa_fixture.get_time_series(
+            filter_id=request_data.filter_id,
+            location_ids=request_data.location_ids,
+            parameter_ids=request_data.parameter_ids,
+            start_time=request_data.start_time
+            # skip end: end_time=request_data.end_time,
+        )
 
-    ts_set_mock_filled_json = api_sa_fixture.get_time_series(
+
+def test_sa_wrong_request2(api_sa_fixture):
+    """Arguments start and end must be valid."""
+    request_data = RequestData1
+
+    api_sa_fixture.get_time_series(
+        filter_id=request_data.filter_id,
+        location_ids=request_data.location_ids,
+        parameter_ids=request_data.parameter_ids,
+        start_time=request_data.start_time.strftime(),
+        end_time=request_data.end_time,
+    )
+
+
+def test_sa_response(api_sa_fixture):
+    request_data = RequestData1
+
+    ts_set_json = api_sa_fixture.get_time_series(
         filter_id=request_data.filter_id,
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,
         start_time=request_data.start_time,
         end_time=request_data.end_time,
     )
-    assert isinstance(ts_set_mock_filled_json.time_series, list) and len(ts_set_mock_filled_json.time_series) == 3
-    ts_1 = ts_set_mock_filled_json.time_series[0]
-    ts_2 = ts_set_mock_filled_json.time_series[1]
-    ts_3 = ts_set_mock_filled_json.time_series[2]
+    assert isinstance(ts_set_json.time_series, list) and len(ts_set_json.time_series) == 3
+    ts_1 = ts_set_json.time_series[0]
+    ts_2 = ts_set_json.time_series[1]
+    ts_3 = ts_set_json.time_series[2]
 
     for ts in (ts_1, ts_2, ts_3):
         first_stamp = ts.events.iloc[0]
@@ -40,10 +73,10 @@ def test_sa_filled_response(api_sa_fixture):
         assert last_stamp.flag == 0.0
         assert last_stamp.value == -0.429
 
-    assert ts_set_mock_filled_json.location_ids == request_data.location_ids
+    assert ts_set_json.location_ids == request_data.location_ids
 
     # TODO: why does property 'parameter_id' not exist?
-    # assert ts_set_mock_filled_json.parameter_id == request_data.parameter_ids
+    # assert ts_set_json.parameter_id == request_data.parameter_ids
 
-    assert ts_set_mock_filled_json.time_zone == 0.0
-    assert ts_set_mock_filled_json.version == "1.32"
+    assert ts_set_json.time_zone == 0.0
+    assert ts_set_json.version == "1.32"
