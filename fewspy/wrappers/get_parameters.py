@@ -20,12 +20,7 @@ COLUMNS = [
 ]
 
 
-def get_parameters(
-    url: str,
-    document_format: str,
-    ssl_verify: bool,
-    filter_id: str = None,
-) -> pd.DataFrame:
+def get_parameters(url: str, filter_id: str = None) -> pd.DataFrame:
     """Get FEWS qualifiers as a pandas DataFrame.
 
     Args:

@@ -1,7 +1,8 @@
 from fewspy import exceptions
-from fewspy.webservices import PiWebServiceSettingsBase
-from fewspy.webservices import ProductionWebServiceSettings
-from fewspy.webservices import StandAloneWebServiceSettings
+from fewspy.constants.pi_settings import pi_settings_production
+from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import request_settings
+from fewspy.constants.request_settings import RequestSettings
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from time import sleep
@@ -54,17 +55,20 @@ class RequestsRetrySession:
     allowed_methods: List[str] = ["HEAD", "GET", "OPTIONS"]  # we do not PUT/PATCH to PiWebService
     timeout_seconds: int = 2
 
-    def __init__(self, settings: PiWebServiceSettingsBase):
-        self.settings = settings
+    def __init__(
+        self, _request_settings: RequestSettings = request_settings, pi_settings: PiSettings = pi_settings_production
+    ):
+        self.request_settings = _request_settings
+        self.pi_settings = pi_settings
         self.datetime_previous_request = pd.Timestamp.now()  # this immutable object is updated during runtime
         self.__retry_session = None
 
     def _optional_sleep_until_next_request(self, time_since_previous_request: pd.Timedelta) -> None:
         """Ensure a minimum time between each PiWebService request."""
         logger.debug(f"time_since_previous_request {time_since_previous_request}")
-        if time_since_previous_request > self.settings.min_time_between_requests:
+        if time_since_previous_request > self.request_settings.min_time_between_requests:
             return
-        timedelta_to_wait = self.settings.min_time_between_requests - time_since_previous_request
+        timedelta_to_wait = self.request_settings.min_time_between_requests - time_since_previous_request
         seconds_to_wait = timedelta_to_wait.round(pd.Timedelta(seconds=1)).seconds  # noqa
         logger.debug(f"sleep {seconds_to_wait} seconds until next request")
         sleep(seconds_to_wait)
@@ -79,19 +83,19 @@ class RequestsRetrySession:
             response = self._retry_session.get(url=url, timeout=timeout_seconds, **kwargs)
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as err:
             logger.error(f"request failed for url: {url}, err: {err}")
-            if isinstance(self.settings, StandAloneWebServiceSettings):
+            if self.pi_settings.domain == "localhost":
                 msg = (
                     f"Please make sure fews SA webservice is running (D:/Tomcat/bin/Tomcat9w.exe). Verify with "
-                    f"in browser url={self.settings.test_url}"
+                    f"in browser url={self.pi_settings.test_url}"
                 )
                 raise exceptions.StandAloneFewsWebServiceNotRunningError(message=msg, errors=err)
-            assert isinstance(self.settings, ProductionWebServiceSettings)
+            assert isinstance(self.pi_settings, PiSettings)
             raise
         except Exception as err:
             logger.error(f"unexpected error: request failed for url={url}, err={err}")
             raise
         response_seconds = (pd.Timestamp.now() - now).seconds
-        if response_seconds > self.settings.max_response_time.seconds:
+        if response_seconds > self.request_settings.max_response_time.seconds:
             logger.warning(f"response_seconds={response_seconds}, status={response.status_code}, url={url}")
         return response
 

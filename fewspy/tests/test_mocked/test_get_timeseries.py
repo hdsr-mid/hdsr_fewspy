@@ -1,7 +1,6 @@
 from datetime import datetime
-from fewspy.constants import API_BASE_URL_TEST
-from fewspy.constants import BASE_DIR
-from fewspy.tests.fixtures import api_fixture
+from fewspy.constants.lala import BASE_DIR
+from fewspy.tests.fixtures import api_mocked_fixture
 
 import json
 import pandas as pd
@@ -9,7 +8,7 @@ import responses
 
 
 # silence flake8
-api_fixture = api_fixture
+api_fixture = api_mocked_fixture
 
 
 class RequestData1:
@@ -30,12 +29,12 @@ class RequestData1:
 
 
 @responses.activate
-def test_mock_empty_response(api_fixture):
+def test_mock_empty_response(api_mocked_fixture):
     request_data = RequestData1
     response_json = {"error": "bla bla bla"}
-    responses.add(responses.GET, url=f"{API_BASE_URL_TEST}timeseries", json=response_json, status=404)
+    responses.add(responses.GET, url=f"{api_mocked_fixture.base_url}timeseries", json=response_json, status=404)
 
-    ts_set_mock_empty_json = api_fixture.get_time_series(
+    ts_set_mock_empty_json = api_mocked_fixture.get_time_series(
         filter_id=request_data.filter_id,
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,
@@ -51,14 +50,14 @@ def test_mock_empty_response(api_fixture):
 
 
 @responses.activate
-def test_mock_filled_response(api_fixture):
+def test_mock_filled_response(api_mocked_fixture):
     request_data = RequestData1
 
     # mock response
-    url = f"{API_BASE_URL_TEST}timeseries"
+    url = f"{api_mocked_fixture.base_url}timeseries"
     responses.add(responses.GET, url=url, json=request_data.get_expected_json(), status=200)
 
-    ts_set_mock_filled_json = api_fixture.get_time_series(
+    ts_set_mock_filled_json = api_mocked_fixture.get_time_series(
         filter_id=request_data.filter_id,
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,

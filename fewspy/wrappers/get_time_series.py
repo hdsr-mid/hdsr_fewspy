@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 def get_time_series(
     url: str,
-    filter_id: str,
     document_format: str,
     ssl_verify: bool,
+    filter_id: str,
     location_ids: Union[str, List[str]] = None,
     parameter_ids: Union[str, List[str]] = None,
     qualifier_ids: Union[str, List[str]] = None,
@@ -31,7 +31,6 @@ def get_time_series(
         - url (str): url Delft-FEWS PI REST WebService.
           e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
         - filter_id (str): the FEWS id of the filter to pass as request parameter
-        - document_format: str
         - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
         - parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
         - qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
@@ -57,7 +56,7 @@ def get_time_series(
         pi_time_series = response.json()
         time_series_set = TimeSeriesSet.from_pi_time_series(pi_time_series)
         timer.report(message=report_string.format(status="parsed"))
-        if time_series_set.empty:
+        if time_series_set.is_empty:
             logger.debug(f"FEWS WebService request passing empty set: {response.url}")
     else:
         logger.error(f"FEWS WebService request {response.url} responds {response.text}")

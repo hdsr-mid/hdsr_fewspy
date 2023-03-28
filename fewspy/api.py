@@ -1,5 +1,7 @@
-from fewspy.constants import API_DOCUMENT_FORMAT
-from fewspy.constants import SSL_VERIFY
+from fewspy.constants.pi_settings import pi_settings_production
+from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import request_settings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.exceptions import URLNotFoundError
 from fewspy.wrappers import get_filters
 from fewspy.wrappers import get_locations
@@ -26,10 +28,14 @@ class Api:
     Example: api = Api(base_url='http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/')
     """
 
-    def __init__(self, base_url, document_format: str = API_DOCUMENT_FORMAT, ssl_verify: bool = SSL_VERIFY):
-        self.base_url = self._validate_base_url(base_url=base_url)
-        self.document_format = document_format
-        self.ssl_verify = SSL_VERIFY
+    def __init__(
+        self,
+        base_url: str = None,
+        pi_settings: PiSettings = pi_settings_production,
+    ):
+        self.base_url = self._validate_base_url(base_url=base_url if base_url else pi_settings.base_url)
+        self.pi_settings = pi_settings
+        self.request_settings: RequestSettings = request_settings
 
     @staticmethod
     def _validate_base_url(base_url: str) -> str:
@@ -39,14 +45,43 @@ class Api:
             return base_url
         raise URLNotFoundError(message=f"{base_url} is not a root to a live FEWS PI Rest WebService")
 
-    def __kwargs(self, url_post_fix: str, kwargs: dict) -> dict:
-        """TODO docstring..."""
+    def _wrapped_kwargs(self, url_post_fix: str, kwargs: dict) -> dict:
+        """Update kwargs for wrapped function
+
+        For example:
+            from this {
+                'end_time': datetime.datetime(2022, 5, 2, 0, 0),
+                'filter_id': 'INTERNAL-API',
+                'location_ids': ['OW433001'],
+                'only_headers': False,
+                'parameter_ids': ['H.G.0'],
+                'qualifier_ids': None,
+                'self': <fewspy.api.Api object at 0x000001F76CD1A0C8>,
+                'show_statistics': False,
+                'start_time': datetime.datetime(2022, 5, 1, 0, 0),
+                'thinning': None
+                }
+            to this {
+                'document_format': 'PI_JSON',
+                'end_time': datetime.datetime(2022, 5, 2, 0, 0),
+                'filter_id': 'INTERNAL-API',
+                'location_ids': ['OW433001'],
+                'only_headers': False,
+                'parameter_ids': ['H.G.0'],
+                'qualifier_ids': None,
+                'show_statistics': False,
+                'ssl_verify': True,
+                'start_time': datetime.datetime(2022, 5, 1, 0, 0),
+                'thinning': None,
+                'url': 'http://xx:9999//rest/fewspiservice/v1/timeseries'
+                }
+        """
         kwargs = {
             **kwargs,
             **dict(
                 url=f"{self.base_url}{url_post_fix}",
-                document_format=self.document_format,
-                ssl_verify=self.ssl_verify,
+                document_format=self.pi_settings.document_format,
+                ssl_verify=self.pi_settings.ssl_verify,
             ),
         }
         kwargs.pop("self")
@@ -60,7 +95,7 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self.__kwargs(url_post_fix="parameters", kwargs=locals())
+        kwargs = self._wrapped_kwargs(url_post_fix="parameters", kwargs=locals())
         result = get_parameters(**kwargs)
         return result
 
@@ -71,7 +106,7 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self.__kwargs(url_post_fix="filters", kwargs=locals())
+        kwargs = self._wrapped_kwargs(url_post_fix="filters", kwargs=locals())
         result = get_filters(**kwargs)
         return result
 
@@ -84,7 +119,7 @@ class Api:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
         attributes = attributes if attributes else []
-        kwargs = self.__kwargs(url_post_fix="locations", kwargs=locals())
+        kwargs = self._wrapped_kwargs(url_post_fix="locations", kwargs=locals())
         result = get_locations(**kwargs)
         return result
 
@@ -127,6 +162,6 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self.__kwargs(url_post_fix="timeseries", kwargs=locals())
+        kwargs = self._wrapped_kwargs(url_post_fix="timeseries", kwargs=locals())
         result = get_time_series(**kwargs)
         return result

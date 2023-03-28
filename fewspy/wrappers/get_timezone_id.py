@@ -1,4 +1,3 @@
-from fewspy.constants import API_DOCUMENT_FORMAT
 from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
 
@@ -12,7 +11,6 @@ logger = logging.getLogger(__name__)
 def get_timezone_id(
     url: str,
     filter_id: str = None,
-    document_format: str = API_DOCUMENT_FORMAT,
 ) -> str:
     """Get FEWS timezone id.
     Args:

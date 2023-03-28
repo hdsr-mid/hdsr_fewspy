@@ -27,8 +27,6 @@ def setup_logging() -> None:
     _logger.addHandler(stream_handler)
 
 
-# DONE: move all constants to constants
-
 # TODO: Use BackoffRetry strategy
 
 # TODO: add rate_limiting to requests (freq and size)

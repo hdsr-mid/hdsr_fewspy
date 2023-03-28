@@ -1,4 +1,5 @@
 from fewspy.utils.timer import Timer
+from typing import Tuple
 from xml.etree import ElementTree
 
 import logging
@@ -44,7 +45,7 @@ class GetQualifiers:
         return df
 
     @classmethod
-    def _element_to_tuple(cls, qualifier_element: ElementTree.Element) -> tuple:
+    def _element_to_tuple(cls, qualifier_element: ElementTree.Element) -> Tuple:
         """Parses a qualifier element to a tuple.
         Args:
             - qualifier_element (xml.etree.ElementTree.Element): ET.Element with Delft-FEWS qualifier tags.

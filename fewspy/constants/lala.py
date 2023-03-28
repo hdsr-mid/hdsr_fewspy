@@ -1,13 +1,29 @@
+from enum import Enum
 from pathlib import Path
+from typing import List
 
 
-# BASE_DIR avoid 'Path.cwd()', as wis_timeseries_gapfinder.main() should be callable from everywhere
-BASE_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(__file__).parent.parent.parent
 assert BASE_DIR.name == "hdsr_fewspy", f"BASE_DIR must be hdsr_fewspy, but is {BASE_DIR.name}"
 
-API_BASE_URL_TEST = "http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/"
-API_DOCUMENT_FORMAT = "PI_JSON"
-SSL_VERIFY = True
+
+class PiRestDocumentFormatChoices(Enum):
+    json = "PI_JSON"
+    # xml = "PI_XML"
+
+    @classmethod
+    def get_all(cls) -> List[str]:
+        return [x.value for x in cls.__members__.values()]
+
+
+class TimeZoneChoices(Enum):
+    gmt = "Etc/GMT"
+    gmt_0 = "Etc/GMT-0"
+    eu_amsterdam = "Europe/Amsterdam"
+
+    @classmethod
+    def get_all(cls) -> List[str]:
+        return [x.value for x in cls.__members__.values()]
 
 
 class ApiKeys:
