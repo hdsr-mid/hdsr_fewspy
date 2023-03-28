@@ -1,4 +1,5 @@
 from datetime import datetime
+from fewspy.retry_session import RequestsRetrySession
 from fewspy.time_series import TimeSeriesSet
 from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
@@ -6,7 +7,6 @@ from typing import List
 from typing import Union
 
 import logging
-import requests
 
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,7 @@ def get_time_series(
     document_format: str,
     ssl_verify: bool,
     filter_id: str,
+    retry_backoff_session: RequestsRetrySession,
     location_ids: Union[str, List[str]] = None,
     parameter_ids: Union[str, List[str]] = None,
     qualifier_ids: Union[str, List[str]] = None,
@@ -25,6 +26,7 @@ def get_time_series(
     thinning: int = None,
     only_headers: bool = False,
     show_statistics: bool = False,
+    omit_empty_timeseries: bool = True,
 ) -> TimeSeriesSet:
     """Get FEWS qualifiers as a pandas DataFrame.
     Args:
@@ -39,6 +41,7 @@ def get_time_series(
         - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
         - only_headers (bool): if True, only headers will be returned. Defaults to False.
         - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
+        - omit_empty_timeseries (bool): if True, missing values (-999) are left out in response. Defaults to True
     Returns:
         df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
 
@@ -48,7 +51,7 @@ def get_time_series(
     # do the request
     timer = Timer()
     parameters = parameters_to_fews(parameters=locals())
-    response = requests.get(url=url, params=parameters, verify=ssl_verify)
+    response = retry_backoff_session.get(url=url, params=parameters, verify=ssl_verify)
     timer.report(message=report_string.format(status="request"))
 
     # parse the response

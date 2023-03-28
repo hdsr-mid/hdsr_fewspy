@@ -1,3 +1,4 @@
+from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.conversions import attributes_to_array
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.conversions import geo_datum_to_crs
@@ -7,7 +8,6 @@ from fewspy.utils.transformations import parameters_to_fews
 
 import geopandas as gpd
 import logging
-import requests
 
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,7 @@ def get_locations(
     url: str,
     document_format: str,
     ssl_verify: bool,
+    retry_backoff_session: RequestsRetrySession,
     filter_id: str = None,
     attributes: list = None,
 ) -> gpd.GeoDataFrame:
@@ -35,7 +36,7 @@ def get_locations(
     # do the request
     timer = Timer()
     parameters = parameters_to_fews(parameters=locals())
-    response = requests.get(url, parameters, verify=True)
+    response = retry_backoff_session.get(url=url, parameters=parameters, verify=ssl_verify)
     timer.report(message="Locations request")
 
     # parse the response

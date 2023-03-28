@@ -17,7 +17,6 @@ def setup_logging() -> None:
     log_level = logging.DEBUG
     log_date_format = "%H:%M:%S"
     log_format = "%(asctime)s %(filename)s %(levelname)s %(message)s"
-
     _logger = logging.getLogger()
     _logger.setLevel(log_level)
     formatter = logging.Formatter(fmt=log_format, datefmt=log_date_format)
@@ -27,7 +26,15 @@ def setup_logging() -> None:
     _logger.addHandler(stream_handler)
 
 
-# TODO: Use BackoffRetry strategy
+if __name__ == "__main__":
+    check_python_version()
+    setup_logging()
+    logger = logging.getLogger(__name__)
+    logger.info("starting app")
+    logger.info("shutting down app")
+
+
+# DONE: Use BackoffRetry strategy
 
 # TODO: add rate_limiting to requests (freq and size)
 
@@ -39,11 +46,48 @@ def setup_logging() -> None:
 
 # TODO: create documentation
 
+# TODO: enable users to override Api.pi_settings
 
-if __name__ == "__main__":
-    check_python_version()
-    setup_logging()
-    logger = logging.getLogger(__name__)
-    logger.info("starting app")
+# TODO: Ciska wel interesse wel in:
+#  --------------------------------
+#  get_samples (grote request)
+#  - Deltares is hier begin 2024 klaar. Nu geeft FEWS EFICS piwebservice na 2 of 5 minuten een timeout
+#  get_timeseries (grote request)
+#  - altijd start en end
+#  - altijd omitEmptyTimeSeries op True anders geeft ie minimaal weken aan tijdseries terug
+#  - vaak filter_id
+#  - soms parameter_id, location_id, moduleinstance_id
+#  - heel soms qualifier_id
+#  get_parameters (middlegrote request = 400 parameters)
+#  get_locations (kleine request = 300 locaties)
+#
 
-    logger.info("shutting down app")
+# TODO: Ciska geen interesse in:
+#  --------------------------------
+#  get_qualifiers
+
+# TODO: check of properties goed meekomen in get_timeseries in PI_JSON (in PI_XML gaat het goed) -> Ciska:" bij EFICS werkt niet helemaal lekker. bij get_samples gaat het helemaal fout"
+
+# TODO: potentieel van grote naar kleine belasting (retry-backoff nodig): get_samples, get_timeseries, get_qualifiers (25 groepen * 100k regels per groep), get_parameters (4000), get_locations (300)
+
+# TODO: use onlyHeader=True kan voor get_timeseries en get_samples (beide hebben ook start + eind).
+#  Echter, get_qualifiers heeft dat niet. FEWS-WIS response is snel (<1sec). FEWS-EFICS duurt lang (8 sec)
+#  get_lcoations duurt 7 sec.
+#  Voorstel Ciska: alleen func get_timeseries + get_samples via PiWebService. De andere request disabelen: logger.info('Stuur ciska.overbeek@hdsr.nl een mailtje of dat lijstje mag, dan krijg je er ook nog meer info bij)
+#  die lijstjes worden 2 a 3 per jaar script + handmatig ge-update.
+
+# TODO: maak een hdsr_fewspy_auth repo met daarin een .csv
+#  naam            token                   expiry_date     allowed_service     allowed_filters <-- checken bij Roger of PiWebService authenticatie kan doen (zo niet, dan allowed_service, allowed_filters meenemen in hdsr_fewspy_auth
+#  epke vd werf    adsf;lkjasdhfal;dkj     2024            OWDApi
+#  rob vd hengel   ad;fljahdfgal;djkdf     2024            [INTERNAL-API, SWM]
+#  roger
+#  renier
+#  ciska
+
+# TODO: add usage examples to readme.md
+#  pip install hdsr_fewspy
+#  user + token
+#  request naar repo met bovenstaande csv (check)
+#  api = Api(user=rob, token=adsfads;flkj, output_folder=..., convert_output_to_csv=False)
+#  response = api.get_time_series(parameter_ids=['H.G.0'])
+#  # TODO: voor Ciska belangrijk dat er een xml uitkomt

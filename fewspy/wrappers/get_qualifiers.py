@@ -1,10 +1,10 @@
+from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.timer import Timer
 from typing import Tuple
 from xml.etree import ElementTree
 
 import logging
 import pandas as pd
-import requests
 
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,9 @@ COLUMNS = ["id", "name", "group_id"]
 
 class GetQualifiers:
     @classmethod
-    def get_qualifiers(cls, url: str) -> pd.DataFrame:
+    def get_qualifiers(
+        cls, url: str, document_format: str, ssl_verify: bool, retry_backoff_session: RequestsRetrySession
+    ) -> pd.DataFrame:
         """Get FEWS qualifiers as Pandas DataFrame.
         Args:
             - url (str): url Delft-FEWS PI REST WebService.
@@ -27,7 +29,7 @@ class GetQualifiers:
         """
         # do the request
         timer = Timer()
-        response = requests.get(url, verify=True)
+        response = retry_backoff_session.get(url=url, verify=ssl_verify)
         timer.report(message="Qualifiers request")
 
         # parse the response

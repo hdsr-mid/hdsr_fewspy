@@ -1,10 +1,10 @@
+from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
 
 import logging
 import pandas as pd
-import requests
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,9 @@ COLUMNS = [
 ]
 
 
-def get_parameters(url: str, filter_id: str = None) -> pd.DataFrame:
+def get_parameters(
+    url: str, document_format: str, ssl_verify: bool, retry_backoff_session: RequestsRetrySession, filter_id: str = None
+) -> pd.DataFrame:
     """Get FEWS qualifiers as a pandas DataFrame.
 
     Args:
@@ -35,7 +37,7 @@ def get_parameters(url: str, filter_id: str = None) -> pd.DataFrame:
     # do the request
     timer = Timer()
     parameters = parameters_to_fews(parameters=locals())
-    response = requests.get(url, parameters, verify=True)
+    response = retry_backoff_session.get(url, parameters=parameters, verify=ssl_verify)
     timer.report(message="Parameters request")
 
     # parse the response

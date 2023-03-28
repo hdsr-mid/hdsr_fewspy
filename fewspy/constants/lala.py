@@ -41,3 +41,4 @@ class ApiKeys:
     attributes = "attributes"
     show_statistics = "show_statistics"
     thinning = "thinning"
+    omit_empty_timeseries = "omit_empty_timeSeries"

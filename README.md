@@ -32,26 +32,27 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                   Stmts   Miss  Cover
 ----------------------------------------------------------
-fewspy\api.py                             53     13    75%
-fewspy\constants\lala.py                  31      2    94%
+fewspy\api.py                             56     17    70%
+fewspy\constants\lala.py                  32      2    94%
 fewspy\constants\pi_settings.py           26      1    96%
 fewspy\constants\request_settings.py      11      0   100%
 fewspy\exceptions.py                      28      2    93%
-fewspy\retry_session.py                   66     66     0%
+fewspy\retry_session.py                   66     12    82%
 fewspy\time_series.py                     96      8    92%
 fewspy\utils\conversions.py               37     18    51%
 fewspy\utils\timer.py                     17      5    71%
 fewspy\utils\transformations.py           21      2    90%
-fewspy\wrappers\__init__.py               12      0   100%
+fewspy\wrappers\__init__.py               14      0   100%
 fewspy\wrappers\get_filters.py            18     11    39%
 fewspy\wrappers\get_locations.py          28     17    39%
 fewspy\wrappers\get_parameters.py         23     14    39%
 fewspy\wrappers\get_qualifiers.py         33     19    42%
+fewspy\wrappers\get_samples.py            12      5    58%
 fewspy\wrappers\get_time_series.py        24      1    96%
 fewspy\wrappers\get_timezone_id.py        15      9    40%
 main.py                                   27     27     0%
 ----------------------------------------------------------
-TOTAL                                    566    215    62%
+TOTAL                                    584    170    71%
 ```
 
 ### Conda general tips

@@ -1,14 +1,10 @@
+from fewspy import wrappers
 from fewspy.constants.pi_settings import pi_settings_production
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import request_settings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.exceptions import URLNotFoundError
-from fewspy.wrappers import get_filters
-from fewspy.wrappers import get_locations
-from fewspy.wrappers import get_parameters
-from fewspy.wrappers import get_qualifiers
-from fewspy.wrappers import get_time_series
-from fewspy.wrappers import get_timezone_id
+from fewspy.retry_session import RequestsRetrySession
 
 import pandas as pd
 import requests
@@ -36,6 +32,7 @@ class Api:
         self.base_url = self._validate_base_url(base_url=base_url if base_url else pi_settings.base_url)
         self.pi_settings = pi_settings
         self.request_settings: RequestSettings = request_settings
+        self.retry_backoff_session = RequestsRetrySession(self.request_settings, pi_settings=self.pi_settings)
 
     @staticmethod
     def _validate_base_url(base_url: str) -> str:
@@ -86,6 +83,7 @@ class Api:
         }
         kwargs.pop("self")
         kwargs.pop("parallel", None)
+        kwargs["retry_backoff_session"] = self.retry_backoff_session
         return kwargs
 
     def get_parameters(self, filter_id=None):
@@ -96,7 +94,7 @@ class Api:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
         kwargs = self._wrapped_kwargs(url_post_fix="parameters", kwargs=locals())
-        result = get_parameters(**kwargs)
+        result = wrappers.get_parameters(**kwargs)
         return result
 
     def get_filters(self, filter_id=None):
@@ -107,7 +105,7 @@ class Api:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
         kwargs = self._wrapped_kwargs(url_post_fix="filters", kwargs=locals())
-        result = get_filters(**kwargs)
+        result = wrappers.get_filters(**kwargs)
         return result
 
     def get_locations(self, filter_id=None, attributes: list = None):
@@ -120,7 +118,7 @@ class Api:
         """
         attributes = attributes if attributes else []
         kwargs = self._wrapped_kwargs(url_post_fix="locations", kwargs=locals())
-        result = get_locations(**kwargs)
+        result = wrappers.get_locations(**kwargs)
         return result
 
     def get_qualifiers(self) -> pd.DataFrame:
@@ -129,11 +127,20 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        return get_qualifiers(url=f"{self.base_url}qualifiers")
+        kwargs = self._wrapped_kwargs(url_post_fix="qualifiers/", kwargs=locals())
+        return wrappers.get_qualifiers(**kwargs)
+
+    def get_samples(self) -> pd.DataFrame:
+        """
+        # TODO
+        """
+        kwargs = self._wrapped_kwargs(url_post_fix="samples/", kwargs=locals())
+        return wrappers.get_samples(**kwargs)
 
     def get_timezone_id(self) -> str:
         """Get FEWS timezone_id the FEWS API is running on."""
-        return get_timezone_id(url=f"{self.base_url}timezoneid")
+        kwargs = self._wrapped_kwargs(url_post_fix="timezoneid/", kwargs=locals())
+        return wrappers.get_timezone_id(**kwargs)
 
     def get_time_series(
         self,
@@ -162,6 +169,6 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self._wrapped_kwargs(url_post_fix="timeseries", kwargs=locals())
-        result = get_time_series(**kwargs)
+        kwargs = self._wrapped_kwargs(url_post_fix="timeseries/", kwargs=locals())
+        result = wrappers.get_time_series(**kwargs)
         return result
