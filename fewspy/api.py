@@ -1,21 +1,15 @@
-from fewspy.constants import API_DOCUMENT_FORMAT
+from fewspy import wrappers
+from fewspy.constants.pi_settings import pi_settings_production
+from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import request_settings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.exceptions import URLNotFoundError
-from fewspy.utils.timer import Timer
-from fewspy.wrappers import get_filters
-from fewspy.wrappers import get_locations
-from fewspy.wrappers import get_parameters
-from fewspy.wrappers import get_qualifiers
-from fewspy.wrappers import get_time_series
-from fewspy.wrappers import get_time_series_async
-from fewspy.wrappers import get_timezone_id
+from fewspy.retry_session import RequestsRetrySession
 
-import logging
 import pandas as pd
 import requests
 import urllib3
 
-
-LOGGER = logging.getLogger(__name__)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -26,12 +20,19 @@ class Api:
     The methods corresponding with the FEWS PI-REST requests (see Deltares website). For more info on how to work
     with the FEWS REST Web Service, visit the Deltares website:
     https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
+
+    Example: api = Api(base_url='http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/')
     """
 
-    def __init__(self, base_url, logger=None):
-        self.document_format: str = API_DOCUMENT_FORMAT
-        self.base_url = self._validate_base_url(base_url=base_url)
-        self.timer = Timer(logger)
+    def __init__(
+        self,
+        base_url: str = None,
+        pi_settings: PiSettings = pi_settings_production,
+    ):
+        self.base_url = self._validate_base_url(base_url=base_url if base_url else pi_settings.base_url)
+        self.pi_settings = pi_settings
+        self.request_settings: RequestSettings = request_settings
+        self.retry_backoff_session = RequestsRetrySession(self.request_settings, pi_settings=self.pi_settings)
 
     @staticmethod
     def _validate_base_url(base_url: str) -> str:
@@ -41,17 +42,48 @@ class Api:
             return base_url
         raise URLNotFoundError(message=f"{base_url} is not a root to a live FEWS PI Rest WebService")
 
-    def __kwargs(self, url_post_fix: str, kwargs: dict) -> dict:
-        """TODO docstring..."""
+    def _wrapped_kwargs(self, url_post_fix: str, kwargs: dict) -> dict:
+        """Update kwargs for wrapped function
+
+        For example:
+            from this {
+                'end_time': datetime.datetime(2022, 5, 2, 0, 0),
+                'filter_id': 'INTERNAL-API',
+                'location_ids': ['OW433001'],
+                'only_headers': False,
+                'parameter_ids': ['H.G.0'],
+                'qualifier_ids': None,
+                'self': <fewspy.api.Api object at 0x000001F76CD1A0C8>,
+                'show_statistics': False,
+                'start_time': datetime.datetime(2022, 5, 1, 0, 0),
+                'thinning': None
+                }
+            to this {
+                'document_format': 'PI_JSON',
+                'end_time': datetime.datetime(2022, 5, 2, 0, 0),
+                'filter_id': 'INTERNAL-API',
+                'location_ids': ['OW433001'],
+                'only_headers': False,
+                'parameter_ids': ['H.G.0'],
+                'qualifier_ids': None,
+                'show_statistics': False,
+                'ssl_verify': True,
+                'start_time': datetime.datetime(2022, 5, 1, 0, 0),
+                'thinning': None,
+                'url': 'http://xx:9999//rest/fewspiservice/v1/timeseries'
+                }
+        """
         kwargs = {
             **kwargs,
             **dict(
                 url=f"{self.base_url}{url_post_fix}",
-                document_format=self.document_format,
+                document_format=self.pi_settings.document_format,
+                ssl_verify=self.pi_settings.ssl_verify,
             ),
         }
         kwargs.pop("self")
         kwargs.pop("parallel", None)
+        kwargs["retry_backoff_session"] = self.retry_backoff_session
         return kwargs
 
     def get_parameters(self, filter_id=None):
@@ -61,8 +93,8 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self.__kwargs(url_post_fix="parameters", kwargs=locals())
-        result = get_parameters(**kwargs)
+        kwargs = self._wrapped_kwargs(url_post_fix="parameters", kwargs=locals())
+        result = wrappers.get_parameters(**kwargs)
         return result
 
     def get_filters(self, filter_id=None):
@@ -72,8 +104,8 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self.__kwargs(url_post_fix="filters", kwargs=locals())
-        result = get_filters(**kwargs)
+        kwargs = self._wrapped_kwargs(url_post_fix="filters", kwargs=locals())
+        result = wrappers.get_filters(**kwargs)
         return result
 
     def get_locations(self, filter_id=None, attributes: list = None):
@@ -85,8 +117,8 @@ class Api:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
         attributes = attributes if attributes else []
-        kwargs = self.__kwargs(url_post_fix="locations", kwargs=locals())
-        result = get_locations(**kwargs)
+        kwargs = self._wrapped_kwargs(url_post_fix="locations", kwargs=locals())
+        result = wrappers.get_locations(**kwargs)
         return result
 
     def get_qualifiers(self) -> pd.DataFrame:
@@ -95,11 +127,20 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        return get_qualifiers(url=f"{self.base_url}qualifiers")
+        kwargs = self._wrapped_kwargs(url_post_fix="qualifiers/", kwargs=locals())
+        return wrappers.get_qualifiers(**kwargs)
+
+    def get_samples(self) -> pd.DataFrame:
+        """
+        # TODO
+        """
+        kwargs = self._wrapped_kwargs(url_post_fix="samples/", kwargs=locals())
+        return wrappers.get_samples(**kwargs)
 
     def get_timezone_id(self) -> str:
         """Get FEWS timezone_id the FEWS API is running on."""
-        return get_timezone_id(url=f"{self.base_url}timezoneid")
+        kwargs = self._wrapped_kwargs(url_post_fix="timezoneid/", kwargs=locals())
+        return wrappers.get_timezone_id(**kwargs)
 
     def get_time_series(
         self,
@@ -112,7 +153,6 @@ class Api:
         thinning=None,
         only_headers=False,
         show_statistics=False,
-        parallel=False,
     ):
         """Get FEWS qualifiers as a pandas DataFrame.
 
@@ -126,15 +166,9 @@ class Api:
             - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
             - only_headers (bool): if True, only headers will be returned. Defaults to False.
             - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
-            - parallel (bool): if True, timeseries are requested by the asynchronous wrapper. Defaults to False
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self.__kwargs(url_post_fix="timeseries", kwargs=locals())
-        if parallel:
-            kwargs.pop("only_headers")
-            kwargs.pop("show_statistics")
-            result = get_time_series_async(**kwargs)
-        else:
-            result = get_time_series(**kwargs)
+        kwargs = self._wrapped_kwargs(url_post_fix="timeseries/", kwargs=locals())
+        result = wrappers.get_time_series(**kwargs)
         return result

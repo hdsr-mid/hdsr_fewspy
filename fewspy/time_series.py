@@ -3,14 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
+from fewspy.constants.lala import TimeZoneChoices
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.conversions import dict_to_datetime
 from typing import List
+from typing import Tuple
 
 import pandas as pd
 
 
-# renier
 DATETIME_KEYS = ["start_date", "end_date"]
 FLOAT_KEYS = ["miss_val", "lat", "lon", "x", "y", "z"]
 EVENT_COLUMNS = ["datetime", "value", "flag"]
@@ -46,7 +47,7 @@ class Header:
             Header: FEWS-PI header-style dataclass
         """
 
-        def _convert_kv(k: str, v) -> dict:
+        def _convert_kv(k: str, v) -> Tuple:
             k = camel_to_snake_case(k)
             if k in DATETIME_KEYS:
                 v = dict_to_datetime(v)
@@ -128,34 +129,31 @@ class TimeSeriesSet:
 
     @classmethod
     def from_pi_time_series(cls, pi_time_series_set: dict) -> TimeSeriesSet:
-        kwargs = {}
-        if "version" in pi_time_series_set.keys():
-            kwargs["version"] = pi_time_series_set["version"]
-        if "timeZone" in pi_time_series_set.keys():
-            time_zone = float(pi_time_series_set["timeZone"])
-            kwargs["time_zone"] = time_zone
-        if "timeSeries" in pi_time_series_set.keys():
-            kwargs["time_series"] = [
-                TimeSeries.from_pi_time_series(pi_time_series=i, time_zone=time_zone)
-                for i in pi_time_series_set["timeSeries"]
-            ]
+        kwargs = dict()
+        kwargs["version"] = pi_time_series_set.get("version", None)
+        # TODO: timeZone moet een int/float zijn, niet een str bijv '"Etc/GMT-0"'
+        kwargs["time_zone"] = float(pi_time_series_set.get("timeZone", TimeZoneChoices.gmt_0.value))
+        time_series = pi_time_series_set.get("timeSeries", None)
+        kwargs["time_series"] = [
+            TimeSeries.from_pi_time_series(pi_time_series=i, time_zone=kwargs["time_zone"]) for i in time_series
+        ]
         dc_timeseriesset = cls(**kwargs)
         return dc_timeseriesset
 
     @property
-    def empty(self):
+    def is_empty(self) -> bool:
         return all([i.events.empty for i in self.time_series])
 
     @property
-    def parameter_ids(self):
+    def parameter_ids(self) -> List[str]:
         return list(set([i.header.parameter_id for i in self.time_series]))
 
     @property
-    def location_ids(self):
+    def location_ids(self) -> List[str]:
         return list(set([i.header.location_id for i in self.time_series]))
 
     @property
-    def qualifier_ids(self):
+    def qualifier_ids(self) -> List[str]:
         qualifiers = (i.header.qualifier_id for i in self.time_series)
         qualifiers = [i for i in qualifiers if i is not None]
         flat_list = [i for j in qualifiers for i in j]

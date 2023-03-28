@@ -1,4 +1,4 @@
-from fewspy.constants import ApiKeys
+from fewspy.constants.lala import ApiKeys
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.conversions import snake_to_camel_case
 from typing import Any
