@@ -3,8 +3,8 @@ from typing import List
 
 
 class PiRestDocumentFormatChoices(Enum):
+    xml = "PI_XML"
     json = "PI_JSON"
-    # xml = "PI_XML"
 
     @classmethod
     def get_all(cls) -> List[str]:
@@ -12,9 +12,9 @@ class PiRestDocumentFormatChoices(Enum):
 
 
 class TimeZoneChoices(Enum):
-    gmt = "Etc/GMT"
-    gmt_0 = "Etc/GMT-0"
-    eu_amsterdam = "Europe/Amsterdam"
+    gmt = 0.0  # "Etc/GMT"
+    gmt_0 = 0.0  # "Etc/GMT-0"
+    eu_amsterdam = 1.0  # "Europe/Amsterdam"
 
     @classmethod
     def get_all(cls) -> List[str]:

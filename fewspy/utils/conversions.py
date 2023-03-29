@@ -51,20 +51,20 @@ def dict_to_datetime(data: dict) -> datetime:
 def datetime_to_fews_str(date_time: datetime) -> str:
     """Convert a FEWS PI datetime to datetime str e.g. 2022-05-01T00:00:00Z."""
     try:
-        fews_str = date_time.strftime(TimeZoneChoices.date_string_format)
+        fews_str = date_time.strftime(TimeZoneChoices.date_string_format())
         return fews_str
     except Exception:
-        msg = f"Could not convert datetime {date_time} to str using format {TimeZoneChoices.date_string_format}"
+        msg = f"Could not convert datetime {date_time} to str using format {TimeZoneChoices.date_string_format()}"
         raise AssertionError(msg)
 
 
 def fews_date_str_to_datetime(fews_date_str: str) -> datetime:
     """Convert a datetime str (e.g. 2022-05-01T00:00:00Z.) to FEWS PI datetime"""
     try:
-        date_time = datetime.strptime(fews_date_str, TimeZoneChoices.date_string_format)
+        date_time = datetime.strptime(fews_date_str, TimeZoneChoices.date_string_format())
         return date_time
     except Exception:
-        msg = f"Could not convert str {fews_date_str} to datetime using format {TimeZoneChoices.date_string_format}"
+        msg = f"Could not convert str {fews_date_str} to datetime using format {TimeZoneChoices.date_string_format()}"
         raise AssertionError(msg)
 
 

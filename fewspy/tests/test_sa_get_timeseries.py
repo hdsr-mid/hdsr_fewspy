@@ -1,4 +1,3 @@
-from copy import deepcopy
 from fewspy.tests.fixtures import api_sa_fixture
 from fewspy.tests.fixtures_requests import RequestData1
 

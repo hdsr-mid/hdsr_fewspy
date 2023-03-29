@@ -29,6 +29,9 @@ def get_time_series(
     only_headers: bool = False,
     show_statistics: bool = False,
     omit_empty_timeseries: bool = True,
+    #
+    drop_missing_values: bool = False,
+    flag_threshold: int = 6,
 ) -> TimeSeriesSet:
     """Get FEWS qualifiers as a pandas DataFrame.
     Args:
@@ -44,6 +47,8 @@ def get_time_series(
         - only_headers (bool): if True, only headers will be returned. Defaults to False.
         - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
         - omit_empty_timeseries (bool): if True, missing values (-999) are left out in response. Defaults to True
+        - drop_missing_values (bool): Defaults to False.
+        - flag_threshold (int): Exclude unreliable values. Default to 6 (only values with flag<6 will be included).
     Returns:
         df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
 
@@ -59,7 +64,9 @@ def get_time_series(
     # parse the response
     if response.ok:
         pi_time_series = response.json()
-        time_series_set = TimeSeriesSet.from_pi_time_series(pi_time_series)
+        time_series_set = TimeSeriesSet.from_pi_time_series(
+            pi_time_serie=pi_time_series, drop_missing_values=drop_missing_values, flag_threshold=flag_threshold
+        )
         timer.report(message=report_string.format(status="parsed"))
         if time_series_set.is_empty:
             logger.debug(f"FEWS WebService request passing empty set: {response.url}")

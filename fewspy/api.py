@@ -4,7 +4,6 @@ from fewspy.constants.pi_settings import pi_settings_production
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import request_settings
 from fewspy.constants.request_settings import RequestSettings
-from fewspy.exceptions import URLNotFoundError
 from fewspy.retry_session import RequestsRetrySession
 from typing import List
 from typing import Union
@@ -27,59 +26,27 @@ class Api:
     Example: api = Api(base_url='http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/')
     """
 
-    def __init__(
-        self,
-        base_url: str = None,
-        pi_settings: PiSettings = pi_settings_production,
-    ):
-        self.base_url = self._validate_base_url(base_url=base_url if base_url else pi_settings.base_url)
+    def __init__(self, pi_settings: PiSettings = pi_settings_production):
+        assert isinstance(
+            pi_settings, PiSettings
+        ), f"pi_settings must be a PiSettings, see README.ml example how to create one"
         self.pi_settings = pi_settings
         self.request_settings: RequestSettings = request_settings
         self.retry_backoff_session = RequestsRetrySession(self.request_settings, pi_settings=self.pi_settings)
 
-    @staticmethod
-    def _validate_base_url(base_url: str) -> str:
-        base_url = f"{base_url}/" if not base_url.endswith("/") else base_url
-        response = requests.get(url=base_url, verify=True)
+    def is_service_running(self) -> bool:
+        response = requests.get(url=self.pi_settings.base_url, verify=self.pi_settings.ssl_verify)
         if response.ok:
-            return base_url
-        raise URLNotFoundError(message=f"{base_url} is not a root to a live FEWS PI Rest WebService")
+            return True
+        # TODO: try other things?
+        return False
 
     def _get_kwargs_for_wrapper(self, url_post_fix: str, kwargs: dict) -> dict:
-        """Update kwargs for wrapped function
-
-        For example:
-            from this {
-                'end_time': datetime.datetime(2022, 5, 2, 0, 0),
-                'filter_id': 'INTERNAL-API',
-                'location_ids': ['OW433001'],
-                'only_headers': False,
-                'parameter_ids': ['H.G.0'],
-                'qualifier_ids': None,
-                'self': <fewspy.api.Api object at 0x000001F76CD1A0C8>,
-                'show_statistics': False,
-                'start_time': datetime.datetime(2022, 5, 1, 0, 0),
-                'thinning': None
-                }
-            to this {
-                'document_format': 'PI_JSON',
-                'end_time': datetime.datetime(2022, 5, 2, 0, 0),
-                'filter_id': 'INTERNAL-API',
-                'location_ids': ['OW433001'],
-                'only_headers': False,
-                'parameter_ids': ['H.G.0'],
-                'qualifier_ids': None,
-                'show_statistics': False,
-                'ssl_verify': True,
-                'start_time': datetime.datetime(2022, 5, 1, 0, 0),
-                'thinning': None,
-                'url': 'http://xx:9999//rest/fewspiservice/v1/timeseries'
-                }
-        """
+        """Update kwargs for wrapped function."""
         kwargs = {
             **kwargs,
             **dict(
-                url=f"{self.base_url}{url_post_fix}",
+                url=f"{self.pi_settings.base_url}{url_post_fix}",
                 document_format=self.pi_settings.document_format,
                 ssl_verify=self.pi_settings.ssl_verify,
             ),
@@ -148,13 +115,16 @@ class Api:
         filter_id: str,
         start_time: datetime,
         end_time: datetime,
+        omit_empty_timeseries: bool = True,
         location_ids: Union[str, List[str]] = None,
         parameter_ids: Union[str, List[str]] = None,
         qualifier_ids: Union[str, List[str]] = None,
         thinning: int = None,
         only_headers: bool = False,
         show_statistics: bool = False,
-        omit_empty_timeseries: bool = True,
+        #
+        drop_missing_values: bool = False,
+        flag_threshold: int = 6,
     ):
         """Get FEWS qualifiers as a pandas DataFrame.
 
@@ -162,12 +132,15 @@ class Api:
             - filter_id (str): the FEWS id of the filter to pass as request parameter.
             - start_time (datetime.datetime): datetime-object with start datetime to use in request.
             - end_time (datetime.datetime): datetime-object with end datetime to use in request.
+            - omit_empty_timeseries (bool): if True, missing values (-999.0) are left out in response. Defaults to True
             - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
             - parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
             - qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
             - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
             - only_headers (bool): if True, only headers will be returned. Defaults to False.
             - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
+            - drop_missing_values (bool): Defaults to False.
+            - flag_threshold (int): Exclude unreliable values. Default to 6 (meaning flags >= 6 will be excluded).
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """

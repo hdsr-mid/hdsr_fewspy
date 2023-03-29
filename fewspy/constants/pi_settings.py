@@ -1,24 +1,45 @@
 from dataclasses import dataclass
 from fewspy.constants.choices import PiRestDocumentFormatChoices
 from fewspy.constants.choices import TimeZoneChoices
-from typing import List
+
+import logging
+import typing
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class PiSettings:
+    """
+    Usage example:
+        pi_settings_production = PiSettings(
+            settings_name='whatever you want',
+            document_version="1.25",
+            document_format=PiRestDocumentFormatChoices.json.value,
+            ssl_verify=True,
+            domain="webwis-prd01.ad.hdsr.nl",
+            port=8081,
+            service="OwdPiService",
+            filter_id="owdapi-opvlwater-noneq",
+            module_instance_id="WerkFilter",
+            time_zone=TimeZoneChoices.gmt_0.value,
+        )
+    """
 
-    document_version: str
-    document_format: str
-    protocol: str  # SOAP protocol is deprecated! So you can only use REST
-    missing_value: float
-    allowed_flags: List[int]
+    settings_name: str
+    #
     domain: str
     port: int
     service: str
+    #
+    document_version: float
+    document_format: str
     filter_id: str
     module_instance_id: str
+    time_zone: float
+    #
     ssl_verify: bool
-    time_zone: str
 
     @property
     def base_url(self) -> str:
@@ -36,29 +57,48 @@ class PiSettings:
         """
         return f"http://{self.domain}:{self.port}/{self.service}/test/fewspiservicerest/index.jsp"
 
+    def __post_init__(self) -> None:
+        """Validate dtypes and ensure that str objects not being empty."""
+        for field_name, field_def in self.__dataclass_fields__.items():
+            if isinstance(field_def.type, typing._SpecialForm):
+                # No check for typing.Any, typing.Union, typing.ClassVar (without parameters)
+                continue
+            try:
+                expected_dtype = field_def.type.__origin__
+            except AttributeError:
+                # In case of non-typing types (such as <class 'int'>, for instance)
+                expected_dtype = field_def.type
+            if isinstance(expected_dtype, typing._SpecialForm):
+                # case of typing.Union[…] or typing.ClassVar[…]
+                expected_dtype = field_def.type.__args__
+
+            actual_value = getattr(self, field_name)
+            assert isinstance(actual_value, expected_dtype), (
+                f"PiSettings '{field_name}={actual_value}' must be of type '{expected_dtype}' and "
+                f"not '{type(actual_value)}'"
+            )
+            if isinstance(actual_value, str):
+                assert actual_value, f"PiSettings '{field_name}={actual_value}' must cannot be an empty string"
+
 
 pi_settings_mocked = PiSettings(
-    document_version="",
+    settings_name="mocked setttings",
+    document_version=1.25,
     document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
-    protocol="",
-    missing_value=-999.0,
-    allowed_flags=[0, 1, 2, 3, 4, 5],
-    domain="xx",
+    domain="does not matter",
     port=9999,
-    service="",
-    filter_id="",
-    module_instance_id="",
+    service="does not matter",
+    filter_id="does not matter",
+    module_instance_id="does not matter",
     time_zone=TimeZoneChoices.gmt_0.value,
 )
 
 pi_settings_sa = PiSettings(
-    document_version="1.25",
+    settings_name="default stand-alone settings",
+    document_version=1.25,
     document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
-    protocol="rest",
-    missing_value=-999.0,
-    allowed_flags=[0, 1, 2, 3, 4, 5],
     domain="localhost",
     port=8080,
     service="FewsWebServices",
@@ -68,13 +108,11 @@ pi_settings_sa = PiSettings(
 )
 
 pi_settings_production = PiSettings(
-    document_version="1.25",
+    settings_name="default production settings",
+    document_version=1.25,
     document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
-    protocol="rest",
-    missing_value=-999.0,
-    allowed_flags=[0, 1, 2, 3, 4, 5],
-    domain="localhost",
+    domain="webwis-prd01.ad.hdsr.nl",
     port=8081,
     service="OwdPiService",
     filter_id="owdapi-opvlwater-noneq",
