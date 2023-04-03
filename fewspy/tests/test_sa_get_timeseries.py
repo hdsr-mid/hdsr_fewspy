@@ -1,5 +1,6 @@
 from fewspy.tests.fixtures import api_sa_fixture
 from fewspy.tests.fixtures_requests import RequestData1
+from fewspy.tests.fixtures_requests import RequestData2
 
 import pandas as pd
 import pytest
@@ -46,7 +47,7 @@ def test_sa_wrong_request2(api_sa_fixture):
         )
 
 
-def test_sa_response(api_sa_fixture):
+def test_sa_ok_request1(api_sa_fixture):
     request_data = RequestData1
 
     ts_set_json = api_sa_fixture.get_time_series(
@@ -79,3 +80,17 @@ def test_sa_response(api_sa_fixture):
 
     assert ts_set_json.time_zone == 0.0
     assert ts_set_json.version == "1.32"
+
+
+def test_sa_ok_request2(api_sa_fixture):
+    request_data = RequestData2
+
+    timeseries_response = api_sa_fixture.get_time_series(
+        filter_id=request_data.filter_id,
+        location_ids=request_data.location_ids,
+        parameter_ids=request_data.parameter_ids,
+        start_time=request_data.start_time,
+        end_time=request_data.end_time,
+    )
+
+    print(1)

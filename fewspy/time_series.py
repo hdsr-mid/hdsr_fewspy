@@ -97,19 +97,14 @@ class Events(pd.DataFrame):
         # set flag to numeric
         df["flag"] = pd.to_numeric(df["flag"])
         if flag_threshold:
-            # remove rows that have a unreliable flag
-            # a flag_threshold of 6 means that only values with a flag < 6 will be included
+            # remove rows that have a unreliable flag:
+            # A flag_threshold of 6 means that only values with a flag < 6 will be included
             df = df.loc[df["flag"] < flag_threshold]
 
         # set datetime to index
         df.set_index("datetime", inplace=True)
 
         return df
-
-    @classmethod
-    def reliables(cls, df: pd.DataFrame, threshold_flag: int = 6) -> pd.DataFrame:
-        """Get Event with with reliable data only."""
-        return df.loc[df["flag"] < threshold_flag]
 
 
 @dataclass

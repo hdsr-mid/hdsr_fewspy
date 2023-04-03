@@ -146,14 +146,5 @@ class Api:
         """
         assert start_time < end_time, f"start '{start_time}' must be before end_time {end_time}"
         kwargs = self._get_kwargs_for_wrapper(url_post_fix="timeseries/", kwargs=locals())
-        # start_time
-        # assert start_time and  < xml_end_max_today
-        # uuid = RedisOuterKeys.uuid(row=row)
-        # date_range_frequency = self.pi_rest.settings.default_request_period
-        # request_date_ranges, date_range_frequency = self._create_date_ranges(
-        #     startdate_obj=xml_start,
-        #     enddate_obj=xml_end_max_today,
-        #     frequency=date_range_frequency,
-        # )
         result = wrappers.get_time_series(**kwargs)
         return result
