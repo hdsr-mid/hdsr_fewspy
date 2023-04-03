@@ -29,7 +29,7 @@ class Api:
     def __init__(self, pi_settings: PiSettings = pi_settings_production):
         assert isinstance(
             pi_settings, PiSettings
-        ), f"pi_settings must be a PiSettings, see README.ml example how to create one"
+        ), "pi_settings must be a PiSettings, see README.ml example how to create one"
         self.pi_settings = pi_settings
         self.request_settings: RequestSettings = request_settings
         self.retry_backoff_session = RequestsRetrySession(self.request_settings, pi_settings=self.pi_settings)
@@ -144,6 +144,7 @@ class Api:
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
+        assert start_time < end_time, f"start '{start_time}' must be before end_time {end_time}"
         kwargs = self._get_kwargs_for_wrapper(url_post_fix="timeseries/", kwargs=locals())
         # start_time
         # assert start_time and  < xml_end_max_today

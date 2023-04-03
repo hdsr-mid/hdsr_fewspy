@@ -3,8 +3,8 @@ channels:
   # - defaults
 dependencies:
   - python=3.7
-  - aiohttp
-  - nest-asyncio
+#  - aiohttp
+#  - nest-asyncio
   - requests
   - pandas
   - geopandas
@@ -15,5 +15,6 @@ dependencies:
   - pytest  # only required for running old_tests
   - pytest-cov  # only required for running old_tests coverage
   - responses  # only required for pytest mock response
+  - validators  # to validate pi_settings' base_url and test_url
   #  - hdsr-wis-config-reader  # on conda channel hdsr-mid
   #  - hdsr-pygithub  # on conda channel hdsr-mid

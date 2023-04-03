@@ -12,9 +12,9 @@ class PiRestDocumentFormatChoices(Enum):
 
 
 class TimeZoneChoices(Enum):
-    gmt = 0.0  # "Etc/GMT"
-    gmt_0 = 0.0  # "Etc/GMT-0"
-    eu_amsterdam = 1.0  # "Europe/Amsterdam"
+    gmt = "GMT"  # "Etc/GMT" -> 0.0
+    gmt_0 = "Etc/GMT-0"  # -> 0.0
+    eu_amsterdam = "Europe/Amsterdam"  # -> 1.0
 
     @classmethod
     def get_all(cls) -> List[str]:

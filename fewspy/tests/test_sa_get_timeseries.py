@@ -36,14 +36,14 @@ def test_sa_wrong_request1(api_sa_fixture):
 def test_sa_wrong_request2(api_sa_fixture):
     """Arguments start and end must be valid."""
     request_data = RequestData1
-
-    api_sa_fixture.get_time_series(
-        filter_id=request_data.filter_id,
-        location_ids=request_data.location_ids,
-        parameter_ids=request_data.parameter_ids,
-        start_time=request_data.start_time.strftime(),
-        end_time=request_data.end_time,
-    )
+    with pytest.raises(AssertionError):
+        api_sa_fixture.get_time_series(
+            filter_id=request_data.filter_id,
+            location_ids=request_data.location_ids,
+            parameter_ids=request_data.parameter_ids,
+            start_time=request_data.end_time,  # <- flipped start with end
+            end_time=request_data.start_time,  # <- flipped end with start
+        )
 
 
 def test_sa_response(api_sa_fixture):

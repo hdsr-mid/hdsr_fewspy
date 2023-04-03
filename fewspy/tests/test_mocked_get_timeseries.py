@@ -13,7 +13,9 @@ api_mocked_fixture = api_mocked_fixture
 def test_mock_empty_response(api_mocked_fixture):
     request_data = RequestData1
     response_json = {"error": "bla bla bla"}
-    responses.add(responses.GET, url=f"{api_mocked_fixture.base_url}timeseries/", json=response_json, status=404)
+    responses.add(
+        responses.GET, url=f"{api_mocked_fixture.pi_settings.base_url}timeseries/", json=response_json, status=404
+    )
 
     ts_set_mock_empty_json = api_mocked_fixture.get_time_series(
         filter_id=request_data.filter_id,
@@ -35,7 +37,7 @@ def test_mock_filled_response(api_mocked_fixture):
     request_data = RequestData1
 
     # mock response
-    url = f"{api_mocked_fixture.base_url}timeseries/"
+    url = f"{api_mocked_fixture.pi_settings.base_url}timeseries/"
     responses.add(responses.GET, url=url, json=request_data.get_expected_json(), status=200)
 
     ts_set_mock_filled_json = api_mocked_fixture.get_time_series(

@@ -4,6 +4,7 @@ from fewspy.constants.choices import TimeZoneChoices
 
 import logging
 import typing
+import validators
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ class PiSettings:
     document_format: str
     filter_id: str
     module_instance_id: str
-    time_zone: float
+    time_zone: str  # see TimeZoneChoices
     #
     ssl_verify: bool
 
@@ -80,22 +81,27 @@ class PiSettings:
             if isinstance(actual_value, str):
                 assert actual_value, f"PiSettings '{field_name}={actual_value}' must cannot be an empty string"
 
+        if not validators.url(value=self.base_url) == True:  # noqa
+            raise AssertionError(f"base_url '{self.base_url}' must be valid")
+        if not validators.url(value=self.test_url) == True:  # noqa
+            raise AssertionError(f"test_url '{self.test_url}' must be valid")
+
 
 pi_settings_mocked = PiSettings(
-    settings_name="mocked setttings",
+    settings_name="mocked",
     document_version=1.25,
     document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
-    domain="does not matter",
+    domain="localhost",
     port=9999,
-    service="does not matter",
-    filter_id="does not matter",
-    module_instance_id="does not matter",
+    service="mocked",
+    filter_id="mocked",
+    module_instance_id="mocked",
     time_zone=TimeZoneChoices.gmt_0.value,
 )
 
 pi_settings_sa = PiSettings(
-    settings_name="default stand-alone settings",
+    settings_name="default stand-alone",
     document_version=1.25,
     document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
@@ -108,7 +114,7 @@ pi_settings_sa = PiSettings(
 )
 
 pi_settings_production = PiSettings(
-    settings_name="default production settings",
+    settings_name="default production",
     document_version=1.25,
     document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
