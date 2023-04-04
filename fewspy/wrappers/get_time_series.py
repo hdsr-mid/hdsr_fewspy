@@ -1,4 +1,5 @@
 from datetime import datetime
+from fewspy.constants.pi_settings import PiSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.time_series import TimeSeriesSet
 from fewspy.utils.timer import Timer
@@ -60,12 +61,8 @@ class GetTimeseries:
     def get_time_series(
         cls,
         url: str,
-        #
-        ssl_verify: bool,
+        pi_settings: PiSettings,
         retry_backoff_session: RequestsRetrySession,
-        #
-        document_format: str,
-        filter_id: str,
         start_time: datetime,
         end_time: datetime,
         location_ids: Union[str, List[str]] = None,
@@ -83,7 +80,6 @@ class GetTimeseries:
         Args:
             - url (str): url Delft-FEWS PI REST WebService.
               e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-            - filter_id (str): the FEWS id of the filter to pass as request parameter
             - start_time (datetime.datetime): datetime-object with start datetime to use in request.
             - end_time (datetime.datetime): datetime-object with end datetime to use in request.
             - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
@@ -104,13 +100,13 @@ class GetTimeseries:
 
         # do the request
         timer = Timer()
-        parameters = parameters_to_fews(parameters=locals())
+        parameters = parameters_to_fews(parameters=locals(), pi_settings=pi_settings)
 
         cartesian_parameters_list = cls.get_cartesian_parameters_list(
             parameters=parameters, location_ids=location_ids, parameter_ids=parameter_ids, qualifier_ids=qualifier_ids
         )
         for cartesian_parameters in cartesian_parameters_list:
-            nr_timestamps = cls.get_nr_timestamps(
+            nr_timestamps = cls._get_nr_timestamps(
                 retry_backoff_session=retry_backoff_session, url=url, params=cartesian_parameters, verify=ssl_verify
             )
             response = retry_backoff_session.get(url=url, params=parameters, verify=ssl_verify)
@@ -134,11 +130,15 @@ class GetTimeseries:
         return time_series_set
 
     @classmethod
-    def get_nr_timestamps(cls, retry_backoff_session, url, params, verify) -> int:
+    def _get_nr_timestamps(cls, retry_backoff_session, url, params, verify) -> int:
         params["onlyHeaders"] = True
         params["showStatistics"] = True
         response = retry_backoff_session.get(url=url, params=params, verify=verify)
         timeseries = response.json()["timeSeries"]
+        if len(timeseries) > 1:
+            logger.debug(f"get_timeseries with parameters {params} results in {len(timeseries)} timeseries")
+        nr_timestamps = sum([int(x["header"]["valueCount"]) for x in timeseries])
+
         if len(timeseries) != 1:
             # TODO: implement this
             #  params = {
@@ -227,7 +227,7 @@ class GetTimeseries:
             #     },
             # ]
             raise NotImplementedError("this should not happen")
-        nr_timestamps = int(response.json()["timeSeries"][0]["header"]["valueCount"])
+
         return nr_timestamps
 
     @classmethod

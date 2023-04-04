@@ -26,7 +26,7 @@ class TsSaveResultsError(ErrorBase):
     pass
 
 
-class LocalRedisNotRunningError(ErrorBase):
+class FewsWebServiceNotRunningError(ErrorBase):
     pass
 
 

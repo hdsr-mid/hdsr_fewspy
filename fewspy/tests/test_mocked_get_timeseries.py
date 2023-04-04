@@ -18,7 +18,6 @@ def test_mock_empty_response(api_mocked_fixture):
     )
 
     ts_set_mock_empty_json = api_mocked_fixture.get_time_series(
-        filter_id=request_data.filter_id,
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,
         start_time=request_data.start_time,
@@ -41,7 +40,6 @@ def test_mock_filled_response(api_mocked_fixture):
     responses.add(responses.GET, url=url, json=request_data.get_expected_json(), status=200)
 
     ts_set_mock_filled_json = api_mocked_fixture.get_time_series(
-        filter_id=request_data.filter_id,
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,
         start_time=request_data.start_time,

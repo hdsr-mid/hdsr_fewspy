@@ -17,7 +17,6 @@ def test_sa_wrong_request1(api_sa_fixture):
     # args start is required for get_timeseries
     with pytest.raises(TypeError):  # get_time_series() missing 1 required positional argument: 'start_time'
         api_sa_fixture.get_time_series(
-            filter_id=request_data.filter_id,
             location_ids=request_data.location_ids,
             parameter_ids=request_data.parameter_ids,
             # skip start: start_time=request_data.start_time
@@ -26,7 +25,6 @@ def test_sa_wrong_request1(api_sa_fixture):
     # args end is required for get_timeseries
     with pytest.raises(Exception):  # get_time_series() missing 1 required positional argument: 'end_time'
         api_sa_fixture.get_time_series(
-            filter_id=request_data.filter_id,
             location_ids=request_data.location_ids,
             parameter_ids=request_data.parameter_ids,
             start_time=request_data.start_time
@@ -39,7 +37,6 @@ def test_sa_wrong_request2(api_sa_fixture):
     request_data = RequestData1
     with pytest.raises(AssertionError):
         api_sa_fixture.get_time_series(
-            filter_id=request_data.filter_id,
             location_ids=request_data.location_ids,
             parameter_ids=request_data.parameter_ids,
             start_time=request_data.end_time,  # <- flipped start with end
@@ -51,7 +48,6 @@ def test_sa_ok_request1(api_sa_fixture):
     request_data = RequestData1
 
     ts_set_json = api_sa_fixture.get_time_series(
-        filter_id=request_data.filter_id,
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,
         start_time=request_data.start_time,
@@ -86,7 +82,6 @@ def test_sa_ok_request2(api_sa_fixture):
     request_data = RequestData2
 
     timeseries_response = api_sa_fixture.get_time_series(
-        filter_id=request_data.filter_id,
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,
         start_time=request_data.start_time,

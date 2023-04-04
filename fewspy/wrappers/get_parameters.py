@@ -1,3 +1,4 @@
+from fewspy.constants.pi_settings import PiSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.timer import Timer
@@ -23,27 +24,21 @@ COLUMNS = [
 def get_parameters(
     url: str,
     #
-    ssl_verify: bool,
+    pi_setttings: PiSettings,
     retry_backoff_session: RequestsRetrySession,
-    #
-    document_format: str,
-    filter_id: str = None,
 ) -> pd.DataFrame:
-    """Get FEWS qualifiers as a pandas DataFrame.
+    """Get FEWS parameters as a pandas DataFrame.
 
     Args:
         - url (str): url Delft-FEWS PI REST WebService.
           e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-        - filter_id (str): the FEWS id of the filter to pass as request parameter
-        - document_format (str): request document format to return. Defaults to PI_JSON.
-        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
     Returns:
         df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
     """
     # do the request
     timer = Timer()
-    parameters = parameters_to_fews(parameters=locals())
-    response = retry_backoff_session.get(url, parameters=parameters, verify=ssl_verify)
+    parameters = parameters_to_fews(parameters=locals(), pi_settings=pi_setttings)
+    response = retry_backoff_session.get(url, parameters=parameters, verify=pi_setttings.ssl_verify)
     timer.report(message="Parameters request")
 
     # parse the response

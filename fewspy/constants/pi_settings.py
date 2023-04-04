@@ -1,6 +1,8 @@
+from dataclasses import asdict
 from dataclasses import dataclass
 from fewspy.constants.choices import PiRestDocumentFormatChoices
 from fewspy.constants.choices import TimeZoneChoices
+from typing import Dict
 
 import logging
 import typing
@@ -85,6 +87,10 @@ class PiSettings:
             raise AssertionError(f"base_url '{self.base_url}' must be valid")
         if not validators.url(value=self.test_url) == True:  # noqa
             raise AssertionError(f"test_url '{self.test_url}' must be valid")
+
+    @property
+    def all_fields(self) -> Dict:
+        return asdict(self)
 
 
 pi_settings_mocked = PiSettings(

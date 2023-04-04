@@ -1,3 +1,4 @@
+from fewspy.constants.pi_settings import PiSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.conversions import attributes_to_array
 from fewspy.utils.conversions import camel_to_snake_case
@@ -16,29 +17,24 @@ logger = logging.getLogger(__name__)
 def get_locations(
     url: str,
     #
-    ssl_verify: bool,
+    pi_setttings: PiSettings,
     retry_backoff_session: RequestsRetrySession,
     #
-    document_format: str,
-    filter_id: str = None,
     attributes: list = None,
 ) -> gpd.GeoDataFrame:
-    """Get FEWS qualifiers as a pandas DataFrame.
+    """Get FEWS locations as a geopandas GeoDataFrame.
 
     Args:
         - url (str): url Delft-FEWS PI REST WebService.
           e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-        - filter_id (str): the FEWS id of the filter to pass as request parameter
-        - document_format (str): request document format to return. Defaults to PI_JSON.
         - attributes (list): if not emtpy, the location attributes to include as columns in the pandas DataFrame.
-        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
     Returns:
         gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
     """
     # do the request
     timer = Timer()
-    parameters = parameters_to_fews(parameters=locals())
-    response = retry_backoff_session.get(url=url, parameters=parameters, verify=ssl_verify)
+    parameters = parameters_to_fews(parameters=locals(), pi_settings=pi_setttings)
+    response = retry_backoff_session.get(url=url, parameters=parameters, verify=pi_setttings.ssl_verify)
     timer.report(message="Locations request")
 
     # parse the response

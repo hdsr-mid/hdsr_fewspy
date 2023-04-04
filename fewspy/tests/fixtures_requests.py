@@ -7,7 +7,6 @@ import json
 class RequestData1:
     """get_timeseries()."""
 
-    filter_id = "INTERNAL-API"
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
     location_ids = ["OW433001"]
     parameter_ids = ["H.G.0"]
@@ -37,7 +36,6 @@ class RequestData2:
       - geen DD.y (draaiduur jaar) !
     """
 
-    filter_id = "INTERNAL-API"
     location_ids = ["KW215712", "KW322613"]
     parameter_ids = ["Q.B.y", "DD.y"]
     start_time = datetime(2005, 1, 1)

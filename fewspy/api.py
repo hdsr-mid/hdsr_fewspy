@@ -1,19 +1,25 @@
 from datetime import datetime
+from fewspy import exceptions
 from fewspy import wrappers
 from fewspy.constants.pi_settings import pi_settings_production
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import request_settings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
+from typing import Dict
 from typing import List
 from typing import Union
 
+import logging
 import pandas as pd
 import requests
 import urllib3
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+logger = logging.getLogger(__name__)
 
 
 class Api:
@@ -33,13 +39,18 @@ class Api:
         self.pi_settings = pi_settings
         self.request_settings: RequestSettings = request_settings
         self.retry_backoff_session = RequestsRetrySession(self.request_settings, pi_settings=self.pi_settings)
+        self.ensure_service_is_running()
 
-    def is_service_running(self) -> bool:
+    def ensure_service_is_running(self) -> None:
         response = requests.get(url=self.pi_settings.base_url, verify=self.pi_settings.ssl_verify)
         if response.ok:
-            return True
-        # TODO: try other things?
-        return False
+            logger.info("PiWebService is running")
+            return
+        msg = f"Piwebservice is not running, err={response.text}. Ensure that you can visit the test page {self.pi_settings.test_url}"
+        if self.pi_settings.domain == "localhost":
+            msg += ". Please make sure fews SA webservice is running and start embedded tomcat server vai F12 key."
+            raise exceptions.StandAloneFewsWebServiceNotRunningError(message=msg, errors=response.text)
+        raise exceptions.FewsWebServiceNotRunningError(message=msg, errors=response.text)
 
     def _get_kwargs_for_wrapper(self, url_post_fix: str, kwargs: dict) -> dict:
         """Update kwargs for wrapped function."""
@@ -47,44 +58,32 @@ class Api:
             **kwargs,
             **dict(
                 url=f"{self.pi_settings.base_url}{url_post_fix}",
-                document_format=self.pi_settings.document_format,
-                ssl_verify=self.pi_settings.ssl_verify,
+                pi_settings=self.pi_settings,
+                retry_backoff_session=self.retry_backoff_session,
             ),
         }
         kwargs.pop("self")
         kwargs.pop("parallel", None)
-        kwargs["retry_backoff_session"] = self.retry_backoff_session
         return kwargs
 
-    def get_parameters(self, filter_id=None):
-        """Get FEWS qualifiers as a pandas DataFrame.
-        Args:
-            filter_id (str): the FEWS id of the filter to pass as request parameter
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
+    def get_parameters(self) -> pd.DataFrame:
+        """Get FEWS parameters as a pandas DataFrame."""
         kwargs = self._get_kwargs_for_wrapper(url_post_fix="parameters", kwargs=locals())
         result = wrappers.get_parameters(**kwargs)
         return result
 
-    def get_filters(self, filter_id=None):
-        """Get FEWS qualifiers as a pandas DataFrame.
-        Args:
-            filter_id (str): the FEWS id of the filter to pass as request parameter
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
+    def get_filters(self) -> List[Dict]:
+        """Get FEWS filters as a list with dictionaries."""
         kwargs = self._get_kwargs_for_wrapper(url_post_fix="filters", kwargs=locals())
         result = wrappers.get_filters(**kwargs)
         return result
 
-    def get_locations(self, filter_id=None, attributes: list = None):
-        """Get FEWS qualifiers as a pandas DataFrame.
+    def get_locations(self, attributes: list = None):
+        """Get FEWS locations as a geopandas GeoDataFrame.
         Args:
-            - filter_id (str): the FEWS id of the filter to pass as request parameter
             - attributes (list): if not emtpy, the location attributes to include as columns in the pandas DataFrame.
         Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
+            gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
         """
         attributes = attributes if attributes else []
         kwargs = self._get_kwargs_for_wrapper(url_post_fix="locations", kwargs=locals())
@@ -112,7 +111,6 @@ class Api:
 
     def get_time_series(
         self,
-        filter_id: str,
         start_time: datetime,
         end_time: datetime,
         omit_empty_timeseries: bool = True,
