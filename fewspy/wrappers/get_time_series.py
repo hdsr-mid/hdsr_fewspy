@@ -1,59 +1,20 @@
 from datetime import datetime
 from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.time_series import TimeSeriesSet
+from fewspy.utils.date_frequency import DateFrequencyBuilder
 from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
 from typing import Dict
 from typing import List
-from typing import Tuple
 from typing import Union
 
-import itertools
 import logging
 import pandas as pd
 
 
 logger = logging.getLogger(__name__)
-
-
-class DateFrequency:
-    @staticmethod
-    def _create_date_ranges(
-        startdate_obj: pd.Timestamp,
-        enddate_obj: pd.Timestamp,
-        frequency: pd.Timedelta,
-    ) -> Tuple[List[Tuple[pd.Timestamp, pd.Timestamp]], pd.Timedelta]:
-        """
-        Example:
-            startdate_obj = pd.Timestamp("2010-04-27 00:00:00")
-            enddate_obj = pd.Timestamp("2010-04-27 05:00:00")
-            frequency = pd.Timedelta(hours=1, seconds=1f0, milliseconds=100)
-            returns:
-               date_range_tuples = [
-                    (pd.Timestamp("2010-04-27 00:00:00"), pd.Timestamp("2010-04-27 01:00:10")), # diff = frequency_used
-                    (pd.Timestamp("2010-04-27 01:00:10"), pd.Timestamp("2010-04-27 02:00:20")), # diff = frequency_used
-                    (pd.Timestamp("2010-04-27 02:00:20"), pd.Timestamp("2010-04-27 03:00:30")), # diff = frequency_used
-                    (pd.Timestamp("2010-04-27 03:00:30"), pd.Timestamp("2010-04-27 04:00:40")), # diff = frequency_used
-                    (pd.Timestamp("2010-04-27 04:00:40"), pd.Timestamp("2010-04-27 05:00:00")), # diff <= frequency_used
-                    ]
-                frequency_used = pd.Timedelta("0 days 01:00:10")  # note that no milliseconds exist
-        """
-        # snap frequency to whole seconds
-        frequency_used = frequency.round(pd.Timedelta(seconds=1))
-        _range = pd.date_range(start=startdate_obj, end=enddate_obj, freq=frequency_used)
-        # add enddate_obj to range
-        _range = _range.union([enddate_obj])
-        date_range_tuples = []
-        for index, date_str in enumerate(_range):
-            try:
-                start_str = _range[index]
-                end_str = _range[index + 1]
-                _tuple = pd.Timestamp(start_str), pd.Timestamp(end_str)
-                date_range_tuples.append(_tuple)
-            except IndexError:
-                logger.debug("no more dates left over")
-        return date_range_tuples, frequency_used
 
 
 class GetTimeseries:
@@ -62,6 +23,7 @@ class GetTimeseries:
         cls,
         url: str,
         pi_settings: PiSettings,
+        request_settings: RequestSettings,
         retry_backoff_session: RequestsRetrySession,
         start_time: datetime,
         end_time: datetime,
@@ -102,14 +64,74 @@ class GetTimeseries:
         timer = Timer()
         parameters = parameters_to_fews(parameters=locals(), pi_settings=pi_settings)
 
-        cartesian_parameters_list = cls.get_cartesian_parameters_list(
-            parameters=parameters, location_ids=location_ids, parameter_ids=parameter_ids, qualifier_ids=qualifier_ids
-        )
-        for cartesian_parameters in cartesian_parameters_list:
-            nr_timestamps = cls._get_nr_timestamps(
-                retry_backoff_session=retry_backoff_session, url=url, params=cartesian_parameters, verify=ssl_verify
+        if only_headers or show_statistics:
+            # TODO: implement this
+            raise NotImplementedError
+
+        date_freq_builder = DateFrequencyBuilder(request_settings=request_settings)
+
+        cartesian_parameters_list = cls.get_cartesian_parameters_list(parameters=parameters)
+        for request_params in cartesian_parameters_list:
+
+            request_date_ranges, date_range_freq = date_freq_builder.create_date_ranges(
+                startdate_obj=request_params["startTime"],
+                enddate_obj=request_params["endTime"],
+                frequency=request_settings.default_request_period,
             )
-            response = retry_backoff_session.get(url=url, params=parameters, verify=ssl_verify)
+
+            for request_index, (startdate_request, enddate_request) in enumerate(request_date_ranges):
+                nr_timestamps_in_response = cls._get_nr_timestamps(
+                    retry_backoff_session=retry_backoff_session,
+                    url=url,
+                    params=request_params,
+                    verify=pi_settings.ssl_verify,
+                )
+                logger.debug(f"nr_timestamps_in_response={nr_timestamps_in_response}")
+                new_date_range_freq = date_freq_builder.optional_change_date_range_freq(
+                    nr_timestamps=nr_timestamps_in_response, date_range_freq=date_range_freq
+                )
+
+                if new_date_range_freq != date_range_freq:
+
+                    new_date_ranges, new_date_range_freq = date_freq_builder.create_date_ranges(
+                        startdate_obj=request_params["startTime"],
+                        enddate_obj=request_params["endTime"],
+                        frequency=new_date_range_freq,
+                    )
+                    logger.info(f"updated request time-window from {date_range_freq} to {new_date_range_freq}")
+
+                    raise NotImplementedError(
+                        "renier hier was je gebleven: funcie/methode van boven zodat je recursive trick kan doen"
+                    )
+                    # TODO
+                    # continue with recursive call with updated (smaller or larger) time-window
+                    return self._add_ts_to_ts_analyser(
+                        uuid=uuid,
+                        int_loc=int_loc,
+                        int_par=int_par,
+                        ts_analyser=ts_analyser,
+                        request_date_ranges=new_date_ranges,
+                        date_range_freq=new_date_range_freq,
+                        xml_start=xml_start,
+                        xml_end_max_today=xml_end_max_today,
+                    )
+                else:
+                    self._log_progress_download_ts(
+                        uuid=uuid, xml_start=xml_start, xml_end_max_today=xml_end_max_today, request_end=enddate_request
+                    )
+                    df_ts = self.pi_rest.get_time_series_hdsr(
+                        int_loc=int_loc,
+                        int_par=int_par,
+                        start=startdate_request,
+                        end=enddate_request,
+                    )
+                    ts_analyser.add_df_time_series(df_ts=df_ts)
+
+            date_range_tuples, frequency_used = DateFrequencyBuilder.create_date_ranges(
+                startdate_obj, enddate_obj, frequency=request_settings.default_request_period
+            )
+
+            response = retry_backoff_session.get(url=url, params=parameters, verify=pi_settings.ssl_verify)
             timer.report(message=report_string.format(status="request"))
 
             # parse the response
@@ -134,107 +156,106 @@ class GetTimeseries:
         params["onlyHeaders"] = True
         params["showStatistics"] = True
         response = retry_backoff_session.get(url=url, params=params, verify=verify)
-        timeseries = response.json()["timeSeries"]
+        if not response.ok:
+            # TODO: fix this
+            #  url
+            #  'http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/timeseries/'
+            #  params
+            #  {'startTime': '2022-05-01T00:00:00Z', 'endTime': '2022-05-02T00:00:00Z', 'locationIds': ['OW433001'], 'parameterIds': ['H.G.0'], 'onlyHeaders': True, 'showStatistics': True, 'documentVersion': 1.25, 'documentFormat': 'PI_JSON', 'filterId': 'INTERAL-API'}
+            #  verify
+            #  True
+            #  response.text = 'Filter INTERAL-API is not a valid child of root filter INTERNAL-API! Please check the filters.'
+            raise NotImplementedError
+        timeseries = response.json().get("timeSeries", None)
+        if not timeseries:
+            return 0
+
         if len(timeseries) > 1:
-            logger.debug(f"get_timeseries with parameters {params} results in {len(timeseries)} timeseries")
+            assert (
+                "moduleInstanceIds" in params
+            ), f"No or multiple moduleInstanceIds results in multiple timeseries which is not implemented in hdsr_fewspy. Please specify 1 in pi_settings."
+            raise AssertionError("code error multiple timeseries in _get_nr_timestamps")
         nr_timestamps = sum([int(x["header"]["valueCount"]) for x in timeseries])
-
-        if len(timeseries) != 1:
-            # TODO: implement this
-            #  params = {
-            #     "documentFormat": "PI_JSON",
-            #     "filterId": "INTERNAL-API",
-            #     "startTime": "2005-01-01T00:00:00Z",
-            #     "endTime": "2023-01-01T00:00:00Z",
-            #     "locationIds": "KW215712",
-            #     "parameterIds": "DD.y",
-            #     "onlyHeaders": True,
-            #     "showStatistics": True,
-            #  }
-            #  results in len(timeseries) == 3
-            #  timeseries = [
-            #     {
-            #         "header": {
-            #             "type": "instantaneous",
-            #             "moduleInstanceId": "ImportOpvlWater",
-            #             "locationId": "KW215712",
-            #             "parameterId": "DD.y",
-            #             "timeStep": {"unit": "nonequidistant"},
-            #             "startDate": {"date": "2004-12-31", "time": "23:00:00"},
-            #             "endDate": {"date": "2023-12-31", "time": "23:00:00"},
-            #             "missVal": "-999.0",
-            #             "stationName": "HARMELERWAARD_2157-K_HARMELERWAARD-pompvijzel1_afvoer",
-            #             "lat": "52.088590381584716",
-            #             "lon": "4.980657829604588",
-            #             "x": "127137.0",
-            #             "y": "455670.0",
-            #             "z": "0.0",
-            #             "units": "s",
-            #             "firstValueTime": {"date": "2005-12-31", "time": "23:00:00"},
-            #             "lastValueTime": {"date": "2022-12-31", "time": "23:00:00"},
-            #             "maxValue": "4826096",
-            #             "minValue": "43739",
-            #             "valueCount": "18",
-            #         }
-            #     },
-            #     {
-            #         "header": {
-            #             "type": "instantaneous",
-            #             "moduleInstanceId": "WerkFilter",
-            #             "locationId": "KW215712",
-            #             "parameterId": "DD.y",
-            #             "timeStep": {"unit": "nonequidistant"},
-            #             "startDate": {"date": "2004-12-31", "time": "23:00:00"},
-            #             "endDate": {"date": "2023-12-31", "time": "23:00:00"},
-            #             "missVal": "-999.0",
-            #             "stationName": "HARMELERWAARD_2157-K_HARMELERWAARD-pompvijzel1_afvoer",
-            #             "lat": "52.088590381584716",
-            #             "lon": "4.980657829604588",
-            #             "x": "127137.0",
-            #             "y": "455670.0",
-            #             "z": "0.0",
-            #             "units": "s",
-            #             "firstValueTime": {"date": "2005-12-31", "time": "23:00:00"},
-            #             "lastValueTime": {"date": "2022-12-31", "time": "23:00:00"},
-            #             "maxValue": "4826096",
-            #             "minValue": "43739",
-            #             "valueCount": "18",
-            #         }
-            #     },
-            #     {
-            #         "header": {
-            #             "type": "instantaneous",
-            #             "moduleInstanceId": "MetingenFilter",
-            #             "locationId": "KW215712",
-            #             "parameterId": "DD.y",
-            #             "timeStep": {"unit": "nonequidistant"},
-            #             "startDate": {"date": "2004-12-31", "time": "23:00:00"},
-            #             "endDate": {"date": "2023-12-31", "time": "23:00:00"},
-            #             "missVal": "-999.0",
-            #             "stationName": "HARMELERWAARD_2157-K_HARMELERWAARD-pompvijzel1_afvoer",
-            #             "lat": "52.088590381584716",
-            #             "lon": "4.980657829604588",
-            #             "x": "127137.0",
-            #             "y": "455670.0",
-            #             "z": "0.0",
-            #             "units": "s",
-            #             "firstValueTime": {"date": "2021-12-31", "time": "23:00:00"},
-            #             "lastValueTime": {"date": "2022-12-31", "time": "23:00:00"},
-            #             "maxValue": "83206",
-            #             "minValue": "41542",
-            #             "valueCount": "2",
-            #         }
-            #     },
-            # ]
-            raise NotImplementedError("this should not happen")
-
         return nr_timestamps
 
     @classmethod
-    def get_cartesian_parameters_list(
-        cls, parameters: Dict, location_ids: List[str], parameter_ids: List[str], qualifier_ids: List[str]
-    ) -> List[Dict]:
-        if not any([location_ids, parameter_ids, qualifier_ids]):
+    def get_cartesian_parameters_list(cls, parameters: Dict) -> List[Dict]:
+        """
+        Go from
+            {'locationIds': ['KW215712', 'KW322613'], 'parameterIds': ['Q.B.y', 'DD.y']}
+        to [
+            {'locationIds': 'KW215712', 'parameterIds': 'Q.B.y'},
+            {'locationIds': 'KW215712', 'parameterIds': 'DD.y'},
+            {'locationIds': 'KW322613', 'parameterIds': 'Q.B.y'},
+            {'locationIds': 'KW322613', 'parameterIds': 'DD.y'},
+        ]
+
+        Example:
+            input:
+                parameters = {
+                    'startTime': '2005-01-01T00:00:00Z',
+                    'endTime': '2023-01-01T00:00:00Z',
+                    'locationIds': ['KW215712', 'KW322613'],
+                    'parameterIds': ['Q.B.y', 'DD.y'],
+                    'onlyHeaders': False,
+                    'showStatistics': False,
+                    'documentVersion': 1.25,
+                    'documentFormat': 'PI_JSON',
+                    'filterId': 'INTERAL-API'
+                    }
+            returns:
+            [
+                {
+                    'documentFormat': 'PI_JSON',
+                    'documentVersion': 1.25,
+                    'endTime': '2023-01-01T00:00:00Z',
+                    'filterId': 'INTERAL-API',
+                    'locationIds': 'KW215712',
+                    'onlyHeaders': False,
+                    'parameterIds': 'Q.B.y',
+                    'showStatistics': False,
+                    'startTime': '2005-01-01T00:00:00Z'
+                },
+                {
+                    'documentFormat': 'PI_JSON',
+                    'documentVersion': 1.25,
+                    'endTime': '2023-01-01T00:00:00Z',
+                    'filterId': 'INTERAL-API',
+                    'locationIds': 'KW215712',
+                    'onlyHeaders': False,
+                    'parameterIds': 'DD.y',
+                    'showStatistics': False,
+                    'startTime': '2005-01-01T00:00:00Z'
+                },
+                {
+                    'documentFormat': 'PI_JSON',
+                    'documentVersion': 1.25,
+                    'endTime': '2023-01-01T00:00:00Z',
+                    'filterId': 'INTERAL-API',
+                    'locationIds': 'KW322613',
+                    'onlyHeaders': False,
+                    'parameterIds': 'Q.B.y',
+                    'showStatistics': False,
+                    'startTime': '2005-01-01T00:00:00Z'
+                },
+                {
+                    'documentFormat': 'PI_JSON',
+                    'documentVersion': 1.25,
+                    'endTime': '2023-01-01T00:00:00Z',
+                    'filterId': 'INTERAL-API',
+                    'locationIds': 'KW322613',
+                    'onlyHeaders': False,
+                    'parameterIds': 'DD.y',
+                    'showStatistics': False,
+                    'startTime': '2005-01-01T00:00:00Z'
+                }
+            ]
+        """
+        location_ids = parameters.get("locationIds", [])
+        parameter_ids = parameters.get("parameterIds", [])
+        qualifier_ids = parameters.get("qualifierIds", [])
+        cartesian_needed = max([len(x) for x in (location_ids, parameter_ids, qualifier_ids)]) > 1
+        if not cartesian_needed:
             return [parameters]
 
         skip = "skip"

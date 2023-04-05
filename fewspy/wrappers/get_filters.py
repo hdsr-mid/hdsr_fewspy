@@ -1,4 +1,5 @@
 from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
@@ -14,6 +15,7 @@ def get_filters(
     url: str,
     #
     pi_setttings: PiSettings,
+    request_settings: RequestSettings,
     retry_backoff_session: RequestsRetrySession,
     #
 ) -> List[dict]:

@@ -1,4 +1,5 @@
 from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 def get_timezone_id(
     url: str,
     pi_settings: PiSettings,
+    request_settings: RequestSettings,
     retry_backoff_session: RequestsRetrySession,
 ) -> str:
     """Get FEWS timezone id.

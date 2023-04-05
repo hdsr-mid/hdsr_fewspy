@@ -52,3 +52,15 @@ class IntLocHasMetaButNoDfClassifiedSubloc(ErrorBase):
 
 class URLNotFoundError(ErrorBase):
     pass
+
+
+class UserNotFoundInHdsrFewspyAuthError(ErrorBase):
+    pass
+
+
+class NoPermissionInHdsrFewspyAuthError(ErrorBase):
+    pass
+
+
+class PiSettingsError(ErrorBase):
+    pass

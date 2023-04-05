@@ -1,5 +1,6 @@
 from datetime import datetime
 from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 def get_samples(
     url: str,
     pi_settings: PiSettings,
+    request_settings: RequestSettings,
     retry_backoff_session: RequestsRetrySession,
     start_time: datetime,
     end_time: datetime,

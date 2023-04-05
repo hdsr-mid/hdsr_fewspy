@@ -38,8 +38,8 @@ class PiSettings:
     #
     document_version: float
     document_format: str
-    filter_id: str
-    module_instance_id: str
+    filter_ids: str
+    module_instance_ids: str
     time_zone: str  # see TimeZoneChoices
     #
     ssl_verify: bool
@@ -101,8 +101,8 @@ pi_settings_mocked = PiSettings(
     domain="localhost",
     port=9999,
     service="mocked",
-    filter_id="mocked",
-    module_instance_id="mocked",
+    filter_ids="mocked",
+    module_instance_ids="mocked",
     time_zone=TimeZoneChoices.gmt_0.value,
 )
 
@@ -114,8 +114,8 @@ pi_settings_sa = PiSettings(
     domain="localhost",
     port=8080,
     service="FewsWebServices",
-    filter_id="INTERAL-API",
-    module_instance_id="ImportOpvlWater",
+    filter_ids="INTERNAL-API",
+    module_instance_ids="ImportOpvlWater",
     time_zone=TimeZoneChoices.gmt_0.value,
 )
 
@@ -127,7 +127,7 @@ pi_settings_production = PiSettings(
     domain="webwis-prd01.ad.hdsr.nl",
     port=8081,
     service="OwdPiService",
-    filter_id="owdapi-opvlwater-noneq",
-    module_instance_id="WerkFilter",
+    filter_ids="owdapi-opvlwater-noneq",
+    module_instance_ids="WerkFilter",
     time_zone=TimeZoneChoices.gmt_0.value,
 )

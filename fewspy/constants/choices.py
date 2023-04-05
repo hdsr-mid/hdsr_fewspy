@@ -34,6 +34,7 @@ class ApiParameters:
     filter_id = "filter_id"
     include_location_relations = "include_location_relations"
     location_ids = "location_ids"
+    module_instance_ids = "module_instance_ids"
     omit_empty_timeseries = "omit_empty_timeSeries"
     only_headers = "only_headers"
     parameter_ids = "parameter_ids"
@@ -44,7 +45,7 @@ class ApiParameters:
 
     @classmethod
     def pi_settings_keys(cls):
-        return [cls.document_format, cls.document_version, cls.filter_id]
+        return [cls.document_format, cls.document_version, cls.filter_id, cls.module_instance_ids]
 
     @classmethod
     def non_pi_settings_keys_datetime(cls):

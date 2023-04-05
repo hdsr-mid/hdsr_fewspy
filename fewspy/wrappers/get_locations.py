@@ -1,4 +1,5 @@
 from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.conversions import attributes_to_array
 from fewspy.utils.conversions import camel_to_snake_case
@@ -18,6 +19,7 @@ def get_locations(
     url: str,
     #
     pi_setttings: PiSettings,
+    request_settings: RequestSettings,
     retry_backoff_session: RequestsRetrySession,
     #
     attributes: list = None,

@@ -1,4 +1,5 @@
 from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.timer import Timer
@@ -25,6 +26,7 @@ def get_parameters(
     url: str,
     #
     pi_setttings: PiSettings,
+    request_settings: RequestSettings,
     retry_backoff_session: RequestsRetrySession,
 ) -> pd.DataFrame:
     """Get FEWS parameters as a pandas DataFrame.

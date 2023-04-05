@@ -14,7 +14,7 @@ def check_python_version():
 
 def setup_logging() -> None:
     """Adds a configured strearm handler to the root logger."""
-    log_level = logging.DEBUG
+    log_level = logging.INFO
     log_date_format = "%H:%M:%S"
     log_format = "%(asctime)s %(filename)s %(levelname)s %(message)s"
     _logger = logging.getLogger()
@@ -31,6 +31,22 @@ if __name__ == "__main__":
     setup_logging()
     logger = logging.getLogger(__name__)
     logger.info("starting app")
+
+    # test
+    from fewspy.api import Api
+    from fewspy.constants.pi_settings import pi_settings_sa
+    from fewspy.tests.fixtures_requests import RequestData1
+
+    api = Api(email="renier.kramer@hdsr.nl", hdsr_fewspy_token="blabla", pi_settings=pi_settings_sa)
+    request_data = RequestData1
+
+    ts_set_json = api.get_time_series(
+        location_ids=request_data.location_ids,
+        parameter_ids=request_data.parameter_ids,
+        start_time=request_data.start_time,
+        end_time=request_data.end_time,
+    )
+
     logger.info("shutting down app")
 
 
@@ -40,7 +56,7 @@ if __name__ == "__main__":
 
 # TODO: don't use strings as urls...
 
-# TODO: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
+# Done: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
 
 # TODO: test other get requests than get_timeseries
 

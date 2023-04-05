@@ -1,4 +1,5 @@
 from fewspy.constants.pi_settings import PiSettings
+from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.timer import Timer
 from typing import Tuple
@@ -21,6 +22,7 @@ class GetQualifiers:
         cls,
         url: str,
         pi_settings: PiSettings,
+        request_settings: RequestSettings,
         retry_backoff_session: RequestsRetrySession,
     ) -> pd.DataFrame:
         """Get FEWS qualifiers as Pandas DataFrame.
