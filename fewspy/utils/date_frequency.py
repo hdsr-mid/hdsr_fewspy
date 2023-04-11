@@ -71,13 +71,13 @@ class DateFrequencyBuilder:
             if date_range_freq > request_settings.max_request_period:
                 logger.info(
                     f"date_range_freq={date_range_freq} exceeds max_request_period="
-                    f"{request_settings.max_request_period}. Continue with date_range_freq={date_range_freq}"
+                    f"(={request_settings.max_request_period}). Continue with date_range_freq={date_range_freq}"
                 )
                 return date_range_freq
             period_required = enddate_request - startdate_request
             if date_range_freq > period_required:
                 logger.info(
-                    f"date_range_freq={date_range_freq} exceeds period to request {period_required}. Continue with "
+                    f"date_range_freq={date_range_freq} exceeds period available (={period_required}). Continue with "
                     f"date_range_freq={date_range_freq}"
                 )
                 return date_range_freq

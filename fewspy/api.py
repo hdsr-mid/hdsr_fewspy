@@ -10,7 +10,6 @@ from fewspy.constants.request_settings import RequestSettings
 from fewspy.permissions import Permissions
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.bug_report import create_bug_report_when_error
-from pathlib import Path
 from typing import Dict
 from typing import List
 from typing import Union
@@ -40,7 +39,6 @@ class Api:
     def __init__(
         self,
         pi_settings: PiSettings = pi_settings_production,
-        output_folder: Path = Path("1"),
         hdsr_fewspy_email: str = None,
         hdsr_fewspy_token: str = None,
     ):

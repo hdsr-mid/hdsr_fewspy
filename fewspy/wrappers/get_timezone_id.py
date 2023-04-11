@@ -1,7 +1,6 @@
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
-from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
 
 import logging
@@ -25,15 +24,12 @@ def get_timezone_id(
     """
 
     # do the request
-    timer = Timer()
     parameters = parameters_to_fews(parameters=locals(), pi_settings=pi_settings)
     response = retry_backoff_session.get(url=url, params=parameters, verify=pi_settings.ssl_verify)
-    timer.report(message="Timezone request")
 
     # parse the response
     if response.status_code == 200:
         result = response.text
-        timer.report(message="Timezone parsed")
     else:
         logger.error(f"FEWS Server responds {response.text}")
 

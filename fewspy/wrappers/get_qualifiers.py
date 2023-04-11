@@ -1,7 +1,6 @@
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
-from fewspy.utils.timer import Timer
 from typing import Tuple
 from xml.etree import ElementTree
 
@@ -34,9 +33,7 @@ class GetQualifiers:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
         # do the request
-        timer = Timer()
         response = retry_backoff_session.get(url=url, verify=pi_settings.ssl_verify)
-        timer.report(message="Qualifiers request")
 
         # parse the response
         if response.status_code == 200:
@@ -44,7 +41,6 @@ class GetQualifiers:
             qualifiers_tree = [i for i in tree.iter(tag=f"{NS}qualifier")]
             qualifiers_tuple = (cls._element_to_tuple(i) for i in qualifiers_tree)
             df = pd.DataFrame(qualifiers_tuple, columns=COLUMNS)
-            timer.report(message="Qualifiers parsed")
         else:
             logger.error(f"FEWS Server responds {response.text}")
             df = pd.DataFrame(columns=COLUMNS)

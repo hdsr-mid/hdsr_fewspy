@@ -115,7 +115,7 @@ pi_settings_sa = PiSettings(
     port=8080,
     service="FewsWebServices",
     filter_ids="INTERNAL-API",
-    module_instance_ids="ImportOpvlWater",
+    module_instance_ids="WerkFilter",  # "ImportOpvlWater",
     time_zone=TimeZoneChoices.gmt_0.value,
 )
 

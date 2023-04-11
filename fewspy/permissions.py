@@ -20,18 +20,18 @@ class Permissions:
 
         # get hdsr_fewspy_email
         if hdsr_fewspy_email:
-            logger.info(f"using hdsr_fewspy_email from args")
+            logger.info("using hdsr_fewspy_email from args")
             self.hdsr_fewspy_email = self.validate_email(email=hdsr_fewspy_email)
         else:
-            logger.info(f"using hdsr_fewspy_email from os environmental variables (loaded from secrets.env)")
+            logger.info("using hdsr_fewspy_email from os environmental variables (loaded from secrets.env)")
             self.hdsr_fewspy_email = self.validate_email(email=self.secrets.hdsr_fewspy_email)
 
         # get hdsr_fewspy_token
         if hdsr_fewspy_token:
-            logger.info(f"using secret hdsr_fewspy_token from args")
+            logger.info("using secret hdsr_fewspy_token from args")
             self.hdsr_fewspy_token = self.secrets.hdsr_fewspy_token
         else:
-            logger.info(f"using secret hdsr_fewspy_token from os environmental variables (loaded from secrets.env)")
+            logger.info("using secret hdsr_fewspy_token from os environmental variables (loaded from secrets.env)")
             self.hdsr_fewspy_token = hdsr_fewspy_token.strip()
 
         self._permission_row = None

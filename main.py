@@ -40,7 +40,7 @@ if __name__ == "__main__":
     api = Api(hdsr_fewspy_token="blabla", pi_settings=pi_settings_sa)
     request_data = RequestData1
 
-    ts_set_json = api.get_time_series(
+    ts_set = api.get_time_series(
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,
         start_time=request_data.start_time,
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
 # DONE: Use BackoffRetry strategy
 
-# TODO: add rate_limiting to requests (freq and size)
+# DONE: add rate_limiting to requests (freq and size)
 
 # TODO: don't use strings as urls...
 
@@ -62,14 +62,14 @@ if __name__ == "__main__":
 
 # TODO: create documentation
 
-# TODO: enable users to override Api.pi_settings
+# DONE: enable users to override Api.pi_settings
 
 # TODO: Ciska wel interesse wel in:
 #  --------------------------------
 #  get_samples (grote request)
 #  - Deltares is hier begin 2024 klaar. Nu geeft FEWS EFICS piwebservice na 2 of 5 minuten een timeout
 #  get_timeseries (grote request)
-#  - altijd start en end
+#  - altijd start + end
 #  - altijd omitEmptyTimeSeries op True anders geeft ie minimaal weken aan tijdseries terug
 #  - vaak filter_id
 #  - soms parameter_id, location_id, moduleinstance_id

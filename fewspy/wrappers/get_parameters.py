@@ -2,7 +2,6 @@ from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.utils.conversions import camel_to_snake_case
-from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
 
 import logging
@@ -38,10 +37,8 @@ def get_parameters(
         df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
     """
     # do the request
-    timer = Timer()
     parameters = parameters_to_fews(parameters=locals(), pi_settings=pi_setttings)
     response = retry_backoff_session.get(url, parameters=parameters, verify=pi_setttings.ssl_verify)
-    timer.report(message="Parameters request")
 
     # parse the response
     df = pd.DataFrame(columns=COLUMNS)
@@ -50,7 +47,7 @@ def get_parameters(
             df = pd.DataFrame(response.json()["timeSeriesParameters"])
             df.columns = [camel_to_snake_case(i) for i in df.columns]
             df["uses_datum"] = df["uses_datum"] == "true"
-            timer.report(message="Parameters parsed")
+
     else:
         logger.error(f"FEWS Server responds {response.text}")
 

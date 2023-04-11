@@ -56,7 +56,7 @@ class Header:
             return k, v
 
         args = (_convert_kv(k, v) for k, v in pi_header.items())
-        header = Header(**{i[0]: i[1] for i in args})
+        header = Header(**{i[0]: i[1] for i in args if i[0] in cls.__dataclass_fields__.keys()})  # noqa
         return header
 
 
@@ -97,8 +97,8 @@ class Events(pd.DataFrame):
         # set flag to numeric
         df["flag"] = pd.to_numeric(df["flag"])
         if flag_threshold:
-            # remove rows that have a unreliable flag:
-            # A flag_threshold of 6 means that only values with a flag < 6 will be included
+            # remove rows that have a unreliable flag: A flag_threshold of 6 means that only values with a
+            # flag < 6 will be included
             df = df.loc[df["flag"] < flag_threshold]
 
         # set datetime to index
@@ -118,7 +118,7 @@ class TimeSeries:
     def from_pi_time_series(
         cls, pi_time_series: dict, drop_missing_values: bool, flag_threshold: int, time_zone: float = None
     ) -> TimeSeries:
-        header = Header.from_pi_header(pi_time_series["header"])
+        header = Header.from_pi_header(pi_header=pi_time_series["header"])
         kwargs = dict(header=header)
         if "events" in pi_time_series.keys():
             kwargs["events"] = Events.from_pi_events(

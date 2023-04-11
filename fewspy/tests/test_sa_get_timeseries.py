@@ -87,5 +87,3 @@ def test_sa_ok_request2(api_sa_fixture):
         start_time=request_data.start_time,
         end_time=request_data.end_time,
     )
-
-    print(1)
