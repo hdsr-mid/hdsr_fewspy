@@ -3,11 +3,13 @@ from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.retry_session import RequestsRetrySession
 from fewspy.time_series import TimeSeriesSet
+from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.date_frequency import DateFrequencyBuilder
 from fewspy.utils.timer import Timer
 from fewspy.utils.transformations import parameters_to_fews
 from typing import Dict
 from typing import List
+from typing import Tuple
 from typing import Union
 
 import logging
@@ -57,79 +59,39 @@ class GetTimeseries:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
 
         """
-        report_string = "Headers {status}" if only_headers else "TimeSeries {status}"
-        timeseriessets = []
-
-        # do the request
-        timer = Timer()
-        parameters = parameters_to_fews(parameters=locals(), pi_settings=pi_settings)
-
         if only_headers or show_statistics:
             # TODO: implement this
             raise NotImplementedError
 
-        date_freq_builder = DateFrequencyBuilder(request_settings=request_settings)
+        report_string = "Headers {status}" if only_headers else "TimeSeries {status}"
+        timeseriessets = []
 
-        cartesian_parameters_list = cls.get_cartesian_parameters_list(parameters=parameters)
+        timer = Timer()
+        parameters = parameters_to_fews(parameters=locals(), pi_settings=pi_settings)
+        cartesian_parameters_list = cls._get_cartesian_parameters_list(parameters=parameters)
         for request_params in cartesian_parameters_list:
-
-            request_date_ranges, date_range_freq = date_freq_builder.create_date_ranges(
-                startdate_obj=request_params["startTime"],
-                enddate_obj=request_params["endTime"],
+            ts_startdate = pd.Timestamp(request_params["startTime"])
+            ts_enddate = pd.Timestamp(request_params["endTime"])
+            date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
+                startdate_obj=ts_startdate,
+                enddate_obj=ts_enddate,
                 frequency=request_settings.default_request_period,
             )
-
-            for request_index, (startdate_request, enddate_request) in enumerate(request_date_ranges):
-                nr_timestamps_in_response = cls._get_nr_timestamps(
-                    retry_backoff_session=retry_backoff_session,
-                    url=url,
-                    params=request_params,
-                    verify=pi_settings.ssl_verify,
-                )
-                logger.debug(f"nr_timestamps_in_response={nr_timestamps_in_response}")
-                new_date_range_freq = date_freq_builder.optional_change_date_range_freq(
-                    nr_timestamps=nr_timestamps_in_response, date_range_freq=date_range_freq
-                )
-
-                if new_date_range_freq != date_range_freq:
-
-                    new_date_ranges, new_date_range_freq = date_freq_builder.create_date_ranges(
-                        startdate_obj=request_params["startTime"],
-                        enddate_obj=request_params["endTime"],
-                        frequency=new_date_range_freq,
-                    )
-                    logger.info(f"updated request time-window from {date_range_freq} to {new_date_range_freq}")
-
-                    raise NotImplementedError(
-                        "renier hier was je gebleven: funcie/methode van boven zodat je recursive trick kan doen"
-                    )
-                    # TODO
-                    # continue with recursive call with updated (smaller or larger) time-window
-                    return self._add_ts_to_ts_analyser(
-                        uuid=uuid,
-                        int_loc=int_loc,
-                        int_par=int_par,
-                        ts_analyser=ts_analyser,
-                        request_date_ranges=new_date_ranges,
-                        date_range_freq=new_date_range_freq,
-                        xml_start=xml_start,
-                        xml_end_max_today=xml_end_max_today,
-                    )
-                else:
-                    self._log_progress_download_ts(
-                        uuid=uuid, xml_start=xml_start, xml_end_max_today=xml_end_max_today, request_end=enddate_request
-                    )
-                    df_ts = self.pi_rest.get_time_series_hdsr(
-                        int_loc=int_loc,
-                        int_par=int_par,
-                        start=startdate_request,
-                        end=enddate_request,
-                    )
-                    ts_analyser.add_df_time_series(df_ts=df_ts)
-
-            date_range_tuples, frequency_used = DateFrequencyBuilder.create_date_ranges(
-                startdate_obj, enddate_obj, frequency=request_settings.default_request_period
+            cls._download_timeseries_to_folder(
+                url=url,
+                date_ranges=date_ranges,
+                date_range_freq=date_range_freq,
+                ts_startdate=ts_startdate,
+                ts_enddate=ts_enddate,
+                retry_backoff_session=retry_backoff_session,
+                request_params=request_params,
+                pi_settings=pi_settings,
+                request_settings=request_settings,
             )
+
+            # date_range_tuples, frequency_used = DateFrequencyBuilder.update_date_ranges_and_frequency_used(
+            #     startdate_obj, enddate_obj, frequency=request_settings.default_request_period
+            # )
 
             response = retry_backoff_session.get(url=url, params=parameters, verify=pi_settings.ssl_verify)
             timer.report(message=report_string.format(status="request"))
@@ -149,13 +111,13 @@ class GetTimeseries:
                 logger.error(f"FEWS WebService request {response.url} responds {response.text}")
                 time_series_set = TimeSeriesSet()
 
-        return time_series_set
+            return time_series_set
 
     @classmethod
-    def _get_nr_timestamps(cls, retry_backoff_session, url, params, verify) -> int:
+    def _get_nr_timestamps(cls, retry_backoff_session, url, params, pi_settings: PiSettings) -> int:
         params["onlyHeaders"] = True
         params["showStatistics"] = True
-        response = retry_backoff_session.get(url=url, params=params, verify=verify)
+        response = retry_backoff_session.get(url=url, params=params, verify=pi_settings.ssl_verify)
         if not response.ok:
             # TODO: fix this
             #  url
@@ -171,15 +133,98 @@ class GetTimeseries:
             return 0
 
         if len(timeseries) > 1:
-            assert (
-                "moduleInstanceIds" in params
-            ), f"No or multiple moduleInstanceIds results in multiple timeseries which is not implemented in hdsr_fewspy. Please specify 1 in pi_settings."
-            raise AssertionError("code error multiple timeseries in _get_nr_timestamps")
+            msg = "Found multiple timeseries in _get_nr_timestamps"
+            if "moduleInstanceIds" not in params:
+                msg += f"moduleInstanceIds = '{pi_settings.module_instance_ids}'. Please specify 1 moduleInstanceIds in pi_settings."
+            raise AssertionError(msg)
         nr_timestamps = sum([int(x["header"]["valueCount"]) for x in timeseries])
         return nr_timestamps
 
     @classmethod
-    def get_cartesian_parameters_list(cls, parameters: Dict) -> List[Dict]:
+    def _download_timeseries_to_folder(
+        cls,
+        url: str,
+        date_ranges: List[Tuple[pd.Timestamp, pd.Timestamp]],
+        date_range_freq: pd.Timedelta,
+        ts_startdate: pd.Timestamp,
+        ts_enddate: pd.Timestamp,
+        retry_backoff_session: RequestsRetrySession,
+        request_params: Dict,
+        pi_settings: PiSettings,
+        request_settings: RequestSettings,
+    ):
+        for request_index, (startdate_request, enddate_request) in enumerate(date_ranges):
+            startdate_request_str = datetime_to_fews_str(startdate_request)
+            enddate_request_str = datetime_to_fews_str(enddate_request)
+            request_params["startTime"] = startdate_request_str
+            request_params["endTime"] = enddate_request_str
+            uuid = f"{request_params['locationIds'][0]} {request_params['parameterIds'][0]}"
+            nr_timestamps_in_response = cls._get_nr_timestamps(
+                retry_backoff_session=retry_backoff_session,
+                url=url,
+                params=request_params,
+                pi_settings=pi_settings,
+            )
+            logger.debug(f"nr_timestamps_in_response={nr_timestamps_in_response}")
+            new_date_range_freq = DateFrequencyBuilder.optional_change_date_range_freq(
+                nr_timestamps=nr_timestamps_in_response,
+                date_range_freq=date_range_freq,
+                request_settings=request_settings,
+                startdate_request=startdate_request,
+                enddate_request=enddate_request,
+            )
+            create_new_date_ranges = new_date_range_freq != date_range_freq
+            if create_new_date_ranges:
+                new_date_ranges, new_date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
+                    startdate_obj=startdate_request, enddate_obj=ts_enddate, frequency=new_date_range_freq
+                )
+                logger.info(f"Updated request time-window for '{uuid}' from {date_range_freq} to {new_date_range_freq}")
+                # continue with recursive call with updated (smaller or larger) time-window
+                return cls._download_timeseries_to_folder(
+                    url=url,
+                    date_ranges=new_date_ranges,
+                    date_range_freq=new_date_range_freq,
+                    ts_startdate=ts_startdate,
+                    ts_enddate=ts_enddate,
+                    retry_backoff_session=retry_backoff_session,
+                    request_params=request_params,
+                    pi_settings=pi_settings,
+                    request_settings=request_settings,
+                )
+            else:
+                # ready to download timeseries (with new_date_range_freq)
+                response = retry_backoff_session.get(url=url, params=request_params, verify=pi_settings.ssl_verify)
+                DateFrequencyBuilder.log_progress_download_ts(
+                    uuid=uuid, ts_startdate=ts_startdate, ts_enddate=ts_enddate, request_enddate=enddate_request
+                )
+
+                # parse the response
+                if response.ok:
+                    pi_time_series = response.json()
+                    time_series_set = TimeSeriesSet.from_pi_time_series(
+                        pi_time_serie=pi_time_series,
+                        drop_missing_values=drop_missing_values,
+                        flag_threshold=flag_threshold,
+                    )
+                    timer.report(message=report_string.format(status="parsed"))
+                    if time_series_set.is_empty:
+                        logger.debug(f"FEWS WebService request passing empty set: {response.url}")
+                else:
+                    logger.error(f"FEWS WebService request {response.url} responds {response.text}")
+                    time_series_set = TimeSeriesSet()
+
+                timer.report(message=report_string.format(status="request"))
+
+                df_ts = self.pi_rest.get_time_series_hdsr(
+                    int_loc=int_loc,
+                    int_par=int_par,
+                    start=startdate_request,
+                    end=enddate_request,
+                )
+                ts_analyser.add_df_time_series(df_ts=df_ts)
+
+    @classmethod
+    def _get_cartesian_parameters_list(cls, parameters: Dict) -> List[Dict]:
         """
         Go from
             {'locationIds': ['KW215712', 'KW322613'], 'parameterIds': ['Q.B.y', 'DD.y']}

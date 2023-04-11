@@ -39,12 +39,12 @@ class Api:
 
     def __init__(
         self,
-        email: str,
-        hdsr_fewspy_token: str,
         pi_settings: PiSettings = pi_settings_production,
         output_folder: Path = Path("1"),
+        hdsr_fewspy_email: str = None,
+        hdsr_fewspy_token: str = None,
     ):
-        self.permissions = Permissions(email=email, hdsr_fewspy_token=hdsr_fewspy_token)
+        self.permissions = Permissions(hdsr_fewspy_email=hdsr_fewspy_email, hdsr_fewspy_token=hdsr_fewspy_token)
         self.pi_settings = self._validate_pi_settings(pi_settings=pi_settings)
         self.request_settings: RequestSettings = request_settings
         self.retry_backoff_session = RequestsRetrySession(self.request_settings, pi_settings=self.pi_settings)

@@ -1,18 +1,39 @@
 from fewspy.constants import github
 from fewspy.exceptions import NoPermissionInHdsrFewspyAuthError
 from fewspy.exceptions import UserNotFoundInHdsrFewspyAuthError
+from fewspy.secrets import Secrets
 from hdsr_pygithub import GithubFileDownloader
 from typing import Dict
 from typing import List
 
+import logging
 import pandas as pd
 import validators
 
 
+logger = logging.getLogger(__name__)
+
+
 class Permissions:
-    def __init__(self, email: str, hdsr_fewspy_token: str):
-        self.email = self.validate_email(email=email)
-        self.hdsr_fewspy_token = hdsr_fewspy_token.strip()
+    def __init__(self, hdsr_fewspy_email: str = None, hdsr_fewspy_token: str = None):
+        self.secrets = Secrets()
+
+        # get hdsr_fewspy_email
+        if hdsr_fewspy_email:
+            logger.info(f"using hdsr_fewspy_email from args")
+            self.hdsr_fewspy_email = self.validate_email(email=hdsr_fewspy_email)
+        else:
+            logger.info(f"using hdsr_fewspy_email from os environmental variables (loaded from secrets.env)")
+            self.hdsr_fewspy_email = self.validate_email(email=self.secrets.hdsr_fewspy_email)
+
+        # get hdsr_fewspy_token
+        if hdsr_fewspy_token:
+            logger.info(f"using secret hdsr_fewspy_token from args")
+            self.hdsr_fewspy_token = self.secrets.hdsr_fewspy_token
+        else:
+            logger.info(f"using secret hdsr_fewspy_token from os environmental variables (loaded from secrets.env)")
+            self.hdsr_fewspy_token = hdsr_fewspy_token.strip()
+
         self._permission_row = None
         self.ensure_any_permissions()
 
@@ -25,7 +46,7 @@ class Permissions:
 
     def ensure_any_permissions(self) -> None:
         if self.permissions_row.empty:
-            raise NoPermissionInHdsrFewspyAuthError(message=f"user {self.email} has no permissions at all")
+            raise NoPermissionInHdsrFewspyAuthError(message=f"user {self.hdsr_fewspy_email} has no permissions at all")
 
     @property
     def permissions_row(self) -> pd.Series:
@@ -45,10 +66,12 @@ class Permissions:
         df[df_obj.columns] = df_obj.apply(lambda x: x.str.strip())
 
         # get row with matching email
-        permissions_row = df[(df["email"] == self.email) & (df["hdsr_fewspy_token"] == self.hdsr_fewspy_token)]
+        permissions_row = df[
+            (df["email"] == self.hdsr_fewspy_email) & (df["hdsr_fewspy_token"] == self.hdsr_fewspy_token)
+        ]
         if permissions_row.empty:
             raise UserNotFoundInHdsrFewspyAuthError(
-                f"email {self.email}, hdsr_fewspy_token={self.hdsr_fewspy_token} not in permission file"
+                f"email {self.hdsr_fewspy_email}, hdsr_fewspy_token={self.hdsr_fewspy_token} not in permission file"
             )
         assert len(permissions_row) == 1, "code error"
         permissions_row = permissions_row.loc[0]

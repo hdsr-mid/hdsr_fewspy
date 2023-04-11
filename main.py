@@ -37,7 +37,7 @@ if __name__ == "__main__":
     from fewspy.constants.pi_settings import pi_settings_sa
     from fewspy.tests.fixtures_requests import RequestData1
 
-    api = Api(email="renier.kramer@hdsr.nl", hdsr_fewspy_token="blabla", pi_settings=pi_settings_sa)
+    api = Api(hdsr_fewspy_token="blabla", pi_settings=pi_settings_sa)
     request_data = RequestData1
 
     ts_set_json = api.get_time_series(

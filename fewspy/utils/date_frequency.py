@@ -10,20 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 class DateFrequencyBuilder:
-    def __init__(self, request_settings: RequestSettings):
-        self.request_settings = request_settings
-
-    @staticmethod
-    def create_date_ranges(
-        startdate_obj: pd.Timestamp,
-        enddate_obj: pd.Timestamp,
-        frequency: pd.Timedelta,
+    @classmethod
+    def create_date_ranges_and_frequency_used(
+        cls, startdate_obj: pd.Timestamp, enddate_obj: pd.Timestamp, frequency: pd.Timedelta
     ) -> Tuple[List[Tuple[pd.Timestamp, pd.Timestamp]], pd.Timedelta]:
         """
         Example:
             startdate_obj = pd.Timestamp("2010-04-27 00:00:00")
             enddate_obj = pd.Timestamp("2010-04-27 05:00:00")
-            frequency = pd.Timedelta(hours=1, seconds=1f0, milliseconds=100)
+            frequency = pd.Timedelta(hours=1, seconds=10, milliseconds=100)
             returns:
                date_range_tuples = [
                     (pd.Timestamp("2010-04-27 00:00:00"), pd.Timestamp("2010-04-27 01:00:10")), # diff = frequency_used
@@ -51,26 +46,42 @@ class DateFrequencyBuilder:
         return date_range_tuples, frequency_used
 
     @staticmethod
-    def _log_progress_download_ts(
-        task: str, _start: pd.Timestamp, _end: pd.Timestamp, request_end: pd.Timestamp
+    def log_progress_download_ts(
+        uuid: str, ts_startdate: pd.Timestamp, ts_enddate: pd.Timestamp, request_enddate: pd.Timestamp
     ) -> None:
-        _end_max_today = min(pd.Timestamp.now(), _end)
-        timedelta_total_ts = _end_max_today - _start
-        timedelta_so_far = request_end - _start
+        """Compare request_enddate (which chances over time) with timeseries start end (no change over time)."""
+        _end_max_today = min(pd.Timestamp.now(tz=ts_enddate.tz), ts_enddate)
+        timedelta_total_ts = _end_max_today - ts_startdate
+        timedelta_so_far = request_enddate - ts_startdate
         progress_percentage = round(timedelta_so_far / timedelta_total_ts * 100, 2)
-        logger.info(f"task={task} download time-series progress={progress_percentage}%")
+        logger.info(f"uuid={uuid} download time-series progress={progress_percentage}%")
 
-    def optional_change_date_range_freq(self, nr_timestamps: int, date_range_freq: pd.Timedelta) -> pd.Timedelta:
+    @staticmethod
+    def optional_change_date_range_freq(
+        nr_timestamps: int,
+        date_range_freq: pd.Timedelta,
+        request_settings: RequestSettings,
+        startdate_request: pd.Timestamp,
+        enddate_request: pd.Timestamp,
+    ) -> pd.Timedelta:
         """Optional increase or decrease the time-window of a request depending on nr_timestamps found."""
-        if nr_timestamps > self.request_settings.max_request_nr_timestamps:
+        if nr_timestamps > request_settings.max_request_nr_timestamps:
             date_range_freq = 0.7 * date_range_freq
-        elif nr_timestamps < self.request_settings.min_request_nr_timestamps:
-            if date_range_freq > self.request_settings.max_request_period:
+        elif nr_timestamps < request_settings.min_request_nr_timestamps:
+            if date_range_freq > request_settings.max_request_period:
                 logger.info(
                     f"date_range_freq={date_range_freq} exceeds max_request_period="
-                    f"{self.request_settings.max_request_period}. Continue with date_range_freq={date_range_freq}"
+                    f"{request_settings.max_request_period}. Continue with date_range_freq={date_range_freq}"
                 )
                 return date_range_freq
+            period_required = enddate_request - startdate_request
+            if date_range_freq > period_required:
+                logger.info(
+                    f"date_range_freq={date_range_freq} exceeds period to request {period_required}. Continue with "
+                    f"date_range_freq={date_range_freq}"
+                )
+                return date_range_freq
+
             try:
                 date_range_freq = 1.3 * date_range_freq
             except (OverflowError, pd.errors.OutOfBoundsDatetime) as err:

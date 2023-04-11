@@ -59,7 +59,7 @@ def datetime_to_fews_str(date_time: datetime) -> str:
 
 
 def fews_date_str_to_datetime(fews_date_str: str) -> datetime:
-    """Convert a datetime str (e.g. 2022-05-01T00:00:00Z.) to FEWS PI datetime"""
+    """Convert a datetime str (e.g. 2022-05-01T00:00:00Z) to FEWS PI datetime"""
     try:
         date_time = datetime.strptime(fews_date_str, TimeZoneChoices.date_string_format())
         return date_time
