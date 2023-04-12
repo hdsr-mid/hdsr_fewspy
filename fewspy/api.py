@@ -1,6 +1,6 @@
 from datetime import datetime
+from fewspy import api_calls
 from fewspy import exceptions
-from fewspy import wrappers
 from fewspy.constants.choices import TimeZoneChoices
 from fewspy.constants.paths import HDSR_FEWSPY_VERSION
 from fewspy.constants.pi_settings import pi_settings_production
@@ -8,8 +8,9 @@ from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import request_settings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.permissions import Permissions
-from fewspy.retry_session import RequestsRetrySession
+from fewspy.retry_session import RetryBackoffSession
 from fewspy.utils.bug_report import create_bug_report_when_error
+from pathlib import Path
 from typing import Dict
 from typing import List
 from typing import Union
@@ -45,7 +46,7 @@ class Api:
         self.permissions = Permissions(hdsr_fewspy_email=hdsr_fewspy_email, hdsr_fewspy_token=hdsr_fewspy_token)
         self.pi_settings = self._validate_pi_settings(pi_settings=pi_settings)
         self.request_settings: RequestSettings = request_settings
-        self.retry_backoff_session = RequestsRetrySession(self.request_settings, pi_settings=self.pi_settings)
+        self.retry_backoff_session = RetryBackoffSession(self.request_settings, pi_settings=self.pi_settings)
         self.ensure_service_is_running()
         self.hdsr_fewspy_version = HDSR_FEWSPY_VERSION
 
@@ -99,21 +100,21 @@ class Api:
         kwargs.pop("parallel", None)
         return kwargs
 
-    @create_bug_report_when_error
+    # @create_bug_report_when_error
     def get_parameters(self) -> pd.DataFrame:
         """Get FEWS parameters as a pandas DataFrame."""
-        kwargs = self._get_kwargs_for_wrapper(url_post_fix="parameters", kwargs=locals())
-        result = wrappers.get_parameters(**kwargs)
+        api_call = api_calls.GetParameters(retry_backoff_session=self.retry_backoff_session)
+        result = api_call.run()
         return result
 
-    @create_bug_report_when_error
+    # @create_bug_report_when_error
     def get_filters(self) -> List[Dict]:
         """Get FEWS filters as a list with dictionaries."""
-        kwargs = self._get_kwargs_for_wrapper(url_post_fix="filters", kwargs=locals())
-        result = wrappers.get_filters(**kwargs)
+        api_call = api_calls.GetFilters(retry_backoff_session=self.retry_backoff_session)
+        result = api_call.run()
         return result
 
-    @create_bug_report_when_error
+    # @create_bug_report_when_error
     def get_locations(self, attributes: list = None):
         """Get FEWS locations as a geopandas GeoDataFrame.
         Args:
@@ -122,67 +123,78 @@ class Api:
             gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
         """
         attributes = attributes if attributes else []
-        kwargs = self._get_kwargs_for_wrapper(url_post_fix="locations", kwargs=locals())
-        result = wrappers.get_locations(**kwargs)
+        api_call = api_calls.GetLocations(attributes=attributes, retry_backoff_session=self.retry_backoff_session)
+        result = api_call.run()
         return result
 
-    @create_bug_report_when_error
+    # @create_bug_report_when_error
     def get_qualifiers(self) -> pd.DataFrame:
         """Get FEWS qualifiers as Pandas DataFrame
 
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self._get_kwargs_for_wrapper(url_post_fix="qualifiers/", kwargs=locals())
-        return wrappers.get_qualifiers(**kwargs)
+        api_call = api_calls.GetQualifiers(retry_backoff_session=self.retry_backoff_session)
+        result = api_call.run()
+        return result
 
-    @create_bug_report_when_error
+    # @create_bug_report_when_error
     def get_timezone_id(self) -> str:
         """Get FEWS timezone_id the FEWS API is running on."""
-        kwargs = self._get_kwargs_for_wrapper(url_post_fix="timezoneid/", kwargs=locals())
-        return wrappers.get_timezone_id(**kwargs)
+        api_call = api_calls.GetTimeZoneId(retry_backoff_session=self.retry_backoff_session)
+        result = api_call.run()
+        return result
 
-    @create_bug_report_when_error
-    def get_samples(self, start_time, end_time) -> pd.DataFrame:
+    # @create_bug_report_when_error
+    def get_samples(self, start_time: datetime, end_time: datetime) -> pd.DataFrame:
         """Get FEWS samples as a pandas DataFrame."""
-        kwargs = self._get_kwargs_for_wrapper(url_post_fix="samples/", kwargs=locals())
-        return wrappers.get_samples(**kwargs)
+        api_call = api_calls.GetSamples(
+            start_time=start_time, end_time=end_time, retry_backoff_session=self.retry_backoff_session
+        )
+        result = api_call.run()
+        return result
 
-    @create_bug_report_when_error
-    def get_time_series(
+    def _detect_single_or_multi_mode(
+        self,
+        location_ids: Union[str, List[str]] = None,
+        parameter_ids: Union[str, List[str]] = None,
+        qualifier_ids: Union[str, List[str]] = None,
+    ) -> str:
+        print(1)
+
+    # @create_bug_report_when_error
+    def get_timeseries(
         self,
         start_time: datetime,
         end_time: datetime,
-        omit_empty_timeseries: bool = True,
         location_ids: Union[str, List[str]] = None,
         parameter_ids: Union[str, List[str]] = None,
         qualifier_ids: Union[str, List[str]] = None,
         thinning: int = None,
         only_headers: bool = False,
         show_statistics: bool = False,
+        omit_empty_timeseries: bool = True,
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
-    ):
-        """Get FEWS qualifiers as a pandas DataFrame.
-
-        Args:
-            - filter_id (str): the FEWS id of the filter to pass as request parameter.
-            - start_time (datetime.datetime): datetime-object with start datetime to use in request.
-            - end_time (datetime.datetime): datetime-object with end datetime to use in request.
-            - omit_empty_timeseries (bool): if True, missing values (-999.0) are left out in response. Defaults to True
-            - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
-            - parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
-            - qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
-            - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
-            - only_headers (bool): if True, only headers will be returned. Defaults to False.
-            - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
-            - drop_missing_values (bool): Defaults to False.
-            - flag_threshold (int): Exclude unreliable values. Default to 6 (meaning flags >= 6 will be excluded).
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
-        assert start_time < end_time, f"start '{start_time}' must be before end_time {end_time}"
-        kwargs = self._get_kwargs_for_wrapper(url_post_fix="timeseries/", kwargs=locals())
-        result = wrappers.get_time_series(**kwargs)
+        output_directory: Union[str, Path] = None,
+    ) -> pd.DataFrame:
+        """# TODO."""
+        mode = self._detect_single_or_multi_mode(location_ids, parameter_ids, qualifier_ids)
+        klass = api_calls.GetTimeSeriesSingle if mode == "single" else api_calls.GetTimeSeriesMulti
+        api_call = klass(
+            start_time=start_time,
+            end_time=end_time,
+            location_ids=location_ids,
+            parameter_ids=parameter_ids,
+            qualifier_ids=qualifier_ids,
+            thinning=thinning,
+            only_headers=only_headers,
+            show_statistics=show_statistics,
+            omit_empty_timeseries=omit_empty_timeseries,
+            drop_missing_values=drop_missing_values,
+            flag_threshold=flag_threshold,
+            output_directory=output_directory,
+        )
+        result = api_call.run()
         return result

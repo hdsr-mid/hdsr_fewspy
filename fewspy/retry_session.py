@@ -17,9 +17,9 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-class RequestsRetrySession:
+class RetryBackoffSession:
     """
-    Class that provides backoff/retry strategy for requests. Why?
+    Class that provides retry-backoff strategy for requests. Why?
     - We need to be tolerant for network failures: set retry + backoff_factor
     - We want to avoid this app to hang: set timeout
     Moreover, this class provides helpful debugging traces

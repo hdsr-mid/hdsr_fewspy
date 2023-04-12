@@ -2,7 +2,7 @@ from datetime import datetime
 from fewspy.constants.choices import PiRestDocumentFormatChoices
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import RequestSettings
-from fewspy.retry_session import RequestsRetrySession
+from fewspy.retry_session import RetryBackoffSession
 from fewspy.time_series import TimeSeriesSet
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.date_frequency import DateFrequencyBuilder
@@ -10,7 +10,6 @@ from fewspy.utils.transformations import parameters_to_fews
 from typing import Dict
 from typing import List
 from typing import Tuple
-from typing import Union
 
 import logging
 import pandas as pd
@@ -26,12 +25,12 @@ class GetTimeseries:
         url: str,
         pi_settings: PiSettings,
         request_settings: RequestSettings,
-        retry_backoff_session: RequestsRetrySession,
+        retry_backoff_session: RetryBackoffSession,
         start_time: datetime,
         end_time: datetime,
-        location_ids: Union[str, List[str]] = None,
-        parameter_ids: Union[str, List[str]] = None,
-        qualifier_ids: Union[str, List[str]] = None,
+        location_ids: str,
+        parameter_ids: str,
+        qualifier_ids: str = None,
         thinning: int = None,
         only_headers: bool = False,
         show_statistics: bool = False,
@@ -40,28 +39,31 @@ class GetTimeseries:
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
         #
-        to_csv: bool = True,
+        return_pandas_dataframe: bool = True,
     ) -> List[TimeSeriesSet]:
         """Get FEWS qualifiers as a pandas DataFrame.
         Args:
             - url (str): url Delft-FEWS PI REST WebService.
-              e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
+              e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/timeseries
             - start_time (datetime.datetime): datetime-object with start datetime to use in request.
             - end_time (datetime.datetime): datetime-object with end datetime to use in request.
-            - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
-            - parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
-            - qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
+            - location_ids (str): a FEWS location id to extract timeseries from.
+            - parameter_ids (str): a FEWS parameter id to extract timeseries from.
+            - qualifier_ids (str): a FEWS qualifier id to extract timeseries from. Defaults to None.
             - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
             - only_headers (bool): if True, only headers will be returned. Defaults to False.
             - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
-            - omit_empty_timeseries (bool): if True, missing values (-999) are left out in response. Defaults to True
+            - omit_empty_timeseries (bool): if True, missing values (-999) are left out in response. Defaults to True.
             - drop_missing_values (bool): Defaults to False.
             - flag_threshold (int): Exclude unreliable values. Default to 6 (only values with flag<6 will be included).
-            - too_csv (bool): Write timeseries to output csv
+            - output_pandas_dataframe (bool): Return timeseries in a panda DataFrame. Defaults to True.
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
 
         """
+        assert isinstance(location_ids, str) and "," not in location_ids, "Please use 1 location_id e.g. 'OW433001'"
+        assert isinstance(parameter_ids, str) and "," not in parameter_ids, "please use 1 parameter_id e.g. 'H.G.0'"
+
         if only_headers or show_statistics:
             raise NotImplementedError
 
@@ -93,10 +95,10 @@ class GetTimeseries:
                 flag_threshold=flag_threshold,
             )
             try:
-                timeseries_sets[index] = ts
+                timeseries_sets[index] = ts  # noqa
             except IndexError:
-                timeseries_sets.append(ts)
-        return timeseries_sets
+                timeseries_sets.append(ts)  # noqa
+        return timeseries_sets  # noqa
 
     @classmethod
     def _get_nr_timestamps(cls, retry_backoff_session, url, params, pi_settings: PiSettings) -> int:
@@ -129,7 +131,7 @@ class GetTimeseries:
         date_range_freq: pd.Timedelta,
         ts_startdate: pd.Timestamp,
         ts_enddate: pd.Timestamp,
-        retry_backoff_session: RequestsRetrySession,
+        retry_backoff_session: RetryBackoffSession,
         request_params: Dict,
         pi_settings: PiSettings,
         request_settings: RequestSettings,

@@ -1,6 +1,4 @@
-from fewspy.constants.pi_settings import PiSettings
-from fewspy.constants.request_settings import RequestSettings
-from fewspy.retry_session import RequestsRetrySession
+from fewspy.api_calls.base import GetRequest
 from typing import Tuple
 from xml.etree import ElementTree
 
@@ -15,31 +13,28 @@ NS = "{http://www.wldelft.nl/fews/PI}"
 COLUMNS = ["id", "name", "group_id"]
 
 
-class GetQualifiers:
-    @classmethod
-    def get_qualifiers(
-        cls,
-        url: str,
-        pi_settings: PiSettings,
-        request_settings: RequestSettings,
-        retry_backoff_session: RequestsRetrySession,
-    ) -> pd.DataFrame:
-        """Get FEWS qualifiers as Pandas DataFrame.
-        Args:
-            - url (str): url Delft-FEWS PI REST WebService.
-              e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-            - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
+class GetQualifiers(GetRequest):
+    """Get FEWS qualifiers as Pandas DataFrame.
+    Args:
+        - url (str): url Delft-FEWS PI REST WebService.
+          e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
+        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
+    Returns:
+        df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
+    """
+
+    url_post_fix = "qualifiers"
+
+    def run(self) -> pd.DataFrame:
+
         # do the request
-        response = retry_backoff_session.get(url=url, verify=pi_settings.ssl_verify)
+        response = self.retry_backoff_session.get(url=self.url, verify=self.pi_settings.ssl_verify)
 
         # parse the response
         if response.status_code == 200:
             tree = ElementTree.fromstring(response.content)
             qualifiers_tree = [i for i in tree.iter(tag=f"{NS}qualifier")]
-            qualifiers_tuple = (cls._element_to_tuple(i) for i in qualifiers_tree)
+            qualifiers_tuple = (self._element_to_tuple(i) for i in qualifiers_tree)
             df = pd.DataFrame(qualifiers_tuple, columns=COLUMNS)
         else:
             logger.error(f"FEWS Server responds {response.text}")
