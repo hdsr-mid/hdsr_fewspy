@@ -1,6 +1,7 @@
 from datetime import datetime
 from fewspy.api_calls.base import GetRequest
-from fewspy.utils.transformations import parameters_to_fews
+from fewspy.constants.choices import OutputChoices
+from typing import List
 
 import logging
 
@@ -17,6 +18,14 @@ class GetSamples(GetRequest):
         super().__init__(*args, **kwargs)
         self.start_time = start_time
         self.end_time = end_time
+
+    @property
+    def valid_output_choices(self) -> List[str]:
+        return [
+            OutputChoices.xml_file_in_download_dir,
+            OutputChoices.json_file_in_download_dir,
+            OutputChoices.csv_file_in_download_dir,
+        ]
 
     def run(self):
         # do the request

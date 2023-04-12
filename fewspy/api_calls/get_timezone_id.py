@@ -1,5 +1,6 @@
 from fewspy.api_calls.base import GetRequest
-from fewspy.utils.transformations import parameters_to_fews
+from fewspy.constants.choices import OutputChoices
+from typing import List
 
 import logging
 
@@ -14,6 +15,13 @@ class GetTimeZoneId(GetRequest):
     """
 
     url_post_fix = "timezoneid"
+
+    @property
+    def valid_output_choices(self) -> List[str]:
+        return [
+            OutputChoices.json_response_in_memory,
+            OutputChoices.xml_response_in_memory,
+        ]
 
     def run(self):
         # do the request

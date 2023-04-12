@@ -1,12 +1,12 @@
 from fewspy import exceptions
-from fewspy.constants.pi_settings import pi_settings_production
 from fewspy.constants.pi_settings import PiSettings
-from fewspy.constants.request_settings import request_settings
 from fewspy.constants.request_settings import RequestSettings
+from pathlib import Path
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from time import sleep
 from typing import List
+from typing import Optional
 from typing import Tuple
 
 import logging
@@ -56,10 +56,16 @@ class RetryBackoffSession:
     timeout_seconds: int = 2
 
     def __init__(
-        self, _request_settings: RequestSettings = request_settings, pi_settings: PiSettings = pi_settings_production
+        self,
+        _request_settings: RequestSettings,
+        pi_settings: PiSettings,
+        output_choice: str,
+        output_directory: Optional[Path],
     ):
         self.request_settings = _request_settings
         self.pi_settings = pi_settings
+        self.output_choice = output_choice
+        self.output_directory = output_directory
         self.datetime_previous_request = pd.Timestamp.now()  # this immutable object is updated during runtime
         self.__retry_session = None
 

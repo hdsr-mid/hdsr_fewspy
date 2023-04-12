@@ -58,6 +58,10 @@ class UserNotFoundInHdsrFewspyAuthError(ErrorBase):
     pass
 
 
+class UserInvalidTokenHdsrFewspyAuthError(ErrorBase):
+    pass
+
+
 class NoPermissionInHdsrFewspyAuthError(ErrorBase):
     pass
 

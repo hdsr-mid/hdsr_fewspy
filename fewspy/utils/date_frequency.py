@@ -47,12 +47,12 @@ class DateFrequencyBuilder:
 
     @staticmethod
     def log_progress_download_ts(
-        uuid: str, ts_startdate: pd.Timestamp, ts_enddate: pd.Timestamp, request_enddate: pd.Timestamp
+        uuid: str, data_range_start: pd.Timestamp, data_range_end: pd.Timestamp, ts_end: pd.Timestamp
     ) -> None:
         """Compare request_enddate (which chances over time) with timeseries start end (no change over time)."""
-        _end_max_today = min(pd.Timestamp.now(tz=ts_enddate.tz), ts_enddate)
-        timedelta_total_ts = _end_max_today - ts_startdate
-        timedelta_so_far = request_enddate - ts_startdate
+        _end_max_today = min(pd.Timestamp.now(tz=data_range_end.tz), data_range_end)
+        timedelta_total_ts = _end_max_today - data_range_start
+        timedelta_so_far = ts_end - data_range_start
         progress_percentage = round(timedelta_so_far / timedelta_total_ts * 100, 2)
         logger.info(f"uuid={uuid} download time-series progress={progress_percentage}%")
 

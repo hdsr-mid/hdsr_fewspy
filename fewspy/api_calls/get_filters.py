@@ -1,5 +1,6 @@
 from fewspy.api_calls.base import GetRequest
-from fewspy.utils.transformations import parameters_to_fews
+from fewspy.constants.choices import OutputChoices
+from typing import List
 
 import logging
 
@@ -21,6 +22,14 @@ class GetFilters(GetRequest):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    @property
+    def valid_output_choices(self) -> List[str]:
+        return [
+            OutputChoices.json_response_in_memory,
+            OutputChoices.xml_response_in_memory,
+            OutputChoices.pandas_dataframe_in_memory,
+        ]
 
     def run(self):
         # do the request

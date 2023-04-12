@@ -19,7 +19,6 @@ class PiSettings:
         pi_settings_production = PiSettings(
             settings_name='whatever you want',
             document_version="1.25",
-            document_format=PiRestDocumentFormatChoices.json.value,
             ssl_verify=True,
             domain="webwis-prd01.ad.hdsr.nl",
             port=8081,
@@ -28,6 +27,8 @@ class PiSettings:
             module_instance_id="WerkFilter",
             time_zone=TimeZoneChoices.gmt_0.value,
         )
+
+    Note that document_format (JSON/XMl) is automatically set (based on api.output_choice) during Api instance
     """
 
     settings_name: str
@@ -37,12 +38,12 @@ class PiSettings:
     service: str
     #
     document_version: float
-    document_format: str
     filter_ids: str
     module_instance_ids: str
     time_zone: str  # see TimeZoneChoices
     #
     ssl_verify: bool
+    document_format: str = None  # updated based on api.output_choice during Api instance
 
     @property
     def base_url(self) -> str:
@@ -75,6 +76,8 @@ class PiSettings:
                 # case of typing.Union[…] or typing.ClassVar[…]
                 expected_dtype = field_def.type.__args__
 
+            if field_name == "document_format":
+                continue
             actual_value = getattr(self, field_name)
             assert isinstance(actual_value, expected_dtype), (
                 f"PiSettings '{field_name}={actual_value}' must be of type '{expected_dtype}' and "
@@ -96,7 +99,6 @@ class PiSettings:
 pi_settings_mocked = PiSettings(
     settings_name="mocked",
     document_version=1.25,
-    document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
     domain="localhost",
     port=9999,
@@ -109,7 +111,6 @@ pi_settings_mocked = PiSettings(
 pi_settings_sa = PiSettings(
     settings_name="default stand-alone",
     document_version=1.25,
-    document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
     domain="localhost",
     port=8080,
@@ -122,7 +123,6 @@ pi_settings_sa = PiSettings(
 pi_settings_production = PiSettings(
     settings_name="default production",
     document_version=1.25,
-    document_format=PiRestDocumentFormatChoices.json.value,
     ssl_verify=True,
     domain="webwis-prd01.ad.hdsr.nl",
     port=8081,

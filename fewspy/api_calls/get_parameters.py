@@ -1,6 +1,6 @@
 from fewspy.api_calls.base import GetRequest
+from fewspy.constants.choices import OutputChoices
 from fewspy.utils.conversions import camel_to_snake_case
-from fewspy.utils.transformations import parameters_to_fews
 from typing import List
 
 import logging
@@ -35,6 +35,14 @@ class GetParameters(GetRequest):
     def __init__(self, attributes: List = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attributes = attributes
+
+    @property
+    def valid_output_choices(self) -> List[str]:
+        return [
+            OutputChoices.json_response_in_memory,
+            OutputChoices.xml_response_in_memory,
+            OutputChoices.pandas_dataframe_in_memory,
+        ]
 
     def run(self) -> pd.DataFrame:
         # do the request

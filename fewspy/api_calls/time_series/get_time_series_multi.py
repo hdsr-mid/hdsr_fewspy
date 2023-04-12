@@ -1,8 +1,7 @@
-from fewspy.api_calls.base import GetRequest
+from datetime import datetime
 from fewspy.api_calls.time_series.base import GetTimeSeriesBase
-from fewspy.constants.choices import PiRestDocumentFormatChoices
+from fewspy.constants.choices import OutputChoices
 from fewspy.utils.date_frequency import DateFrequencyBuilder
-from fewspy.utils.transformations import parameters_to_fews
 from typing import Dict
 from typing import List
 
@@ -16,36 +15,62 @@ logger = logging.getLogger(__name__)
 class GetTimeSeriesMulti(GetTimeSeriesBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.validate_constructor()
 
-    def validate_constructor(self):
-        # if only_headers or show_statistics:
-        #     raise NotImplementedError
-
-        if self.pi_settings.document_format != PiRestDocumentFormatChoices.json.value:
-            raise NotImplementedError
+    @property
+    def valid_output_choices(self) -> List[str]:
+        return [
+            OutputChoices.xml_file_in_download_dir,
+            OutputChoices.csv_file_in_download_dir,
+            OutputChoices.json_file_in_download_dir,
+        ]
 
     def run(self):
-        parameters = parameters_to_fews(parameters=locals(), pi_settings=self.pi_settings)
-        cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=parameters)
+        cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
         for index, request_params in enumerate(cartesian_parameters_list):
-            ts_startdate = pd.Timestamp(request_params["startTime"])
-            ts_enddate = pd.Timestamp(request_params["endTime"])
             date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
-                startdate_obj=ts_startdate,
-                enddate_obj=ts_enddate,
+                startdate_obj=pd.Timestamp(self.start_time),
+                enddate_obj=pd.Timestamp(self.end_time),
                 frequency=self.request_settings.default_request_period,
             )
-            ts = self._download_timeseries(
-                url=self.url,
+            response = self._download_timeseries(
                 date_ranges=date_ranges,
                 date_range_freq=date_range_freq,
-                ts_startdate=ts_startdate,
-                ts_enddate=ts_enddate,
                 request_params=request_params,
                 drop_missing_values=self.drop_missing_values,
                 flag_threshold=self.flag_threshold,
             )
+            raise NotImplementedError(
+                "renier hier was je gebleven. Iets generieks maken voor reponse to csv?"
+                "- ik wil geen overkill voor bijv timezoneid"
+                "- ik wil niet in elke api_call Class 6 methodes maken: "
+                "   - 'xml_file_in_download_dir', "
+                "   - 'json_file_in_download_dir', "
+                "   - 'csv_file_in_download_dir', "
+                "   - 'xml_response_in_memory', "
+                "   - 'json_response_in_memory', "
+                "   - 'pandas_dataframe_in_memory'"
+            )
+            # assert self.do_save_to_output_dir, "code error"
+            #
+            # OutputChoices.
+            # self.save_response_to_file(response=response)
+
+            # # parse the response
+            #                 if response.ok:
+            #                     pi_time_series = response.json()
+            #                     time_series_set = TimeSeriesSet.from_pi_time_series(
+            #                         pi_time_serie=pi_time_series,
+            #                         drop_missing_values=drop_missing_values,
+            #                         flag_threshold=flag_threshold,
+            #                     )
+            #                     if time_series_set.is_empty:
+            #                         logger.debug(f"FEWS WebService request passing empty set: {response.url}")
+            #                 else:
+            #                     logger.error(f"FEWS WebService request {response.url} responds {response.text}")
+            #                     time_series_set = TimeSeriesSet()
+            #
+            #                 return time_series_set
+
             try:
                 timeseries_sets[index] = ts  # noqa
             except IndexError:

@@ -9,11 +9,12 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-main_ns = {}
-ver_path = convert_path("fewspy/version.py")
-with open(ver_path) as ver_file:
-    exec(ver_file.read(), main_ns)
-version = main_ns["__version__"]
+main_namespace = {}
+version_path = convert_path("fewspy/version.py")
+with open(version_path) as version_file:
+    exec(version_file.read(), main_namespace)
+version = main_namespace["__version__"]
+maintainer_email = main_namespace["__maintainer_email__"]
 
 install_requires = [
     "requests",
@@ -35,7 +36,7 @@ setup(
     long_description_content_type="text/markdown",
     long_description=long_description,
     author="Renier Kramer",
-    author_email="renier.kramer@hdsr.nl",
+    author_email=maintainer_email,
     url="https://github.com/hdsr-mid/hdsr_pygithub",
     download_url=f"https://github.com/hdsr-mid/hdsr_pygithub/archive/v{version}.tar.gz",
     keywords=["interface", "interaction", "github", "files", "hdsr"],

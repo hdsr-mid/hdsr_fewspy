@@ -1,4 +1,6 @@
 from fewspy.api_calls.base import GetRequest
+from fewspy.constants.choices import OutputChoices
+from typing import List
 from typing import Tuple
 from xml.etree import ElementTree
 
@@ -24,6 +26,14 @@ class GetQualifiers(GetRequest):
     """
 
     url_post_fix = "qualifiers"
+
+    @property
+    def valid_output_choices(self) -> List[str]:
+        return [
+            OutputChoices.json_response_in_memory,
+            OutputChoices.xml_response_in_memory,
+            OutputChoices.pandas_dataframe_in_memory,
+        ]
 
     def run(self) -> pd.DataFrame:
 

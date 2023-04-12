@@ -1,5 +1,7 @@
 from fewspy.constants import github
+from fewspy.constants.paths import MAINTAINER_EMAIL
 from fewspy.exceptions import NoPermissionInHdsrFewspyAuthError
+from fewspy.exceptions import UserInvalidTokenHdsrFewspyAuthError
 from fewspy.exceptions import UserNotFoundInHdsrFewspyAuthError
 from fewspy.secrets import Secrets
 from hdsr_pygithub import GithubFileDownloader
@@ -39,6 +41,7 @@ class Permissions:
 
     @classmethod
     def validate_email(cls, email: str) -> str:
+        logger.info("validatng email")
         assert isinstance(email, str) and email
         if not validators.email(value=email) == True:  # noqa
             raise AssertionError(f"email '{email}' is invalid")
@@ -52,6 +55,7 @@ class Permissions:
     def permissions_row(self) -> pd.Series:
         if self._permission_row is not None:
             return self._permission_row
+        logger.info("determine permissions")
         github_downloader = GithubFileDownloader(
             target_file=github.GITHUB_HDSR_FEWSPY_AUTH_TARGET_FILE,
             allowed_period_no_updates=github.GITHUB_HDSR_FEWSPY_AUTH_ALLOWED_PERIOD_NO_UPDATES,
@@ -66,15 +70,23 @@ class Permissions:
         df[df_obj.columns] = df_obj.apply(lambda x: x.str.strip())
 
         # get row with matching email
-        permissions_row = df[
-            (df["email"] == self.hdsr_fewspy_email) & (df["hdsr_fewspy_token"] == self.hdsr_fewspy_token)
-        ]
-        if permissions_row.empty:
-            raise UserNotFoundInHdsrFewspyAuthError(
-                f"email {self.hdsr_fewspy_email}, hdsr_fewspy_token={self.hdsr_fewspy_token} not in permission file"
-            )
+        permissions_row = df[df["email"] == self.hdsr_fewspy_email]
         assert len(permissions_row) == 1, "code error"
         permissions_row = permissions_row.loc[0]
+
+        # check user exists
+        if permissions_row.empty:
+            raise UserNotFoundInHdsrFewspyAuthError(
+                f"email {self.hdsr_fewspy_email} not in permission file. Please contact {MAINTAINER_EMAIL}"
+            )
+
+        # check user has valid token
+        if permissions_row["hdsr_fewspy_token"] != self.hdsr_fewspy_token:
+            raise UserInvalidTokenHdsrFewspyAuthError(
+                f"email found in permission file, but token does not match. Please contact {MAINTAINER_EMAIL}"
+            )
+
+        # hide token
         permissions_row["hdsr_fewspy_token"] = "..."
         self._permission_row = permissions_row
         return self._permission_row

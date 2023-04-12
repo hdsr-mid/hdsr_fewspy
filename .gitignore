@@ -1,3 +1,8 @@
+# exclude all files in subdirs of data dir, but keep .gitignore (so subdirs keep existing)
+data/output/*
+!data/output/.gitignore
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

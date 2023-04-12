@@ -13,7 +13,7 @@ def check_python_version():
 
 
 def setup_logging() -> None:
-    """Adds a configured strearm handler to the root logger."""
+    """Adds a configured stream handler to the root logger."""
     log_level = logging.INFO
     log_date_format = "%H:%M:%S"
     log_format = "%(asctime)s %(filename)s %(levelname)s %(message)s"
@@ -34,10 +34,17 @@ if __name__ == "__main__":
 
     # test
     from fewspy.api import Api
+    from fewspy.constants.choices import OutputChoices
+    from fewspy.constants.paths import OUTPUT_DIR
     from fewspy.constants.pi_settings import pi_settings_sa
     from fewspy.tests.fixtures_requests import RequestData1
 
-    api = Api(hdsr_fewspy_token="blabla", pi_settings=pi_settings_sa)
+    api = Api(
+        hdsr_fewspy_token="blabla",
+        pi_settings=pi_settings_sa,
+        output_choice=OutputChoices.csv_file_in_download_dir,
+        output_directory=OUTPUT_DIR,
+    )
     request_data = RequestData1
 
     ts_set = api.get_time_series(

@@ -2,13 +2,45 @@ from enum import Enum
 from typing import List
 
 
-class PiRestDocumentFormatChoices(Enum):
+class PiRestDocumentFormatChoices:
     xml = "PI_XML"
     json = "PI_JSON"
 
     @classmethod
     def get_all(cls) -> List[str]:
-        return [x.value for x in cls.__members__.values()]
+        return [cls.xml, cls.json]
+
+
+class OutputChoices:
+    xml_file_in_download_dir = "xml_file_in_download_dir"
+    json_file_in_download_dir = "json_file_in_download_dir"
+    csv_file_in_download_dir = "csv_file_in_download_dir"
+    xml_response_in_memory = "xml_response_in_memory"
+    json_response_in_memory = "json_response_in_memory"
+    pandas_dataframe_in_memory = "pandas_dataframe_in_memory"
+
+    @classmethod
+    def get_pi_rest_document_format(cls, output_choice: str) -> str:
+        if output_choice in {cls.xml_file_in_download_dir, cls.xml_response_in_memory}:
+            return PiRestDocumentFormatChoices.xml
+        return PiRestDocumentFormatChoices.json
+
+    @classmethod
+    def is_output_dir_needed(cls, output_choice: str) -> bool:
+        if output_choice in [cls.xml_file_in_download_dir, cls.csv_file_in_download_dir, cls.json_file_in_download_dir]:
+            return True
+        return False
+
+    @classmethod
+    def get_all(cls) -> List[str]:
+        return [
+            cls.xml_file_in_download_dir,
+            cls.json_file_in_download_dir,
+            cls.csv_file_in_download_dir,
+            cls.xml_response_in_memory,
+            cls.json_response_in_memory,
+            cls.pandas_dataframe_in_memory,
+        ]
 
 
 class TimeZoneChoices(Enum):

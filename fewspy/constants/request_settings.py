@@ -14,7 +14,7 @@ class RequestSettings:
     max_request_size_kb: int = None  # Warn if request size [kb] is above and adapt next request
 
 
-request_settings = RequestSettings(
+default_request_settings = RequestSettings(
     max_request_nr_timestamps=100000,
     min_request_nr_timestamps=10000,
     max_request_period=pd.Timedelta(weeks=52 * 2),
