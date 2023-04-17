@@ -1,6 +1,5 @@
 from dataclasses import asdict
 from dataclasses import dataclass
-from fewspy.constants.choices import PiRestDocumentFormatChoices
 from fewspy.constants.choices import TimeZoneChoices
 from typing import Dict
 

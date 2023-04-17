@@ -3,6 +3,7 @@ from fewspy.constants.choices import OutputChoices
 from typing import List
 
 import logging
+import requests
 
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,12 @@ class GetTimeZoneId(GetRequest):
     """
 
     url_post_fix = "timezoneid"
+    # sa test page states 'document_format'+'document_version', but those return http code 400 ..
+    whitelist_request_args = []
+
+    def __init__(self, *args, **kwargs):
+        # No args here as only args 'documentFormat' and 'documentVersion' are already in GetRequest args
+        super().__init__(*args, **kwargs)
 
     @property
     def valid_output_choices(self) -> List[str]:
@@ -23,12 +30,12 @@ class GetTimeZoneId(GetRequest):
             OutputChoices.xml_response_in_memory,
         ]
 
-    def run(self):
+    def run(self) -> List[requests.models.Response]:
         # do the request
-        parameters = parameters_to_fews(parameters=locals(), pi_settings=self.pi_settings)
-        response = self.retry_backoff_session.get(url=self.url, params=parameters, verify=self.pi_settings.ssl_verify)
-
+        response = self.retry_backoff_session.get(
+            url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
+        )
         # parse the response
         if response.status_code != 200:
             logger.error(f"FEWS Server responds {response.text}")
-        return response.text
+        return [response]

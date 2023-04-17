@@ -1,13 +1,10 @@
 from abc import abstractmethod
 from datetime import datetime
 from fewspy.api_calls.base import GetRequest
-from fewspy.time_series import TimeSeriesSet
+from fewspy.constants.choices import ApiParameters
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.date_frequency import DateFrequencyBuilder
-from pathlib import Path
-from typing import Any
 from typing import Dict
-from typing import ItemsView
 from typing import List
 from typing import Tuple
 
@@ -22,6 +19,23 @@ logger = logging.getLogger(__name__)
 class GetTimeSeriesBase(GetRequest):
 
     url_post_fix = "timeseries"
+    whitelist_request_args = [
+        ApiParameters.attributes,
+        ApiParameters.document_format,
+        ApiParameters.document_version,
+        ApiParameters.end_time,
+        ApiParameters.filter_id,
+        ApiParameters.include_location_relations,
+        ApiParameters.location_ids,
+        ApiParameters.module_instance_ids,
+        ApiParameters.omit_empty_timeseries,
+        ApiParameters.only_headers,
+        ApiParameters.parameter_ids,
+        ApiParameters.qualifier_ids,
+        ApiParameters.show_statistics,
+        ApiParameters.start_time,
+        ApiParameters.thinning,
+    ]
 
     def __init__(
         self,
@@ -67,9 +81,6 @@ class GetTimeSeriesBase(GetRequest):
         self.drop_missing_values = drop_missing_values
         self.flag_threshold = flag_threshold
 
-    def parameters(self) -> ItemsView[str, Any]:
-        return self.__dict__.items()
-
     def _download_timeseries(
         self,
         date_ranges: List[Tuple[pd.Timestamp, pd.Timestamp]],
@@ -89,8 +100,6 @@ class GetTimeSeriesBase(GetRequest):
             # update start and end in request params
             request_params["startTime"] = datetime_to_fews_str(data_range_start)
             request_params["endTime"] = datetime_to_fews_str(data_range_end)
-
-            uuid = f"{request_params['locationIds'][0]} {request_params['parameterIds'][0]}"
             nr_timestamps_in_response = self._get_nr_timestamps(params=request_params)
             logger.debug(f"nr_timestamps_in_response={nr_timestamps_in_response}")
             new_date_range_freq = DateFrequencyBuilder.optional_change_date_range_freq(
@@ -107,7 +116,7 @@ class GetTimeSeriesBase(GetRequest):
                     enddate_obj=pd.Timestamp(self.end_time),
                     frequency=new_date_range_freq,
                 )
-                logger.info(f"Updated request time-window for '{uuid}' from {date_range_freq} to {new_date_range_freq}")
+                logger.info(f"Updated request time-window from {date_range_freq} to {new_date_range_freq}")
                 # continue with recursive call with updated (smaller or larger) time-window
                 return self._download_timeseries(
                     date_ranges=new_date_ranges,
@@ -118,7 +127,6 @@ class GetTimeSeriesBase(GetRequest):
                 )
             else:
                 DateFrequencyBuilder.log_progress_download_ts(
-                    uuid=uuid,
                     data_range_start=data_range_start,
                     data_range_end=data_range_end,
                     ts_end=pd.Timestamp(self.end_time),
@@ -129,6 +137,8 @@ class GetTimeSeriesBase(GetRequest):
                 response = self.retry_backoff_session.get(
                     url=self.url, params=request_params, verify=self.pi_settings.ssl_verify
                 )
+                if response.status_code != 200:
+                    logger.error(f"FEWS Server responds {response.text}")
                 responses.append(response)
         return responses
 

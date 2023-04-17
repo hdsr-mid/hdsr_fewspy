@@ -3,6 +3,7 @@ from fewspy.tests import fixtures_requests
 from fewspy.tests.fixtures import fixture_api_sa_json_download
 from fewspy.tests.fixtures import fixture_api_sa_json_memory
 
+import json
 import pytest
 
 
@@ -66,15 +67,19 @@ def test_sa_multi_timeseries_ok_requests(fixture_api_sa_json_download):
     assert fixture_api_sa_json_download.output_choice == OutputChoices.json_file_in_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti1
 
-    responses = fixture_api_sa_json_download.get_time_series_multi(
+    all_file_paths = fixture_api_sa_json_download.get_time_series_multi(
         location_ids=request_data.location_ids,
         parameter_ids=request_data.parameter_ids,
         start_time=request_data.start_time,
         end_time=request_data.end_time,
     )
+    assert len(all_file_paths) == 2
+    assert all_file_paths[0].name == "timeseries_ow433001_hg0_20120101t000000z_20120102t000000z_0.json"
+    assert all_file_paths[1].name == "timeseries_ow433002_hg0_20120101t000000z_20120102t000000z_0.json"
 
-    assert len(responses) > 1
-    response = responses[0]
-    assert response.status_code == 200
-    expected_json = request_data.get_expected_json()
-    assert response.json() == expected_json
+    expected_jsons = request_data.get_expected_jsons()
+    for downloaded_file in all_file_paths:
+        with open(downloaded_file.as_posix()) as src:
+            found_json = json.load(src)
+        expected_json = expected_jsons[downloaded_file.stem]
+        assert found_json == expected_json

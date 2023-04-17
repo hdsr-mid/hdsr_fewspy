@@ -25,14 +25,22 @@ class GetRequest:
         self.url: str = f"{self.pi_settings.base_url}{self.url_post_fix}/"
         self.do_save_to_output_dir: bool = OutputChoices.is_output_dir_needed(output_choice=self.output_choice)
         self._initial_fews_parameters = None
+        self._filtered_fews_parameters = None
 
         self.response_handler = ResponseManager(
-            output_choice=self.output_choice, output_directory_root=self.output_directory_root
+            output_choice=self.output_choice,
+            request_method=self.url_post_fix.lower(),
+            output_directory_root=self.output_directory_root,
         )
 
     @property
     @abstractmethod
     def url_post_fix(self) -> str:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def whitelist_request_args(self) -> List[str]:
         raise NotImplementedError
 
     @property
@@ -52,11 +60,21 @@ class GetRequest:
     def initial_fews_parameters(self) -> Dict:
         if self._initial_fews_parameters is not None:
             return self._initial_fews_parameters
-        self._initial_fews_parameters = self._parameters_to_fews(parameters=self.__dict__)
+        self._initial_fews_parameters = self._parameters_to_fews(parameters=self.__dict__, do_filter=False)
         return self._initial_fews_parameters
 
-    def _parameters_to_fews(self, parameters: Dict) -> Dict:
-        """Prepare Python API dictionary for FEWS API request."""
+    @property
+    def filtered_fews_parameters(self) -> Dict:
+        if self._filtered_fews_parameters is not None:
+            return self._filtered_fews_parameters
+        self._filtered_fews_parameters = self._parameters_to_fews(parameters=self.__dict__, do_filter=True)
+        return self._filtered_fews_parameters
+
+    def _parameters_to_fews(self, parameters: Dict, do_filter: bool) -> Dict:
+        """Prepare Python API dictionary for FEWS API request.
+
+        Arg:
+            - do_filter (bool): filters out all parameters not in whitelist_request_args."""
 
         def _convert_kv(k: str, v) -> Tuple[str, Any]:
             if k in ApiParameters.non_pi_settings_keys_datetime():
@@ -67,10 +85,14 @@ class GetRequest:
             k = snake_to_camel_case(k)
             return k, v
 
-        params_non_pi = [_convert_kv(k, v) for k, v in parameters.items() if k in ApiParameters.non_pi_settings_keys()]
-        params_pi = [
-            _convert_kv(k, v) for k, v in self.pi_settings.all_fields.items() if k in ApiParameters.pi_settings_keys()
-        ]
+        # non pi settings
+        whitelist = self.whitelist_request_args if do_filter else ApiParameters.non_pi_settings_keys()
+        params_non_pi = [_convert_kv(k, v) for k, v in parameters.items() if k in whitelist]
+
+        # pi settings
+        whitelist = self.whitelist_request_args if do_filter else ApiParameters.pi_settings_keys()
+        params_pi = [_convert_kv(k, v) for k, v in self.pi_settings.all_fields.items() if k in whitelist]
+
         fews_parameters = {x[0]: x[1] for x in params_non_pi + params_pi if x[1] is not None}
         return fews_parameters
 
@@ -79,4 +101,4 @@ class GetRequest:
         raise NotImplementedError
 
     def handle_response(self, response):
-        return self.response_handler.handle_response(response)
+        return self.response_handler.run(response)

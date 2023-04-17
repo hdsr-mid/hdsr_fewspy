@@ -1,6 +1,7 @@
 from datetime import datetime
 from fewspy.constants.paths import TEST_INPUT_DIR
 from pathlib import Path
+from typing import Dict
 from typing import Optional
 
 import json
@@ -42,34 +43,34 @@ class MultiBase:
         raise NotImplementedError
 
     @classmethod
-    def get_expected_jsons(cls):
+    def get_expected_jsons(cls) -> Dict:
         dir_path = cls.file_dir_expected_jsons()
         assert dir_path.is_dir()
 
         file_paths = [x for x in dir_path.iterdir() if x.is_file() and x.suffix == ".json"]
         assert file_paths
 
-        response_jsons = []
+        response_jsons = dict()
         for file_path in file_paths:
             with open(file_path.as_posix()) as src:
                 response_json = json.load(src)
-            response_jsons.append(response_json)
+            response_jsons[file_path.stem] = response_json
         return response_jsons
 
     @classmethod
-    def get_expected_xmls(cls):
+    def get_expected_xmls(cls) -> Dict:
         dir_path = cls.file_dir_expected_xmls()
         assert dir_path.is_dir()
 
         file_paths = [x for x in dir_path.iterdir() if x.is_file() and x.suffix == ".xml"]
         assert file_paths
 
-        response_xmls = []
+        response_xmls = dict()
         for file_path in file_paths:
             with open(file_path.as_posix()) as src:
                 raise NotImplementedError
                 response_xml = json.load(src)
-            response_xmls.append(response_xml)
+            response_xmls[file_path.stem] = response_xml
         return response_xmls
 
 
@@ -77,8 +78,8 @@ class RequestTimeSeriesSingle1(SingleBase):
     """Single as we use 1 location_ids and 1 parameter_ids."""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
-    location_ids = ["OW433001"]
-    parameter_ids = ["H.G.0"]
+    location_ids = "OW433001"
+    parameter_ids = "H.G.0"
     start_time = datetime(2012, 1, 1)
     end_time = datetime(2012, 1, 2)
 
@@ -99,11 +100,11 @@ class RequestTimeSeriesMulti1(MultiBase):
     location_ids = ["OW433001", "OW433002"]
     parameter_ids = ["H.G.0"]
     start_time = datetime(2012, 1, 1)
-    end_time = datetime(2012, 1, 3)
+    end_time = datetime(2012, 1, 2)
 
     @classmethod
     def file_dir_expected_jsons(cls) -> Optional[Path]:
-        pass
+        return TEST_INPUT_DIR / "RequestTimeSeriesMulti1"
 
     @classmethod
     def file_dir_expected_xmls(cls):

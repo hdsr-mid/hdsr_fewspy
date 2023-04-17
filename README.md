@@ -27,7 +27,7 @@ TODO
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (28 mrt 2023)
+### Test Coverage (17 april 2023)
 ```
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                   Stmts   Miss  Cover

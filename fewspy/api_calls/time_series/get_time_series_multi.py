@@ -1,4 +1,3 @@
-from datetime import datetime
 from fewspy.api_calls.time_series.base import GetTimeSeriesBase
 from fewspy.constants.choices import OutputChoices
 from fewspy.utils.date_frequency import DateFrequencyBuilder
@@ -25,10 +24,10 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
             OutputChoices.json_file_in_download_dir,
         ]
 
-    def run(self) -> Path:
+    def run(self) -> List[Path]:
+        all_file_paths = []
         cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
         for index, request_params in enumerate(cartesian_parameters_list):
-
             date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
                 startdate_obj=pd.Timestamp(self.start_time),
                 enddate_obj=pd.Timestamp(self.end_time),
@@ -41,34 +40,12 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 drop_missing_values=self.drop_missing_values,
                 flag_threshold=self.flag_threshold,
             )
-            self.response_handler.run(responses)
-
-            # assert self.do_save_to_output_dir, "code error"
-            #
-            # OutputChoices.
-            # self.save_response_to_file(response=response)
-
-            # # parse the response
-            #                 if response.ok:
-            #                     pi_time_series = response.json()
-            #                     time_series_set = TimeSeriesSet.from_pi_time_series(
-            #                         pi_time_serie=pi_time_series,
-            #                         drop_missing_values=drop_missing_values,
-            #                         flag_threshold=flag_threshold,
-            #                     )
-            #                     if time_series_set.is_empty:
-            #                         logger.debug(f"FEWS WebService request passing empty set: {response.url}")
-            #                 else:
-            #                     logger.error(f"FEWS WebService request {response.url} responds {response.text}")
-            #                     time_series_set = TimeSeriesSet()
-            #
-            #                 return time_series_set
-
-            try:
-                timeseries_sets[index] = ts  # noqa
-            except IndexError:
-                timeseries_sets.append(ts)  # noqa
-        return timeseries_sets  # noqa
+            params = ["locationIds", "parameterIds", "qualifierIds", "startTime", "endTime"]
+            file_name_values = [request_params.get(param) for param in params if request_params.get(param)]
+            file_paths_created = self.response_handler.run(responses=responses, file_name_values=file_name_values)
+            all_file_paths.extend(file_paths_created)
+        logger.info(f"finished with download and writing to file(s)")
+        return all_file_paths
 
     @classmethod
     def _get_cartesian_parameters_list(cls, parameters: Dict) -> List[Dict]:

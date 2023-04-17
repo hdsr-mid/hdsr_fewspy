@@ -108,13 +108,6 @@ class Api:
         is_dir_writable = os.access(path=output_directory_root.as_posix(), mode=os.W_OK)
         assert is_dir_writable, f"output_directory_root {output_directory_root} must be writable"
 
-        datetime_foldername = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_directory_root = output_directory_root / datetime_foldername
-
-        # TODO: enable this before release
-        # output_directory_root.mkdir(parents=False, exist_ok=False)
-
-        logger.info(f"created output_directory_root {output_directory_root}")
         return output_directory_root
 
     def _validate_pi_settings(self, pi_settings: PiSettings) -> PiSettings:
@@ -201,7 +194,7 @@ class Api:
         return result
 
     # @create_bug_report_when_error
-    def get_timezone_id(self) -> str:
+    def get_timezone_id(self) -> List[requests.models.Response]:
         """Get FEWS timezone_id the FEWS API is running on."""
         api_call = api_calls.GetTimeZoneId(retry_backoff_session=self.retry_backoff_session)
         result = api_call.run()
@@ -221,9 +214,9 @@ class Api:
         self,
         start_time: datetime,
         end_time: datetime,
-        location_ids: str,
-        parameter_ids: str,
-        qualifier_ids: str = None,
+        location_id: str,
+        parameter_id: str,
+        qualifier_id: str = None,
         thinning: int = None,
         only_headers: bool = False,
         show_statistics: bool = False,
@@ -231,16 +224,19 @@ class Api:
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
-    ) -> pd.DataFrame:
+    ) -> Union[List[requests.models.Response], List[pd.DataFrame]]:
         assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
-        assert isinstance(location_ids, str) and location_ids and "," not in location_ids
-        assert isinstance(parameter_ids, str) and parameter_ids and "," not in parameter_ids
+        assert isinstance(location_id, str) and location_id and "," not in location_id
+        assert isinstance(parameter_id, str) and parameter_id and "," not in parameter_id
+        if qualifier_id:
+            assert isinstance(qualifier_id, str) and "," not in qualifier_id
+
         api_call = api_calls.GetTimeSeriesSingle(
             start_time=start_time,
             end_time=end_time,
-            location_ids=location_ids,
-            parameter_ids=parameter_ids,
-            qualifier_ids=qualifier_ids,
+            location_ids=location_id,
+            parameter_ids=parameter_id,
+            qualifier_ids=qualifier_id,
             thinning=thinning,
             only_headers=only_headers,
             show_statistics=show_statistics,
@@ -267,7 +263,7 @@ class Api:
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
-    ) -> pd.DataFrame:
+    ) -> List[Path]:
         assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
         any_multi = any([isinstance(x, list) and len(x) > 1 for x in (location_ids, parameter_ids, qualifier_ids)])
         assert any_multi
@@ -285,5 +281,5 @@ class Api:
             flag_threshold=flag_threshold,
             retry_backoff_session=self.retry_backoff_session,
         )
-        result = api_call.run()
-        return self.output_directory_root
+        all_file_paths = api_call.run()
+        return all_file_paths

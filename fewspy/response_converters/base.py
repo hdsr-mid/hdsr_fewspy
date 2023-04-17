@@ -1,7 +1,12 @@
-from datetime import datetime
 from fewspy.constants.choices import OutputChoices
 from pathlib import Path
-from typing import Dict
+from typing import List
+import json
+import logging
+import requests
+
+
+logger = logging.getLogger(__name__)
 
 
 class Base:
@@ -13,105 +18,99 @@ class Base:
 
 
 class DownloadBase(Base):
-    def __init__(self, output_directory: Path):
-        self.output_directory = output_directory
+    def __init__(self, request_method: str, output_directory_root: Path):
+        self.request_method = request_method
+        self.output_directory_root = output_directory_root
         super().__init__()
 
-    def run(self, response, file_name_params):
+    def run(self, responses: List[requests.models.Response], file_name_values: List[str]):
         raise NotImplementedError
 
     @classmethod
     def _normalize_string(cls, value: str) -> str:
         value = value.lower()
-        for char in [".", ",", "-", ":"]:
+        for char in [".", ",", "-", "_", ":"]:
             value = value.replace(char, "")
         return value
 
-    def _get_file_name(self, parameters: Dict, extension: str):
-        """Every download file must have a name with some parameters in it to distinguish the request."""
-        assert extension in (".csv", ".xml", ".json")
-        nr_parameters = len(parameters.keys())
-        assert 2 < nr_parameters < 6, f"nr_parameters must be between 2 and 6 otherwise filename to short or long"
-        file_name_parts = []
-        for key, value in parameters.items():
-            if not value:
-                continue
-            key_new = self._normalize_string(value=key)
-            value_new = self._normalize_string(value=value)
-            file_name_parts.append(f"{key_new}_{value_new}")
-        file_name = file_name_parts[0]
-        for file_name_part in file_name_parts[1:]:
-            file_name = f"{file_name}__{file_name_part}"
+    def _get_file_name(self, file_name_values: List[str]):
+        """Every download file must have a name with some values in it to distinguish the request."""
+        nr_values = len(file_name_values)
+        assert 2 < nr_values < 6, "nr_values must be between 2 and 6 otherwise filename to short or long"
+        file_name = self.request_method
+        for file_name_value in file_name_values:
+            file_name_value_new = self._normalize_string(value=file_name_value)
+            file_name += f"_{file_name_value_new}"
         return file_name
-
-    def save_response_to_file(self, response):
-        raise AssertionError
-        # assert self.output_directory
-        # datetime_filename = datetime.now().strftime("%Y%m%d_%H%M%S")
-        # file_path = self.output_directory / datetime_filename
-        # with open(file=file_path.as_posix(), mode="wb") as file:
-        #     file.write(response.content)
-        #
-        #     with open("out.xls", "wb") as file:
-        #         file.write(response.content)
-        #     import json
-        #
-        #     response.json()
-        #     with open("data.json", "w", encoding="utf-8") as f:
-        #         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
 class MemoryBase(Base):
     def __init__(self):
         super().__init__()
 
-    def run(self, response):
+    def run(self, responses: List[requests.models.Response]):
         raise NotImplementedError
 
 
 class XmlDownloadDir(DownloadBase):
-    def run(self, response, file_name_params):
+    def run(self, responses: List[requests.models.Response], file_name_values: List[str]):
         print(1)
 
 
 class JsonDownloadDir(DownloadBase):
-    def run(self, response, file_name_params):
-        print(1)
+    def run(self, responses: List[requests.models.Response], file_name_values: List[str]) -> List[Path]:
+        file_paths_created = []
+        for index, response in enumerate(responses):
+            file_name = self._get_file_name(file_name_values=file_name_values)
+            file_path = self.output_directory_root / f"{file_name}_{index}.json"
+            logger.info(f"writing response to new file {file_path}")
+            with open(file=file_path.as_posix(), mode="w", encoding="utf-8") as json_file:
+                # indent=None results in half the file size compared to indent=4
+                json.dump(obj=response.json(), fp=json_file, ensure_ascii=False, indent=None)
+            file_paths_created.append(file_path)
+        return file_paths_created
 
 
 class CsvDownloadDir(DownloadBase):
-    def run(self, response, file_name_params):
+    def run(self, responses: List[requests.models.Response], file_name_values: List[str]):
         print(1)
 
 
 class XmlMemory(MemoryBase):
-    def run(self, response):
+    def run(self, responses: List[requests.models.Response]):
         print(1)
 
 
 class JsonMemory(MemoryBase):
-    def run(self, response):
+    def run(self, responses: List[requests.models.Response]):
         print(1)
 
 
 class PdDataFrameMemory(MemoryBase):
-    def run(self, response):
+    def run(self, responses: List[requests.models.Response]):
         print(1)
 
 
 class ResponseManager:
     """Uses a specific response_handler based on output_choice."""
 
-    def __init__(self, output_choice: str, output_directory_root: Path = None):
+    def __init__(self, output_choice: str, request_method: str, output_directory_root: Path = None):
         self.output_choice = output_choice
+        self.request_method = request_method
         self.output_directory_root = output_directory_root
         self.response_handler = self._get_response_handler()
 
     def _get_response_handler(self):
         mapper = {
-            OutputChoices.xml_file_in_download_dir: XmlDownloadDir(output_directory=self.output_directory_root),
-            OutputChoices.json_file_in_download_dir: JsonDownloadDir(output_directory=self.output_directory_root),
-            OutputChoices.csv_file_in_download_dir: CsvDownloadDir(output_directory=self.output_directory_root),
+            OutputChoices.xml_file_in_download_dir: XmlDownloadDir(
+                request_method=self.request_method, output_directory_root=self.output_directory_root
+            ),
+            OutputChoices.json_file_in_download_dir: JsonDownloadDir(
+                request_method=self.request_method, output_directory_root=self.output_directory_root
+            ),
+            OutputChoices.csv_file_in_download_dir: CsvDownloadDir(
+                request_method=self.request_method, output_directory_root=self.output_directory_root
+            ),
             OutputChoices.xml_response_in_memory: XmlMemory(),
             OutputChoices.json_response_in_memory: JsonMemory(),
             OutputChoices.pandas_dataframe_in_memory: PdDataFrameMemory(),
@@ -122,5 +121,7 @@ class ResponseManager:
 
         return response_handler
 
-    def handle_response(self, response, file_name_params: Dict = None):
-        return self.response_handler.run(response, file_name_params)
+    def run(self, responses: List[requests.models.Response], file_name_values: List[str] = None):
+        if file_name_values:
+            return self.response_handler.run(responses=responses, file_name_values=file_name_values)
+        return self.response_handler.run(responses=responses)
