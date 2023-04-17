@@ -37,7 +37,6 @@ class GetTimeSeriesBase(GetRequest):
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
-        output_directory: Path = None,
         *args,
         **kwargs,
     ):
@@ -54,7 +53,6 @@ class GetTimeSeriesBase(GetRequest):
             - omit_empty_timeseries (bool): if True, missing values (-999) are left out in response. Defaults to True.
             - drop_missing_values (bool): Defaults to False.
             - flag_threshold (int): Exclude unreliable values. Default to 6 (only values with flag<6 will be included).
-            - output_directory (Path): In case of GetTimeSeriesMulti we save the response in this folder
         """
         super().__init__(*args, **kwargs)
         self.start_time = start_time
@@ -68,7 +66,6 @@ class GetTimeSeriesBase(GetRequest):
         self.omit_empty_timeseries = omit_empty_timeseries
         self.drop_missing_values = drop_missing_values
         self.flag_threshold = flag_threshold
-        self.output_directory = output_directory
 
     def parameters(self) -> ItemsView[str, Any]:
         return self.__dict__.items()
@@ -80,13 +77,14 @@ class GetTimeSeriesBase(GetRequest):
         request_params: Dict,
         drop_missing_values: bool,
         flag_threshold: int,
-    ) -> requests.models.Response:
+    ) -> List[requests.models.Response]:
         """Download timeseries in little chunks by updating parameters 'startTime' and 'endTime' every loop.
 
         Before each download of actual timeseries we first check nr_timestamps_in_response (a small request with
         showStatistics=True, and showStatistics=True). If that number if outside a certain bandwith, then we update
         (smaller or larger windows) parameters 'startTime' and 'endTime' again.
         """
+        responses = []
         for request_index, (data_range_start, data_range_end) in enumerate(date_ranges):
             # update start and end in request params
             request_params["startTime"] = datetime_to_fews_str(data_range_start)
@@ -131,8 +129,8 @@ class GetTimeSeriesBase(GetRequest):
                 response = self.retry_backoff_session.get(
                     url=self.url, params=request_params, verify=self.pi_settings.ssl_verify
                 )
-
-                return response
+                responses.append(response)
+        return responses
 
     def _get_nr_timestamps(self, params: Dict) -> int:
         params["onlyHeaders"] = True

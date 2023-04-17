@@ -31,29 +31,6 @@ if __name__ == "__main__":
     setup_logging()
     logger = logging.getLogger(__name__)
     logger.info("starting app")
-
-    # test
-    from fewspy.api import Api
-    from fewspy.constants.choices import OutputChoices
-    from fewspy.constants.paths import OUTPUT_DIR
-    from fewspy.constants.pi_settings import pi_settings_sa
-    from fewspy.tests.fixtures_requests import RequestData1
-
-    api = Api(
-        hdsr_fewspy_token="blabla",
-        pi_settings=pi_settings_sa,
-        output_choice=OutputChoices.csv_file_in_download_dir,
-        output_directory=OUTPUT_DIR,
-    )
-    request_data = RequestData1
-
-    ts_set = api.get_time_series(
-        location_ids=request_data.location_ids,
-        parameter_ids=request_data.parameter_ids,
-        start_time=request_data.start_time,
-        end_time=request_data.end_time,
-    )
-
     logger.info("shutting down app")
 
 

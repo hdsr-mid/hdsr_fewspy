@@ -96,18 +96,6 @@ class PiSettings:
         return asdict(self)
 
 
-pi_settings_mocked = PiSettings(
-    settings_name="mocked",
-    document_version=1.25,
-    ssl_verify=True,
-    domain="localhost",
-    port=9999,
-    service="mocked",
-    filter_ids="mocked",
-    module_instance_ids="mocked",
-    time_zone=TimeZoneChoices.gmt_0.value,
-)
-
 pi_settings_sa = PiSettings(
     settings_name="default stand-alone",
     document_version=1.25,

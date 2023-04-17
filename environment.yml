@@ -15,4 +15,3 @@ dependencies:
   - black  # dev tool: only required for auto-format code
   - pytest  # dev tool: only required for running old_tests
   - pytest-cov  # dev tool: only required for running old_tests coverage
-  - responses  # dev tool: only required for pytest mock response

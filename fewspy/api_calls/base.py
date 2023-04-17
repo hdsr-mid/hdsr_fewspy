@@ -1,9 +1,9 @@
 from abc import abstractmethod
-from datetime import datetime
 from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import OutputChoices
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import RequestSettings
+from fewspy.response_converters.base import ResponseManager
 from fewspy.retry_session import RetryBackoffSession
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.conversions import snake_to_camel_case
@@ -21,10 +21,14 @@ class GetRequest:
         self.pi_settings: PiSettings = retry_backoff_session.pi_settings
         self.request_settings: RequestSettings = retry_backoff_session.request_settings
         self.output_choice: str = self.validate_output_choice(output_choice=retry_backoff_session.output_choice)
-        self.output_directory: Optional[Path] = retry_backoff_session.output_directory
+        self.output_directory_root: Optional[Path] = retry_backoff_session.output_directory_root
         self.url: str = f"{self.pi_settings.base_url}{self.url_post_fix}/"
         self.do_save_to_output_dir: bool = OutputChoices.is_output_dir_needed(output_choice=self.output_choice)
         self._initial_fews_parameters = None
+
+        self.response_handler = ResponseManager(
+            output_choice=self.output_choice, output_directory_root=self.output_directory_root
+        )
 
     @property
     @abstractmethod
@@ -39,7 +43,10 @@ class GetRequest:
     def validate_output_choice(self, output_choice: str) -> str:
         if output_choice in self.valid_output_choices:
             return output_choice
-        raise AssertionError(f"output_choice '{output_choice}' must be in {self.valid_output_choices}")
+        raise AssertionError(
+            f"invalid output_choice '{output_choice}'. {self.__class__.__name__} has valid_output_choices "
+            f"{self.valid_output_choices}. See earlier logging why we use {self.__class__.__name__}."
+        )
 
     @property
     def initial_fews_parameters(self) -> Dict:
@@ -71,17 +78,5 @@ class GetRequest:
     def run(self, *args, **kwargs):
         raise NotImplementedError
 
-    def save_response_to_file(self, response):
-        assert self.output_directory
-        datetime_filename = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = self.output_directory / datetime_filename
-        with open(file=file_path.as_posix(), mode="wb") as file:
-            file.write(response.content)
-
-            with open("out.xls", "wb") as file:
-                file.write(response.content)
-            import json
-
-            response.json()
-            with open("data.json", "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+    def handle_response(self, response):
+        return self.response_handler.handle_response(response)

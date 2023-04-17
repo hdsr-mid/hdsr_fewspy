@@ -2,6 +2,7 @@ from datetime import datetime
 from fewspy.api_calls.time_series.base import GetTimeSeriesBase
 from fewspy.constants.choices import OutputChoices
 from fewspy.utils.date_frequency import DateFrequencyBuilder
+from pathlib import Path
 from typing import Dict
 from typing import List
 
@@ -24,32 +25,24 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
             OutputChoices.json_file_in_download_dir,
         ]
 
-    def run(self):
+    def run(self) -> Path:
         cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
         for index, request_params in enumerate(cartesian_parameters_list):
+
             date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
                 startdate_obj=pd.Timestamp(self.start_time),
                 enddate_obj=pd.Timestamp(self.end_time),
                 frequency=self.request_settings.default_request_period,
             )
-            response = self._download_timeseries(
+            responses = self._download_timeseries(
                 date_ranges=date_ranges,
                 date_range_freq=date_range_freq,
                 request_params=request_params,
                 drop_missing_values=self.drop_missing_values,
                 flag_threshold=self.flag_threshold,
             )
-            raise NotImplementedError(
-                "renier hier was je gebleven. Iets generieks maken voor reponse to csv?"
-                "- ik wil geen overkill voor bijv timezoneid"
-                "- ik wil niet in elke api_call Class 6 methodes maken: "
-                "   - 'xml_file_in_download_dir', "
-                "   - 'json_file_in_download_dir', "
-                "   - 'csv_file_in_download_dir', "
-                "   - 'xml_response_in_memory', "
-                "   - 'json_response_in_memory', "
-                "   - 'pandas_dataframe_in_memory'"
-            )
+            self.response_handler.run(responses)
+
             # assert self.do_save_to_output_dir, "code error"
             #
             # OutputChoices.

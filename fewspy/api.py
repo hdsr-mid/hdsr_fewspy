@@ -42,22 +42,24 @@ class Api:
 
     def __init__(
         self,
+        output_choice: str,  # e.g. OutputChoices.json_response_in_memory,
         pi_settings: PiSettings = pi_settings_production,
-        output_choice: str = OutputChoices.json_response_in_memory,
-        output_directory: Union[str, Path] = None,
+        output_directory_root: Union[str, Path] = None,
         hdsr_fewspy_email: str = None,
         hdsr_fewspy_token: str = None,
     ):
         self.permissions = Permissions(hdsr_fewspy_email=hdsr_fewspy_email, hdsr_fewspy_token=hdsr_fewspy_token)
         self.output_choice: str = self._validate_output_choice(output_choice=output_choice)
-        self.output_directory: Path = self._validate_output_directory(output_directory=output_directory)
+        self.output_directory_root: Path = self._validate_output_directory_root(
+            output_directory_root=output_directory_root
+        )
         self.pi_settings = self._validate_pi_settings(pi_settings=pi_settings)
         self.request_settings: RequestSettings = default_request_settings
         self.retry_backoff_session = RetryBackoffSession(
             _request_settings=self.request_settings,
             pi_settings=self.pi_settings,
             output_choice=self.output_choice,
-            output_directory=self.output_directory,
+            output_directory_root=self.output_directory_root,
         )
         self.ensure_service_is_running()
         self.hdsr_fewspy_version = HDSR_FEWSPY_VERSION
@@ -87,33 +89,33 @@ class Api:
             return output_choice
         raise AssertionError(f"output_choice '{output_choice}' must be in {OutputChoices.get_all()}")
 
-    def _validate_output_directory(self, output_directory: Union[str, Path]) -> Optional[Path]:
+    def _validate_output_directory_root(self, output_directory_root: Union[str, Path]) -> Optional[Path]:
         is_output_dir_needed = OutputChoices.is_output_dir_needed(output_choice=self.output_choice)
 
         # scenario 1: no output_dir needed
         if not is_output_dir_needed:
-            if output_directory:
-                logger.warning(
-                    f"you specified a output_directory '{output_directory}' but we will not need it as "
-                    f"output_choice='{self.output_choice}'. Setting output_directory to None"
+            if output_directory_root:
+                raise AssertionError(
+                    f"you specified a output_directory_root '{output_directory_root}' but we will not need it as "
+                    f"output_choice='{self.output_choice}'"
                 )
             return None
 
-        # scenario 2: output_dir needed
-        assert output_directory, f"Please specify a output_directory as output_choice='{self.output_choice}'"
-        output_directory = Path(output_directory)
-        assert output_directory.is_dir(), f"output_directory {output_directory} must exist"
-        is_dir_writable = os.access(path=output_directory.as_posix(), mode=os.W_OK)
-        assert is_dir_writable, f"output_directory {output_directory} must be writable"
+        # scenario 2: output_directory_root needed
+        assert output_directory_root, f"Please specify a output_directory_root as output_choice='{self.output_choice}'"
+        output_directory_root = Path(output_directory_root)
+        assert output_directory_root.is_dir(), f"output_directory_root {output_directory_root} must exist"
+        is_dir_writable = os.access(path=output_directory_root.as_posix(), mode=os.W_OK)
+        assert is_dir_writable, f"output_directory_root {output_directory_root} must be writable"
 
         datetime_foldername = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_directory = output_directory / datetime_foldername
+        output_directory_root = output_directory_root / datetime_foldername
 
         # TODO: enable this before release
-        # output_directory.mkdir(parents=False, exist_ok=False)
+        # output_directory_root.mkdir(parents=False, exist_ok=False)
 
-        logger.info(f"created output_directory {output_directory}")
-        return output_directory
+        logger.info(f"created output_directory_root {output_directory_root}")
+        return output_directory_root
 
     def _validate_pi_settings(self, pi_settings: PiSettings) -> PiSettings:
         assert isinstance(
@@ -215,13 +217,13 @@ class Api:
         return result
 
     # @create_bug_report_when_error
-    def get_time_series(
+    def get_time_series_single(
         self,
         start_time: datetime,
         end_time: datetime,
-        location_ids: Union[str, List[str]] = None,
-        parameter_ids: Union[str, List[str]] = None,
-        qualifier_ids: Union[str, List[str]] = None,
+        location_ids: str,
+        parameter_ids: str,
+        qualifier_ids: str = None,
         thinning: int = None,
         only_headers: bool = False,
         show_statistics: bool = False,
@@ -230,20 +232,10 @@ class Api:
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
     ) -> pd.DataFrame:
-        """
-        Note that if you specify >1 location_ids and/or parameter_ids and/or qualifier_ids, then you also need to
-        specify a output_directory.
-        """
-        # detect run mode
-        any_multi = any([isinstance(x, list) and len(x) > 1 for x in (location_ids, parameter_ids, qualifier_ids)])
-        if any_multi:
-            logger.info(f"found >1 locations/parameters/qualifiers, so we run GetTimeSeriesMulti")
-            klass = api_calls.GetTimeSeriesMulti
-        else:
-            logger.info(f"found <=1 location/parameter/qualifier so we run GetTimeSeriesSingle")
-            klass = api_calls.GetTimeSeriesSingle
-
-        api_call = klass(
+        assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
+        assert isinstance(location_ids, str) and location_ids and "," not in location_ids
+        assert isinstance(parameter_ids, str) and parameter_ids and "," not in parameter_ids
+        api_call = api_calls.GetTimeSeriesSingle(
             start_time=start_time,
             end_time=end_time,
             location_ids=location_ids,
@@ -259,3 +251,39 @@ class Api:
         )
         result = api_call.run()
         return result
+
+    # @create_bug_report_when_error
+    def get_time_series_multi(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        location_ids: Union[List[str], str] = None,
+        parameter_ids: Union[List[str], str] = None,
+        qualifier_ids: Union[List[str], str] = None,
+        thinning: int = None,
+        only_headers: bool = False,
+        show_statistics: bool = False,
+        omit_empty_timeseries: bool = True,
+        #
+        drop_missing_values: bool = False,
+        flag_threshold: int = 6,
+    ) -> pd.DataFrame:
+        assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
+        any_multi = any([isinstance(x, list) and len(x) > 1 for x in (location_ids, parameter_ids, qualifier_ids)])
+        assert any_multi
+        api_call = api_calls.GetTimeSeriesMulti(
+            start_time=start_time,
+            end_time=end_time,
+            location_ids=location_ids,
+            parameter_ids=parameter_ids,
+            qualifier_ids=qualifier_ids,
+            thinning=thinning,
+            only_headers=only_headers,
+            show_statistics=show_statistics,
+            omit_empty_timeseries=omit_empty_timeseries,
+            drop_missing_values=drop_missing_values,
+            flag_threshold=flag_threshold,
+            retry_backoff_session=self.retry_backoff_session,
+        )
+        result = api_call.run()
+        return self.output_directory_root

@@ -31,10 +31,10 @@ class Permissions:
         # get hdsr_fewspy_token
         if hdsr_fewspy_token:
             logger.info("using secret hdsr_fewspy_token from args")
-            self.hdsr_fewspy_token = self.secrets.hdsr_fewspy_token
+            self.hdsr_fewspy_token = hdsr_fewspy_token
         else:
             logger.info("using secret hdsr_fewspy_token from os environmental variables (loaded from secrets.env)")
-            self.hdsr_fewspy_token = hdsr_fewspy_token.strip()
+            self.hdsr_fewspy_token = self.secrets.hdsr_fewspy_token.strip()
 
         self._permission_row = None
         self.ensure_any_permissions()
