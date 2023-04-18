@@ -43,30 +43,31 @@ class GetLocations(GetRequest):
         ]
 
     def run(self):
-        # do the request
-        parameters = parameters_to_fews(parameters=locals(), pi_settings=self.pi_settings)
-        response = self.retry_backoff_session.get(url=self.url, params=parameters, verify=self.pi_settings.ssl_verify)
-
-        # parse the response
-        if response.status_code == 200:
-            # convert to gdf and snake_case
-            gdf = gpd.GeoDataFrame(response.json()["locations"])
-            gdf.columns = [camel_to_snake_case(i) for i in gdf.columns]
-            gdf.set_index("location_id", inplace=True)
-
-            # handle geometry and crs
-            gdf["geometry"] = xy_array_to_point(xy_array=gdf[["x", "y"]].values)
-            gdf.crs = geo_datum_to_crs(response.json()["geoDatum"])
-
-            # handle attributes
-            if self.show_attributes:
-                gdf.loc[:, self.show_attributes] = attributes_to_array(
-                    attribute_values=gdf["attributes"].values, attributes=self.show_attributes
-                )
-            gdf.drop(columns=["attributes"], inplace=True)
-
-        else:
-            logger.error(f"FEWS Server responds {response.text}")
-            gdf = gpd.GeoDataFrame()
-
-        return gdf
+        raise NotImplementedError
+        # response = self.retry_backoff_session.get(
+        #     url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
+        # )
+        #
+        # # parse the response
+        # if response.status_code == 200:
+        #     # convert to gdf and snake_case
+        #     gdf = gpd.GeoDataFrame(response.json()["locations"])
+        #     gdf.columns = [camel_to_snake_case(i) for i in gdf.columns]
+        #     gdf.set_index("location_id", inplace=True)
+        #
+        #     # handle geometry and crs
+        #     gdf["geometry"] = xy_array_to_point(xy_array=gdf[["x", "y"]].values)
+        #     gdf.crs = geo_datum_to_crs(response.json()["geoDatum"])
+        #
+        #     # handle attributes
+        #     if self.show_attributes:
+        #         gdf.loc[:, self.show_attributes] = attributes_to_array(
+        #             attribute_values=gdf["attributes"].values, attributes=self.show_attributes
+        #         )
+        #     gdf.drop(columns=["attributes"], inplace=True)
+        #
+        # else:
+        #     logger.error(f"FEWS Server responds {response.text}")
+        #     gdf = gpd.GeoDataFrame()
+        #
+        # return gdf

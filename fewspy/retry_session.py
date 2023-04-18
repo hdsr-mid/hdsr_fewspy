@@ -88,13 +88,14 @@ class RetryBackoffSession:
         try:
             response = self._retry_session.get(url=url, timeout=timeout_seconds, **kwargs)
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as err:
-            logger.error(f"request failed for url: {url}, err: {err}")
+            msg = f"request failed for url: {url}, err: {err}"
+            logger.error(msg)
             if self.pi_settings.domain == "localhost":
-                msg = (
-                    f"Please make sure fews SA webservice is running (D:/Tomcat/bin/Tomcat9w.exe). Verify with "
-                    f"in browser url={self.pi_settings.test_url}"
+                msg += (
+                    f"Please make sure fews SA webservice is running (D:/Tomcat/bin/Tomcat9w.exe). Verify in "
+                    f"browser it is running: {self.pi_settings.test_url}"
                 )
-                raise exceptions.StandAloneFewsWebServiceNotRunningError(message=msg, errors=err)
+                raise exceptions.StandAloneFewsWebServiceNotRunningError(msg)
             assert isinstance(self.pi_settings, PiSettings)
             raise
         except Exception as err:

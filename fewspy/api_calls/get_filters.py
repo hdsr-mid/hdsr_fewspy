@@ -30,16 +30,17 @@ class GetFilters(GetRequest):
         ]
 
     def run(self):
-        # do the request
-        parameters = parameters_to_fews(parameters=locals(), pi_settings=self.pi_settings)
-        response = self.retry_backoff_session.get(url=self.url, params=parameters, verify=self.pi_settings.ssl_verify)
-
-        # parse the response
-        result = []
-        if response.status_code == 200:
-            if "filters" in response.json().keys():
-                result = response.json()["filters"]
-        else:
-            logger.error(f"FEWS Server responds {response.text}")
-
-        return result
+        raise NotImplementedError
+        # response = self.retry_backoff_session.get(
+        #     url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
+        # )
+        #
+        # # parse the response
+        # result = []
+        # if response.status_code == 200:
+        #     if "filters" in response.json().keys():
+        #         result = response.json()["filters"]
+        # else:
+        #     logger.error(f"FEWS Server responds {response.text}")
+        #
+        # return result

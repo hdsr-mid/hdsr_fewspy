@@ -33,16 +33,13 @@ logger = logging.getLogger(__name__)
 class Api:
     """Python API for the Deltares FEWS PI REST Web Service.
 
-    The methods corresponding with the FEWS PI-REST requests (see Deltares website). For more info on how to work
-    with the FEWS REST Web Service, visit the Deltares website:
-    https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
-
-    Example: api = Api(base_url='http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/')
+    The methods corresponding with the FEWS PI-REST requests. For more info on how to work with the FEWS REST Web
+    Service, visit the Deltares website: https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service.
     """
 
     def __init__(
         self,
-        default_output_choice: str = OutputChoices.json_response_in_memory,
+        default_output_choice: str,  # e.g. OutputChoices.json_response_in_memory,
         pi_settings: PiSettings = pi_settings_production,
         output_directory_root: Union[str, Path] = None,
     ):
@@ -87,8 +84,8 @@ class Api:
         )
         if self.pi_settings.domain == "localhost":
             msg += ". Please make sure FEWS SA webservice is running and start embedded tomcat server via F12 key."
-            raise exceptions.StandAloneFewsWebServiceNotRunningError(message=msg, errors=response.text)
-        raise exceptions.FewsWebServiceNotRunningError(message=msg, errors=response.text)
+            raise exceptions.StandAloneFewsWebServiceNotRunningError(msg)
+        raise exceptions.FewsWebServiceNotRunningError(msg)
 
     def _validate_output_choice(self, output_choice: str = None) -> str:
         choice = output_choice if output_choice else self.default_output_choice
@@ -113,16 +110,15 @@ class Api:
             assert isinstance(allowed, list), f"code error, {allowed} must be a list"
             if used in allowed:
                 continue
-            raise exceptions.PiSettingsError(message=f"{setting} has {used} which is not in allowed {allowed}")
+            raise exceptions.PiSettingsError(f"{setting} has {used} which is not in allowed {allowed}")
 
         # set document_format
         valid_document_format = OutputChoices.get_pi_rest_document_format(output_choice=self.default_output_choice)
         if pi_settings.document_format != valid_document_format:
-            msg = (
+            logger.info(
                 f"set pi_settings.document_format to '{valid_document_format}' since output_choice "
                 f"is '{self.default_output_choice}'"
             )
-            logger.info(msg)
             pi_settings.document_format = valid_document_format
 
         return pi_settings
@@ -149,7 +145,7 @@ class Api:
     def get_locations(self, show_attributes: bool = True, output_choice: str = None):
         """Get FEWS locations as a geopandas GeoDataFrame.
         Args:
-            - show_attributes (bool): If True, then the location attributes will be include as columns in the pandas DataFrame.
+            - show_attributes (bool): If True, then location attributes will be include as columns in the DataFrame.
         Returns:
             gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
         """

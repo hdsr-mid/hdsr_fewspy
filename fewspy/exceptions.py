@@ -1,70 +1,22 @@
-class ErrorBase(Exception):
-    def __init__(self, message, errors=None):
-        # Call the base class constructor with the parameters it needs
-        super().__init__(message)
-        # Now for your custom code...
-        self.errors = errors
-
-
-class TsDownloadError(ErrorBase):
+class FewsWebServiceNotRunningError(Exception):
     pass
 
 
-class TsReadError(ErrorBase):
+class StandAloneFewsWebServiceNotRunningError(Exception):
     pass
 
 
-class NoTsExistsError(ErrorBase):
+class UserNotFoundInHdsrFewspyAuthError(Exception):
     pass
 
 
-class TsAnalyseError(ErrorBase):
+class UserInvalidTokenHdsrFewspyAuthError(Exception):
     pass
 
 
-class TsSaveResultsError(ErrorBase):
+class NoPermissionInHdsrFewspyAuthError(Exception):
     pass
 
 
-class FewsWebServiceNotRunningError(ErrorBase):
-    pass
-
-
-class StandAloneFewsWebServiceNotRunningError(ErrorBase):
-    pass
-
-
-class TsManagerGapError(ErrorBase):
-    pass
-
-
-class WisPeriodError(ErrorBase):
-    pass
-
-
-class CannotShiftWisPeriod(ErrorBase):
-    pass
-
-
-class IntLocHasMetaButNoDfClassifiedSubloc(ErrorBase):
-    pass
-
-
-class URLNotFoundError(ErrorBase):
-    pass
-
-
-class UserNotFoundInHdsrFewspyAuthError(ErrorBase):
-    pass
-
-
-class UserInvalidTokenHdsrFewspyAuthError(ErrorBase):
-    pass
-
-
-class NoPermissionInHdsrFewspyAuthError(ErrorBase):
-    pass
-
-
-class PiSettingsError(ErrorBase):
+class PiSettingsError(Exception):
     pass

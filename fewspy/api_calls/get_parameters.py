@@ -48,21 +48,22 @@ class GetParameters(GetRequest):
         ]
 
     def run(self) -> pd.DataFrame:
-        # do the request
-        parameters = parameters_to_fews(parameters=locals(), pi_settings=self.pi_settings)
-        response = self.retry_backoff_session.get(self.url, parameters=parameters, verify=self.pi_settings.ssl_verify)
-
-        # parse the response
-        df = pd.DataFrame(columns=COLUMNS)
-        if response.status_code == 200:
-            if "timeSeriesParameters" in response.json().keys():
-                df = pd.DataFrame(response.json()["timeSeriesParameters"])
-                df.columns = [camel_to_snake_case(i) for i in df.columns]
-                df["uses_datum"] = df["uses_datum"] == "true"
-
-        else:
-            logger.error(f"FEWS Server responds {response.text}")
-
-        df.set_index("id", inplace=True)
-
-        return df
+        raise NotImplementedError
+        # response = self.retry_backoff_session.get(
+        #     url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
+        # )
+        #
+        # # parse the response
+        # df = pd.DataFrame(columns=COLUMNS)
+        # if response.status_code == 200:
+        #     if "timeSeriesParameters" in response.json().keys():
+        #         df = pd.DataFrame(response.json()["timeSeriesParameters"])
+        #         df.columns = [camel_to_snake_case(i) for i in df.columns]
+        #         df["uses_datum"] = df["uses_datum"] == "true"
+        #
+        # else:
+        #     logger.error(f"FEWS Server responds {response.text}")
+        #
+        # df.set_index("id", inplace=True)
+        #
+        # return df

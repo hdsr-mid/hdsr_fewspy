@@ -37,21 +37,22 @@ class GetQualifiers(GetRequest):
         return [ApiParameters.show_attributes, ApiParameters.document_format, ApiParameters.document_version]
 
     def run(self) -> pd.DataFrame:
-        # do the request
-        response = self.retry_backoff_session.get(url=self.url, verify=self.pi_settings.ssl_verify)
-
-        # parse the response
-        if response.status_code == 200:
-            tree = ElementTree.fromstring(response.content)
-            qualifiers_tree = [i for i in tree.iter(tag=f"{NS}qualifier")]
-            qualifiers_tuple = (self._element_to_tuple(i) for i in qualifiers_tree)
-            df = pd.DataFrame(qualifiers_tuple, columns=COLUMNS)
-        else:
-            logger.error(f"FEWS Server responds {response.text}")
-            df = pd.DataFrame(columns=COLUMNS)
-        df.set_index("id", inplace=True)
-
-        return df
+        raise NotImplementedError
+        # response = self.retry_backoff_session.get(
+        #     url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
+        # )
+        # # parse the response
+        # if response.status_code == 200:
+        #     tree = ElementTree.fromstring(response.content)
+        #     qualifiers_tree = [i for i in tree.iter(tag=f"{NS}qualifier")]
+        #     qualifiers_tuple = (self._element_to_tuple(i) for i in qualifiers_tree)
+        #     df = pd.DataFrame(qualifiers_tuple, columns=COLUMNS)
+        # else:
+        #     logger.error(f"FEWS Server responds {response.text}")
+        #     df = pd.DataFrame(columns=COLUMNS)
+        # df.set_index("id", inplace=True)
+        #
+        # return df
 
     @classmethod
     def _element_to_tuple(cls, qualifier_element: ElementTree.Element) -> Tuple:

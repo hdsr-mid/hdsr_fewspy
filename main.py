@@ -48,6 +48,8 @@ if __name__ == "__main__":
 
 # DONE: enable users to override Api.pi_settings
 
+# TODO: conversion client - server timezone
+
 # TODO: Ciska wel interesse wel in:
 #  --------------------------------
 #  get_samples (grote request)
@@ -66,23 +68,18 @@ if __name__ == "__main__":
 #  --------------------------------
 #  get_qualifiers
 
-# TODO: check of properties goed meekomen in get_timeseries in PI_JSON (in PI_XML gaat het goed) -> Ciska:" bij EFICS werkt niet helemaal lekker. bij get_samples gaat het helemaal fout"
+# TODO: check of properties goed meekomen in get_timeseries in PI_JSON (in PI_XML gaat het goed) -> Ciska:" bij
+#  EFICS werkt niet helemaal lekker. bij get_samples gaat het helemaal fout"
 
-# TODO: potentieel van grote naar kleine belasting (retry-backoff nodig): get_samples, get_timeseries, get_qualifiers (25 groepen * 100k regels per groep), get_parameters (4000), get_locations (300)
+# TODO: potentieel van grote naar kleine belasting (retry-backoff nodig): get_samples, get_timeseries,
+#  get_qualifiers (25 groepen * 100k regels per groep), get_parameters (4000), get_locations (300)
 
 # TODO: use onlyHeader=True kan voor get_timeseries en get_samples (beide hebben ook start + eind).
 #  Echter, get_qualifiers heeft dat niet. FEWS-WIS response is snel (<1sec). FEWS-EFICS duurt lang (8 sec)
 #  get_lcoations duurt 7 sec.
-#  Voorstel Ciska: alleen func get_timeseries + get_samples via PiWebService. De andere request disabelen: logger.info('Stuur ciska.overbeek@hdsr.nl een mailtje of dat lijstje mag, dan krijg je er ook nog meer info bij)
+#  Voorstel Ciska: alleen func get_timeseries + get_samples via PiWebService. De andere request disabelen:
+#  logger.info('Stuur ciska.overbeek@hdsr.nl een mailtje of dat lijstje mag, dan krijg je er ook nog meer info bij)
 #  die lijstjes worden 2 a 3 per jaar script + handmatig ge-update.
-
-# TODO: maak een hdsr_fewspy_auth repo met daarin een .csv
-#  naam            token                   expiry_date     allowed_service     allowed_filters <-- checken bij Roger of PiWebService authenticatie kan doen (zo niet, dan allowed_service, allowed_filters meenemen in hdsr_fewspy_auth
-#  epke vd werf    adsf;lkjasdhfal;dkj     2024            OWDApi
-#  rob vd hengel   ad;fljahdfgal;djkdf     2024            [INTERNAL-API, SWM]
-#  roger
-#  renier
-#  ciska
 
 # TODO: add usage examples to readme.md
 #  pip install hdsr_fewspy

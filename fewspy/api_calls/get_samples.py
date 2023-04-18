@@ -48,3 +48,6 @@ class GetSamples(GetRequest):
 
     def run(self):
         raise NotImplementedError()
+        # response = self.retry_backoff_session.get(
+        #     url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
+        # )

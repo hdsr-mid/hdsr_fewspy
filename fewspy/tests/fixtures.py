@@ -42,6 +42,5 @@ def fixture_api_sa_json_download(tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def fixture_api_production():
-    """Avoid mocking 2 responses in every test as instantiating Api does an additional GET request to validation_url."""
     api = Api(pi_settings=pi_settings_production)
     return api

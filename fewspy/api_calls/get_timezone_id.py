@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 class GetTimeZoneId(GetRequest):
     def __init__(self, *args, **kwargs):
-        # No args here as only args 'documentFormat' and 'documentVersion' are already in GetRequest args
         super().__init__(*args, **kwargs)
 
     @property
@@ -31,7 +30,6 @@ class GetTimeZoneId(GetRequest):
         ]
 
     def run(self) -> List[requests.models.Response]:
-        # do the request
         response = self.retry_backoff_session.get(
             url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
         )

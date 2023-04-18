@@ -37,7 +37,7 @@ class Permissions:
 
     def ensure_any_permissions(self) -> None:
         if self.permissions_row.empty:
-            raise NoPermissionInHdsrFewspyAuthError(message=f"user {self.hdsr_fewspy_email} has no permissions at all")
+            raise NoPermissionInHdsrFewspyAuthError(f"user {self.hdsr_fewspy_email} has no permissions at all")
 
     @property
     def permissions_row(self) -> pd.Series:
