@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
-from fewspy.constants.lala import TimeZoneChoices
+from fewspy.constants.choices import TimeZoneChoices
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.conversions import dict_to_datetime
 from typing import List
@@ -56,7 +56,7 @@ class Header:
             return k, v
 
         args = (_convert_kv(k, v) for k, v in pi_header.items())
-        header = Header(**{i[0]: i[1] for i in args})
+        header = Header(**{i[0]: i[1] for i in args if i[0] in cls.__dataclass_fields__.keys()})  # noqa
         return header
 
 
@@ -64,7 +64,14 @@ class Events(pd.DataFrame):
     """FEWS-PI events in pandas DataFrame"""
 
     @classmethod
-    def from_pi_events(cls, pi_events: list, missing_value: float, tz_offset: float = None) -> Events:
+    def from_pi_events(
+        cls,
+        pi_events: list,
+        missing_value: float,
+        drop_missing_values: bool,
+        flag_threshold: int,
+        tz_offset: float = None,
+    ) -> Events:
         """Parse Events from FEWS PI events dict."""
 
         df = Events(data=pi_events)
@@ -75,9 +82,11 @@ class Events(pd.DataFrame):
         else:
             df["datetime"] = pd.to_datetime(df["date"]) + pd.to_timedelta(df["time"])
 
-        # set value to numeric and remove missings
+        # set value to numeric
         df["value"] = pd.to_numeric(df["value"])
-        df = df.loc[df["value"] != missing_value]
+        if drop_missing_values:
+            # remove missings
+            df = df.loc[df["value"] != missing_value]
 
         # drop columns and add missing columns
         drop_cols = [i for i in df.columns if i not in EVENT_COLUMNS]
@@ -87,16 +96,15 @@ class Events(pd.DataFrame):
 
         # set flag to numeric
         df["flag"] = pd.to_numeric(df["flag"])
+        if flag_threshold:
+            # remove rows that have a unreliable flag: A flag_threshold of 6 means that only values with a
+            # flag < 6 will be included
+            df = df.loc[df["flag"] < flag_threshold]
 
         # set datetime to index
         df.set_index("datetime", inplace=True)
 
         return df
-
-    @classmethod
-    def reliables(cls, df: pd.DataFrame, threshold_flag: int = 6) -> pd.DataFrame:
-        """Get Event with with reliable data only."""
-        return df.loc[df["flag"] < threshold_flag]
 
 
 @dataclass
@@ -107,12 +115,18 @@ class TimeSeries:
     events: Events = pd.DataFrame(columns=EVENT_COLUMNS).set_index("datetime")
 
     @classmethod
-    def from_pi_time_series(cls, pi_time_series: dict, time_zone: float = None) -> TimeSeries:
-        header = Header.from_pi_header(pi_time_series["header"])
+    def from_pi_time_series(
+        cls, pi_time_series: dict, drop_missing_values: bool, flag_threshold: int, time_zone: float = None
+    ) -> TimeSeries:
+        header = Header.from_pi_header(pi_header=pi_time_series["header"])
         kwargs = dict(header=header)
         if "events" in pi_time_series.keys():
             kwargs["events"] = Events.from_pi_events(
-                pi_events=pi_time_series["events"], missing_value=header.miss_val, tz_offset=time_zone
+                pi_events=pi_time_series["events"],
+                missing_value=header.miss_val,
+                tz_offset=time_zone,
+                drop_missing_values=drop_missing_values,
+                flag_threshold=flag_threshold,
             )
         dc_timeseries = TimeSeries(**kwargs)
         return dc_timeseries
@@ -128,14 +142,22 @@ class TimeSeriesSet:
         return len(self.time_series)
 
     @classmethod
-    def from_pi_time_series(cls, pi_time_series_set: dict) -> TimeSeriesSet:
+    def from_pi_time_series(cls, pi_time_serie: dict, drop_missing_values: bool, flag_threshold: int) -> TimeSeriesSet:
         kwargs = dict()
-        kwargs["version"] = pi_time_series_set.get("version", None)
+        kwargs["version"] = pi_time_serie.get("version", None)
+
         # TODO: timeZone moet een int/float zijn, niet een str bijv '"Etc/GMT-0"'
-        kwargs["time_zone"] = float(pi_time_series_set.get("timeZone", TimeZoneChoices.gmt_0.value))
-        time_series = pi_time_series_set.get("timeSeries", None)
+        kwargs["time_zone"] = float(pi_time_serie.get("timeZone", TimeZoneChoices.gmt_0.value))
+
+        time_series = pi_time_serie.get("timeSeries", None)
         kwargs["time_series"] = [
-            TimeSeries.from_pi_time_series(pi_time_series=i, time_zone=kwargs["time_zone"]) for i in time_series
+            TimeSeries.from_pi_time_series(
+                pi_time_series=i,
+                time_zone=kwargs["time_zone"],
+                drop_missing_values=drop_missing_values,
+                flag_threshold=flag_threshold,
+            )
+            for i in time_series
         ]
         dc_timeseriesset = cls(**kwargs)
         return dc_timeseriesset

@@ -13,8 +13,8 @@ def check_python_version():
 
 
 def setup_logging() -> None:
-    """Adds a configured strearm handler to the root logger."""
-    log_level = logging.DEBUG
+    """Adds a configured stream handler to the root logger."""
+    log_level = logging.INFO
     log_date_format = "%H:%M:%S"
     log_format = "%(asctime)s %(filename)s %(levelname)s %(message)s"
     _logger = logging.getLogger()
@@ -36,24 +36,24 @@ if __name__ == "__main__":
 
 # DONE: Use BackoffRetry strategy
 
-# TODO: add rate_limiting to requests (freq and size)
+# DONE: add rate_limiting to requests (freq and size)
 
 # TODO: don't use strings as urls...
 
-# TODO: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
+# Done: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
 
 # TODO: test other get requests than get_timeseries
 
 # TODO: create documentation
 
-# TODO: enable users to override Api.pi_settings
+# DONE: enable users to override Api.pi_settings
 
 # TODO: Ciska wel interesse wel in:
 #  --------------------------------
 #  get_samples (grote request)
 #  - Deltares is hier begin 2024 klaar. Nu geeft FEWS EFICS piwebservice na 2 of 5 minuten een timeout
 #  get_timeseries (grote request)
-#  - altijd start en end
+#  - altijd start + end
 #  - altijd omitEmptyTimeSeries op True anders geeft ie minimaal weken aan tijdseries terug
 #  - vaak filter_id
 #  - soms parameter_id, location_id, moduleinstance_id

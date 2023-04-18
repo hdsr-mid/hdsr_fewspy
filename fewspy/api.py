@@ -1,17 +1,33 @@
-from fewspy import wrappers
+from datetime import datetime
+from fewspy import api_calls
+from fewspy import exceptions
+from fewspy.constants.choices import OutputChoices
+from fewspy.constants.choices import TimeZoneChoices
+from fewspy.constants.paths import HDSR_FEWSPY_VERSION
 from fewspy.constants.pi_settings import pi_settings_production
 from fewspy.constants.pi_settings import PiSettings
-from fewspy.constants.request_settings import request_settings
+from fewspy.constants.request_settings import default_request_settings
 from fewspy.constants.request_settings import RequestSettings
-from fewspy.exceptions import URLNotFoundError
-from fewspy.retry_session import RequestsRetrySession
+from fewspy.permissions import Permissions
+from fewspy.retry_session import RetryBackoffSession
+from fewspy.utils.bug_report import create_bug_report_when_error
+from pathlib import Path
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
+import logging
+import os
 import pandas as pd
 import requests
 import urllib3
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+logger = logging.getLogger(__name__)
 
 
 class Api:
@@ -26,149 +42,243 @@ class Api:
 
     def __init__(
         self,
-        base_url: str = None,
+        default_output_choice: str = OutputChoices.json_response_in_memory,
         pi_settings: PiSettings = pi_settings_production,
+        output_directory_root: Union[str, Path] = None,
     ):
-        self.base_url = self._validate_base_url(base_url=base_url if base_url else pi_settings.base_url)
-        self.pi_settings = pi_settings
-        self.request_settings: RequestSettings = request_settings
-        self.retry_backoff_session = RequestsRetrySession(self.request_settings, pi_settings=self.pi_settings)
+        self.permissions = Permissions()
+        self.default_output_choice: str = self._validate_output_choice(output_choice=default_output_choice)
+        self.output_dir = self._get_output_dir(output_directory_root=output_directory_root)
+        self.pi_settings = self._validate_pi_settings(pi_settings=pi_settings)
+        self.request_settings: RequestSettings = default_request_settings
+        self.retry_backoff_session = RetryBackoffSession(
+            _request_settings=self.request_settings,
+            pi_settings=self.pi_settings,
+            output_choice=self.default_output_choice,
+            output_dir=self.output_dir,
+        )
+        self._ensure_service_is_running()
+        self.hdsr_fewspy_version = HDSR_FEWSPY_VERSION
 
     @staticmethod
-    def _validate_base_url(base_url: str) -> str:
-        base_url = f"{base_url}/" if not base_url.endswith("/") else base_url
-        response = requests.get(url=base_url, verify=True)
+    def _get_output_dir(output_directory_root: Union[str, Path] = None) -> Optional[Path]:
+        if output_directory_root is None:
+            return None
+        # check 1
+        output_directory_root = Path(output_directory_root)
+        assert output_directory_root.is_dir(), f"output_directory_root {output_directory_root} must exist"
+        # check 2
+        is_dir_writable = os.access(path=output_directory_root.as_posix(), mode=os.W_OK)
+        assert is_dir_writable, f"output_directory_root {output_directory_root} must be writable"
+        # create subdir
+        output_dir = output_directory_root / f"hdsr_fewspy_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        return output_dir
+
+    @create_bug_report_when_error
+    def _ensure_service_is_running(self) -> None:
+        # check endpoint with smallest response (=timezonid)
+        response = requests.get(url=f"{self.pi_settings.base_url}timezoneid/", verify=self.pi_settings.ssl_verify)
         if response.ok:
-            return base_url
-        raise URLNotFoundError(message=f"{base_url} is not a root to a live FEWS PI Rest WebService")
+            logger.info("PiWebService is running")
+            return
+        msg = (
+            f"Piwebservice is not running, err={response.text}. Ensure that you can visit the test page "
+            f"{self.pi_settings.test_url}"
+        )
+        if self.pi_settings.domain == "localhost":
+            msg += ". Please make sure FEWS SA webservice is running and start embedded tomcat server via F12 key."
+            raise exceptions.StandAloneFewsWebServiceNotRunningError(message=msg, errors=response.text)
+        raise exceptions.FewsWebServiceNotRunningError(message=msg, errors=response.text)
 
-    def _wrapped_kwargs(self, url_post_fix: str, kwargs: dict) -> dict:
-        """Update kwargs for wrapped function
+    @staticmethod
+    def _validate_output_choice(output_choice: str) -> str:
+        assert output_choice and isinstance(
+            output_choice, str
+        ), f"output_choice {output_choice} must be non empty string"
+        if output_choice in OutputChoices.get_all():
+            return output_choice
+        raise AssertionError(f"output_choice '{output_choice}' must be in {OutputChoices.get_all()}")
 
-        For example:
-            from this {
-                'end_time': datetime.datetime(2022, 5, 2, 0, 0),
-                'filter_id': 'INTERNAL-API',
-                'location_ids': ['OW433001'],
-                'only_headers': False,
-                'parameter_ids': ['H.G.0'],
-                'qualifier_ids': None,
-                'self': <fewspy.api.Api object at 0x000001F76CD1A0C8>,
-                'show_statistics': False,
-                'start_time': datetime.datetime(2022, 5, 1, 0, 0),
-                'thinning': None
-                }
-            to this {
-                'document_format': 'PI_JSON',
-                'end_time': datetime.datetime(2022, 5, 2, 0, 0),
-                'filter_id': 'INTERNAL-API',
-                'location_ids': ['OW433001'],
-                'only_headers': False,
-                'parameter_ids': ['H.G.0'],
-                'qualifier_ids': None,
-                'show_statistics': False,
-                'ssl_verify': True,
-                'start_time': datetime.datetime(2022, 5, 1, 0, 0),
-                'thinning': None,
-                'url': 'http://xx:9999//rest/fewspiservice/v1/timeseries'
-                }
-        """
-        kwargs = {
-            **kwargs,
-            **dict(
-                url=f"{self.base_url}{url_post_fix}",
-                document_format=self.pi_settings.document_format,
-                ssl_verify=self.pi_settings.ssl_verify,
-            ),
+    def _validate_pi_settings(self, pi_settings: PiSettings) -> PiSettings:
+        assert isinstance(
+            pi_settings, PiSettings
+        ), "pi_settings must be a PiSettings, see README.ml example how to create one"
+        mapper = {
+            "domain": (pi_settings.domain, self.permissions.allowed_domain),
+            "module_instance_id": (pi_settings.module_instance_ids, self.permissions.allowed_module_instance_id),
+            "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all()),
+            "filter_id": (pi_settings.filter_ids, self.permissions.allowed_filter_id),
+            "service": (pi_settings.service, self.permissions.allowed_service),
         }
-        kwargs.pop("self")
-        kwargs.pop("parallel", None)
-        kwargs["retry_backoff_session"] = self.retry_backoff_session
-        return kwargs
+        for setting, value in mapper.items():
+            used, allowed = value
+            assert isinstance(allowed, list), f"code error, {allowed} must be a list"
+            if used in allowed:
+                continue
+            raise exceptions.PiSettingsError(message=f"{setting} has {used} which is not in allowed {allowed}")
 
-    def get_parameters(self, filter_id=None):
-        """Get FEWS qualifiers as a pandas DataFrame.
-        Args:
-            filter_id (str): the FEWS id of the filter to pass as request parameter
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
-        kwargs = self._wrapped_kwargs(url_post_fix="parameters", kwargs=locals())
-        result = wrappers.get_parameters(**kwargs)
+        # set document_format
+        valid_document_format = OutputChoices.get_pi_rest_document_format(output_choice=self.default_output_choice)
+        if pi_settings.document_format != valid_document_format:
+            msg = (
+                f"set pi_settings.document_format to '{valid_document_format}' since output_choice "
+                f"is '{self.default_output_choice}'"
+            )
+            logger.info(msg)
+            pi_settings.document_format = valid_document_format
+
+        return pi_settings
+
+    # @create_bug_report_when_error
+    def get_parameters(self, output_choice: str = None) -> pd.DataFrame:
+        """Get FEWS parameters as a pandas DataFrame."""
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetParameters(
+            output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
+        )
+        result = api_call.run()
         return result
 
-    def get_filters(self, filter_id=None):
-        """Get FEWS qualifiers as a pandas DataFrame.
-        Args:
-            filter_id (str): the FEWS id of the filter to pass as request parameter
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
-        kwargs = self._wrapped_kwargs(url_post_fix="filters", kwargs=locals())
-        result = wrappers.get_filters(**kwargs)
+    # @create_bug_report_when_error
+    def get_filters(self, output_choice: str = None) -> List[Dict]:
+        """Get FEWS filters as a list with dictionaries."""
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetFilters(output_choice=output_choice, retry_backoff_session=self.retry_backoff_session)
+        result = api_call.run()
         return result
 
-    def get_locations(self, filter_id=None, attributes: list = None):
-        """Get FEWS qualifiers as a pandas DataFrame.
+    # @create_bug_report_when_error
+    def get_locations(self, attributes: list = None, output_choice: str = None):
+        """Get FEWS locations as a geopandas GeoDataFrame.
         Args:
-            - filter_id (str): the FEWS id of the filter to pass as request parameter
             - attributes (list): if not emtpy, the location attributes to include as columns in the pandas DataFrame.
         Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
+            gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
         """
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
         attributes = attributes if attributes else []
-        kwargs = self._wrapped_kwargs(url_post_fix="locations", kwargs=locals())
-        result = wrappers.get_locations(**kwargs)
+        api_call = api_calls.GetLocations(
+            output_choice=output_choice, attributes=attributes, retry_backoff_session=self.retry_backoff_session
+        )
+        result = api_call.run()
         return result
 
-    def get_qualifiers(self) -> pd.DataFrame:
+    # @create_bug_report_when_error
+    def get_qualifiers(self, output_choice: str = None) -> pd.DataFrame:
         """Get FEWS qualifiers as Pandas DataFrame
 
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        kwargs = self._wrapped_kwargs(url_post_fix="qualifiers/", kwargs=locals())
-        return wrappers.get_qualifiers(**kwargs)
-
-    def get_samples(self) -> pd.DataFrame:
-        """
-        # TODO
-        """
-        kwargs = self._wrapped_kwargs(url_post_fix="samples/", kwargs=locals())
-        return wrappers.get_samples(**kwargs)
-
-    def get_timezone_id(self) -> str:
-        """Get FEWS timezone_id the FEWS API is running on."""
-        kwargs = self._wrapped_kwargs(url_post_fix="timezoneid/", kwargs=locals())
-        return wrappers.get_timezone_id(**kwargs)
-
-    def get_time_series(
-        self,
-        filter_id,
-        location_ids=None,
-        parameter_ids=None,
-        qualifier_ids=None,
-        start_time=None,
-        end_time=None,
-        thinning=None,
-        only_headers=False,
-        show_statistics=False,
-    ):
-        """Get FEWS qualifiers as a pandas DataFrame.
-
-        Args:
-            - filter_id (str): the FEWS id of the filter to pass as request parameter
-            - location_ids (list): list with FEWS location ids to extract timeseries from. Defaults to None.
-            - parameter_ids (list): list with FEWS parameter ids to extract timeseries from. Defaults to None.
-            - qualifier_ids (list): list with FEWS qualifier ids to extract timeseries from. Defaults to None.
-            - start_time (datetime.datetime): datetime-object with start datetime to use in request. Defaults to None.
-            - end_time (datetime.datetime): datetime-object with end datetime to use in request. Defaults to None.
-            - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
-            - only_headers (bool): if True, only headers will be returned. Defaults to False.
-            - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
-        kwargs = self._wrapped_kwargs(url_post_fix="timeseries/", kwargs=locals())
-        result = wrappers.get_time_series(**kwargs)
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetQualifiers(
+            output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
+        )
+        result = api_call.run()
         return result
+
+    # @create_bug_report_when_error
+    def get_timezone_id(self, output_choice: str = None) -> List[requests.models.Response]:
+        """Get FEWS timezone_id the FEWS API is running on."""
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetTimeZoneId(
+            output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
+        )
+        result = api_call.run()
+        return result
+
+    # @create_bug_report_when_error
+    def get_samples(self, start_time: datetime, end_time: datetime, output_choice: str = None) -> pd.DataFrame:
+        """Get FEWS samples as a pandas DataFrame."""
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetSamples(
+            output_choice=output_choice,
+            start_time=start_time,
+            end_time=end_time,
+            retry_backoff_session=self.retry_backoff_session,
+        )
+        result = api_call.run()
+        return result
+
+    # @create_bug_report_when_error
+    def get_time_series_single(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        location_id: str,
+        parameter_id: str,
+        qualifier_id: str = None,
+        thinning: int = None,
+        only_headers: bool = False,
+        show_statistics: bool = False,
+        omit_empty_timeseries: bool = True,
+        #
+        drop_missing_values: bool = False,
+        flag_threshold: int = 6,
+        #
+        output_choice: str = None,
+    ) -> Union[List[requests.models.Response], List[pd.DataFrame]]:
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
+        assert isinstance(location_id, str) and location_id and "," not in location_id
+        assert isinstance(parameter_id, str) and parameter_id and "," not in parameter_id
+        if qualifier_id:
+            assert isinstance(qualifier_id, str) and "," not in qualifier_id
+
+        api_call = api_calls.GetTimeSeriesSingle(
+            output_choice=output_choice,
+            start_time=start_time,
+            end_time=end_time,
+            location_ids=location_id,
+            parameter_ids=parameter_id,
+            qualifier_ids=qualifier_id,
+            thinning=thinning,
+            only_headers=only_headers,
+            show_statistics=show_statistics,
+            omit_empty_timeseries=omit_empty_timeseries,
+            drop_missing_values=drop_missing_values,
+            flag_threshold=flag_threshold,
+            retry_backoff_session=self.retry_backoff_session,
+        )
+        result = api_call.run()
+        return result
+
+    # @create_bug_report_when_error
+    def get_time_series_multi(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        location_ids: Union[List[str], str] = None,
+        parameter_ids: Union[List[str], str] = None,
+        qualifier_ids: Union[List[str], str] = None,
+        thinning: int = None,
+        only_headers: bool = False,
+        show_statistics: bool = False,
+        omit_empty_timeseries: bool = True,
+        #
+        drop_missing_values: bool = False,
+        flag_threshold: int = 6,
+        #
+        output_choice: str = None,
+    ) -> List[Path]:
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
+        any_multi = any([isinstance(x, list) and len(x) > 1 for x in (location_ids, parameter_ids, qualifier_ids)])
+        assert any_multi
+        api_call = api_calls.GetTimeSeriesMulti(
+            output_choice=output_choice,
+            start_time=start_time,
+            end_time=end_time,
+            location_ids=location_ids,
+            parameter_ids=parameter_ids,
+            qualifier_ids=qualifier_ids,
+            thinning=thinning,
+            only_headers=only_headers,
+            show_statistics=show_statistics,
+            omit_empty_timeseries=omit_empty_timeseries,
+            drop_missing_values=drop_missing_values,
+            flag_threshold=flag_threshold,
+            retry_backoff_session=self.retry_backoff_session,
+        )
+        all_file_paths = api_call.run()
+        return all_file_paths

@@ -1,5 +1,6 @@
-from fewspy.retry_session import RequestsRetrySession
-from fewspy.utils.timer import Timer
+from fewspy.api_calls.base import GetRequest
+from fewspy.constants.choices import OutputChoices
+from typing import List
 from typing import Tuple
 from xml.etree import ElementTree
 
@@ -14,31 +15,41 @@ NS = "{http://www.wldelft.nl/fews/PI}"
 COLUMNS = ["id", "name", "group_id"]
 
 
-class GetQualifiers:
-    @classmethod
-    def get_qualifiers(
-        cls, url: str, document_format: str, ssl_verify: bool, retry_backoff_session: RequestsRetrySession
-    ) -> pd.DataFrame:
-        """Get FEWS qualifiers as Pandas DataFrame.
-        Args:
-            - url (str): url Delft-FEWS PI REST WebService.
-              e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-            - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
+class GetQualifiers(GetRequest):
+    """Get FEWS qualifiers as Pandas DataFrame.
+    Args:
+        - url (str): url Delft-FEWS PI REST WebService.
+          e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
+        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
+    Returns:
+        df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
+    """
+
+    url_post_fix = "qualifiers"
+    valid_output_choices = [
+        OutputChoices.json_response_in_memory,
+        OutputChoices.xml_response_in_memory,
+        OutputChoices.pandas_dataframe_in_memory,
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def whitelist_request_args(self) -> List[str]:
+        raise NotImplementedError("fill this list and move up to cls property above __init__")
+
+    def run(self) -> pd.DataFrame:
+
         # do the request
-        timer = Timer()
-        response = retry_backoff_session.get(url=url, verify=ssl_verify)
-        timer.report(message="Qualifiers request")
+        response = self.retry_backoff_session.get(url=self.url, verify=self.pi_settings.ssl_verify)
 
         # parse the response
         if response.status_code == 200:
             tree = ElementTree.fromstring(response.content)
             qualifiers_tree = [i for i in tree.iter(tag=f"{NS}qualifier")]
-            qualifiers_tuple = (cls._element_to_tuple(i) for i in qualifiers_tree)
+            qualifiers_tuple = (self._element_to_tuple(i) for i in qualifiers_tree)
             df = pd.DataFrame(qualifiers_tuple, columns=COLUMNS)
-            timer.report(message="Qualifiers parsed")
         else:
             logger.error(f"FEWS Server responds {response.text}")
             df = pd.DataFrame(columns=COLUMNS)

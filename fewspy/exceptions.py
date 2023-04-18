@@ -26,7 +26,7 @@ class TsSaveResultsError(ErrorBase):
     pass
 
 
-class LocalRedisNotRunningError(ErrorBase):
+class FewsWebServiceNotRunningError(ErrorBase):
     pass
 
 
@@ -51,4 +51,20 @@ class IntLocHasMetaButNoDfClassifiedSubloc(ErrorBase):
 
 
 class URLNotFoundError(ErrorBase):
+    pass
+
+
+class UserNotFoundInHdsrFewspyAuthError(ErrorBase):
+    pass
+
+
+class UserInvalidTokenHdsrFewspyAuthError(ErrorBase):
+    pass
+
+
+class NoPermissionInHdsrFewspyAuthError(ErrorBase):
+    pass
+
+
+class PiSettingsError(ErrorBase):
     pass
