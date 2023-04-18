@@ -1,6 +1,7 @@
 from fewspy.constants.choices import OutputChoices
 from pathlib import Path
 from typing import List
+
 import json
 import logging
 import requests

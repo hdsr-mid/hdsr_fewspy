@@ -3,6 +3,7 @@ from fewspy.tests import fixtures_requests
 from fewspy.tests.fixtures import fixture_api_sa_json_download
 from fewspy.tests.fixtures import fixture_api_sa_json_memory
 
+
 # silence flake8
 fixture_api_sa_json_memory = fixture_api_sa_json_memory
 fixture_api_sa_json_download = fixture_api_sa_json_download

@@ -13,4 +13,4 @@ def test_sa_timezone_response(fixture_api_sa_json_memory):
     responses = fixture_api_sa_json_memory.get_timezone_id()
     assert len(responses) == 1
     response = responses[0]
-    assert response.text == TimeZoneChoices.gmt
+    assert response.text == TimeZoneChoices.gmt.value
