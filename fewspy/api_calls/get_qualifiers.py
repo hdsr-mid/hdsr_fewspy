@@ -26,14 +26,18 @@ class GetQualifiers(GetRequest):
     """
 
     url_post_fix = "qualifiers"
+    valid_output_choices = [
+        OutputChoices.json_response_in_memory,
+        OutputChoices.xml_response_in_memory,
+        OutputChoices.pandas_dataframe_in_memory,
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
-    def valid_output_choices(self) -> List[str]:
-        return [
-            OutputChoices.json_response_in_memory,
-            OutputChoices.xml_response_in_memory,
-            OutputChoices.pandas_dataframe_in_memory,
-        ]
+    def whitelist_request_args(self) -> List[str]:
+        raise NotImplementedError("fill this list and move up to cls property above __init__")
 
     def run(self) -> pd.DataFrame:
 

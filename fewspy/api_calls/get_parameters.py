@@ -37,6 +37,10 @@ class GetParameters(GetRequest):
         self.attributes = attributes
 
     @property
+    def whitelist_request_args(self) -> List[str]:
+        raise NotImplementedError("fill this list and move up to cls property above __init__")
+
+    @property
     def valid_output_choices(self) -> List[str]:
         return [
             OutputChoices.json_response_in_memory,

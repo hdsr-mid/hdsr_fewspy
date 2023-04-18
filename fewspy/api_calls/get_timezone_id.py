@@ -16,12 +16,15 @@ class GetTimeZoneId(GetRequest):
     """
 
     url_post_fix = "timezoneid"
-    # sa test page states 'document_format'+'document_version', but those return http code 400 ..
-    whitelist_request_args = []
 
     def __init__(self, *args, **kwargs):
         # No args here as only args 'documentFormat' and 'documentVersion' are already in GetRequest args
         super().__init__(*args, **kwargs)
+
+    @property
+    def whitelist_request_args(self) -> List[str]:
+        # sa test page states 'document_format'+'document_version', but those return http code 400 ..
+        return []
 
     @property
     def valid_output_choices(self) -> List[str]:

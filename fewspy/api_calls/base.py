@@ -16,12 +16,12 @@ from typing import Tuple
 
 
 class GetRequest:
-    def __init__(self, retry_backoff_session: RetryBackoffSession):
+    def __init__(self, output_choice: str, retry_backoff_session: RetryBackoffSession):
         self.retry_backoff_session: RetryBackoffSession = retry_backoff_session
         self.pi_settings: PiSettings = retry_backoff_session.pi_settings
         self.request_settings: RequestSettings = retry_backoff_session.request_settings
-        self.output_choice: str = self.validate_output_choice(output_choice=retry_backoff_session.output_choice)
-        self.output_dir: Optional[Path] = retry_backoff_session.output_dir
+        self.output_choice: str = self.validate_output_choice(output_choice=output_choice)
+        self.output_dir: Optional[Path] = self.validate_output_dir(output_dir=retry_backoff_session.output_dir)
         self.url: str = f"{self.pi_settings.base_url}{self.url_post_fix}/"
         self._initial_fews_parameters = None
         self._filtered_fews_parameters = None
@@ -54,6 +54,12 @@ class GetRequest:
             f"invalid output_choice '{output_choice}'. {self.__class__.__name__} has valid_output_choices "
             f"{self.valid_output_choices}. See earlier logging why we use {self.__class__.__name__}."
         )
+
+    def validate_output_dir(self, output_dir: Path) -> Path:
+        if OutputChoices.needs_output_dir(output_choice=self.output_choice) and not isinstance(output_dir, Path):
+            msg = f"output_choice {self.output_choice} requires an output_dir. Please specify Api output_directory_root"
+            raise AssertionError(msg)
+        return output_dir
 
     @property
     def initial_fews_parameters(self) -> Dict:

@@ -36,6 +36,15 @@ class OutputChoices:
             cls.pandas_dataframe_in_memory,
         ]
 
+    @classmethod
+    def needs_output_dir(cls, output_choice: str) -> bool:
+        assert output_choice in cls.get_all(), f"output_choice {output_choice} must be in {cls.get_all()}"
+        return output_choice in {
+            cls.xml_file_in_download_dir,
+            cls.json_file_in_download_dir,
+            cls.csv_file_in_download_dir,
+        }
+
 
 class TimeZoneChoices(Enum):
     gmt = "GMT"  # "Etc/GMT" -> 0.0

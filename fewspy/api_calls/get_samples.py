@@ -20,6 +20,10 @@ class GetSamples(GetRequest):
         self.end_time = end_time
 
     @property
+    def whitelist_request_args(self) -> List[str]:
+        raise NotImplementedError("fill this list")
+
+    @property
     def valid_output_choices(self) -> List[str]:
         return [
             OutputChoices.xml_file_in_download_dir,
@@ -28,9 +32,4 @@ class GetSamples(GetRequest):
         ]
 
     def run(self):
-        # do the request
-        parameters = parameters_to_fews(parameters=locals(), pi_settings=self.pi_settings)
-        response = self.retry_backoff_session.get(url=self.url, params=parameters, verify=self.pi_settings.ssl_verify)
-
-        # parse the response
-        raise NotImplementedError
+        raise NotImplementedError()

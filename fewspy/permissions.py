@@ -17,25 +17,13 @@ logger = logging.getLogger(__name__)
 
 
 class Permissions:
-    def __init__(self, hdsr_fewspy_email: str = None, hdsr_fewspy_token: str = None):
+    def __init__(self):
         self.secrets = Secrets()
-
-        # get hdsr_fewspy_email
-        if hdsr_fewspy_email:
-            logger.info("using hdsr_fewspy_email from args")
-            self.hdsr_fewspy_email = self.validate_email(email=hdsr_fewspy_email)
-        else:
-            logger.info("using hdsr_fewspy_email from os environmental variables (loaded from secrets.env)")
-            self.hdsr_fewspy_email = self.validate_email(email=self.secrets.hdsr_fewspy_email)
-
-        # get hdsr_fewspy_token
-        if hdsr_fewspy_token:
-            logger.info("using secret hdsr_fewspy_token from args")
-            self.hdsr_fewspy_token = hdsr_fewspy_token
-        else:
-            logger.info("using secret hdsr_fewspy_token from os environmental variables (loaded from secrets.env)")
-            self.hdsr_fewspy_token = self.secrets.hdsr_fewspy_token.strip()
-
+        logger.info(
+            "using hdsr_fewspy_email and hdsr_fewspy_token from os environmental variables (loaded from G:/secrets.env)"
+        )
+        self.hdsr_fewspy_email = self.validate_email(email=self.secrets.hdsr_fewspy_email)
+        self.hdsr_fewspy_token = self.secrets.hdsr_fewspy_token.strip()
         self._permission_row = None
         self.ensure_any_permissions()
 

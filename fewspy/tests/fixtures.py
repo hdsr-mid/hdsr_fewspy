@@ -9,7 +9,7 @@ import pytest
 
 @pytest.fixture(scope="session")
 def fixture_api_sa_json_memory():
-    api = Api(pi_settings=pi_settings_sa, output_choice=OutputChoices.json_response_in_memory)
+    api = Api(pi_settings=pi_settings_sa, default_output_choice=OutputChoices.json_response_in_memory)
     assert api.pi_settings.base_url == pi_settings_sa.base_url
     assert api.pi_settings.document_format == "PI_JSON"
     assert api.pi_settings.ssl_verify == True  # noqa
@@ -27,7 +27,7 @@ def fixture_api_sa_json_download(tmpdir_factory):
     assert output_dir_path.is_dir()
     api = Api(
         pi_settings=pi_settings_sa,
-        output_choice=OutputChoices.json_file_in_download_dir,
+        default_output_choice=OutputChoices.json_file_in_download_dir,
         output_directory_root=output_dir_path,
     )
     assert api.pi_settings.base_url == pi_settings_sa.base_url

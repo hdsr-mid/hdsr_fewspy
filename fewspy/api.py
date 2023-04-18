@@ -42,24 +42,22 @@ class Api:
 
     def __init__(
         self,
-        output_choice: str,  # e.g. OutputChoices.json_response_in_memory,
+        default_output_choice: str = OutputChoices.json_response_in_memory,
         pi_settings: PiSettings = pi_settings_production,
         output_directory_root: Union[str, Path] = None,
-        hdsr_fewspy_email: str = None,
-        hdsr_fewspy_token: str = None,
     ):
-        self.permissions = Permissions(hdsr_fewspy_email=hdsr_fewspy_email, hdsr_fewspy_token=hdsr_fewspy_token)
-        self.output_choice: str = self._validate_output_choice(output_choice=output_choice)
+        self.permissions = Permissions()
+        self.default_output_choice: str = self._validate_output_choice(output_choice=default_output_choice)
         self.output_dir = self._get_output_dir(output_directory_root=output_directory_root)
         self.pi_settings = self._validate_pi_settings(pi_settings=pi_settings)
         self.request_settings: RequestSettings = default_request_settings
         self.retry_backoff_session = RetryBackoffSession(
             _request_settings=self.request_settings,
             pi_settings=self.pi_settings,
-            output_choice=self.output_choice,
+            output_choice=self.default_output_choice,
             output_dir=self.output_dir,
         )
-        self.ensure_service_is_running()
+        self._ensure_service_is_running()
         self.hdsr_fewspy_version = HDSR_FEWSPY_VERSION
 
     @staticmethod
@@ -77,7 +75,7 @@ class Api:
         return output_dir
 
     @create_bug_report_when_error
-    def ensure_service_is_running(self) -> None:
+    def _ensure_service_is_running(self) -> None:
         # check endpoint with smallest response (=timezonid)
         response = requests.get(url=f"{self.pi_settings.base_url}timezoneid/", verify=self.pi_settings.ssl_verify)
         if response.ok:
@@ -120,82 +118,84 @@ class Api:
             raise exceptions.PiSettingsError(message=f"{setting} has {used} which is not in allowed {allowed}")
 
         # set document_format
-        valid_document_format = OutputChoices.get_pi_rest_document_format(output_choice=self.output_choice)
+        valid_document_format = OutputChoices.get_pi_rest_document_format(output_choice=self.default_output_choice)
         if pi_settings.document_format != valid_document_format:
             msg = (
                 f"set pi_settings.document_format to '{valid_document_format}' since output_choice "
-                f"is '{self.output_choice}'"
+                f"is '{self.default_output_choice}'"
             )
             logger.info(msg)
             pi_settings.document_format = valid_document_format
 
         return pi_settings
 
-    def _get_kwargs_for_wrapper(self, url_post_fix: str, kwargs: dict) -> dict:
-        """Update kwargs for wrapped function."""
-        kwargs = {
-            **kwargs,
-            **dict(
-                url=f"{self.pi_settings.base_url}{url_post_fix}",
-                pi_settings=self.pi_settings,
-                request_settings=self.request_settings,
-                retry_backoff_session=self.retry_backoff_session,
-            ),
-        }
-        kwargs.pop("self")
-        kwargs.pop("parallel", None)
-        return kwargs
-
     # @create_bug_report_when_error
-    def get_parameters(self) -> pd.DataFrame:
+    def get_parameters(self, output_choice: str = None) -> pd.DataFrame:
         """Get FEWS parameters as a pandas DataFrame."""
-        api_call = api_calls.GetParameters(retry_backoff_session=self.retry_backoff_session)
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetParameters(
+            output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
+        )
         result = api_call.run()
         return result
 
     # @create_bug_report_when_error
-    def get_filters(self) -> List[Dict]:
+    def get_filters(self, output_choice: str = None) -> List[Dict]:
         """Get FEWS filters as a list with dictionaries."""
-        api_call = api_calls.GetFilters(retry_backoff_session=self.retry_backoff_session)
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetFilters(output_choice=output_choice, retry_backoff_session=self.retry_backoff_session)
         result = api_call.run()
         return result
 
     # @create_bug_report_when_error
-    def get_locations(self, attributes: list = None):
+    def get_locations(self, attributes: list = None, output_choice: str = None):
         """Get FEWS locations as a geopandas GeoDataFrame.
         Args:
             - attributes (list): if not emtpy, the location attributes to include as columns in the pandas DataFrame.
         Returns:
             gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
         """
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
         attributes = attributes if attributes else []
-        api_call = api_calls.GetLocations(attributes=attributes, retry_backoff_session=self.retry_backoff_session)
+        api_call = api_calls.GetLocations(
+            output_choice=output_choice, attributes=attributes, retry_backoff_session=self.retry_backoff_session
+        )
         result = api_call.run()
         return result
 
     # @create_bug_report_when_error
-    def get_qualifiers(self) -> pd.DataFrame:
+    def get_qualifiers(self, output_choice: str = None) -> pd.DataFrame:
         """Get FEWS qualifiers as Pandas DataFrame
 
         Returns:
             df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
         """
-        api_call = api_calls.GetQualifiers(retry_backoff_session=self.retry_backoff_session)
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetQualifiers(
+            output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
+        )
         result = api_call.run()
         return result
 
     # @create_bug_report_when_error
-    def get_timezone_id(self) -> List[requests.models.Response]:
+    def get_timezone_id(self, output_choice: str = None) -> List[requests.models.Response]:
         """Get FEWS timezone_id the FEWS API is running on."""
-        api_call = api_calls.GetTimeZoneId(retry_backoff_session=self.retry_backoff_session)
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
+        api_call = api_calls.GetTimeZoneId(
+            output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
+        )
         result = api_call.run()
         return result
 
     # @create_bug_report_when_error
-    def get_samples(self, start_time: datetime, end_time: datetime) -> pd.DataFrame:
+    def get_samples(self, start_time: datetime, end_time: datetime, output_choice: str = None) -> pd.DataFrame:
         """Get FEWS samples as a pandas DataFrame."""
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
         api_call = api_calls.GetSamples(
-            start_time=start_time, end_time=end_time, retry_backoff_session=self.retry_backoff_session
+            output_choice=output_choice,
+            start_time=start_time,
+            end_time=end_time,
+            retry_backoff_session=self.retry_backoff_session,
         )
         result = api_call.run()
         return result
@@ -215,7 +215,10 @@ class Api:
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
+        #
+        output_choice: str = None,
     ) -> Union[List[requests.models.Response], List[pd.DataFrame]]:
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
         assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
         assert isinstance(location_id, str) and location_id and "," not in location_id
         assert isinstance(parameter_id, str) and parameter_id and "," not in parameter_id
@@ -223,6 +226,7 @@ class Api:
             assert isinstance(qualifier_id, str) and "," not in qualifier_id
 
         api_call = api_calls.GetTimeSeriesSingle(
+            output_choice=output_choice,
             start_time=start_time,
             end_time=end_time,
             location_ids=location_id,
@@ -254,11 +258,15 @@ class Api:
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
+        #
+        output_choice: str = None,
     ) -> List[Path]:
+        output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
         assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
         any_multi = any([isinstance(x, list) and len(x) > 1 for x in (location_ids, parameter_ids, qualifier_ids)])
         assert any_multi
         api_call = api_calls.GetTimeSeriesMulti(
+            output_choice=output_choice,
             start_time=start_time,
             end_time=end_time,
             location_ids=location_ids,

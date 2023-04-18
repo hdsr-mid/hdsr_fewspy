@@ -8,7 +8,7 @@ fixture_api_sa_json_memory = fixture_api_sa_json_memory
 
 
 def test_sa_timezone_response(fixture_api_sa_json_memory):
-    assert fixture_api_sa_json_memory.output_choice == OutputChoices.json_response_in_memory
+    assert fixture_api_sa_json_memory.default_output_choice == OutputChoices.json_response_in_memory
 
     responses = fixture_api_sa_json_memory.get_timezone_id()
     assert len(responses) == 1

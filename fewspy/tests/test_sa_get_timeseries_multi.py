@@ -46,7 +46,7 @@ def test_sa_multi_timeseries_wrong_requests(fixture_api_sa_json_memory):
         assert err.args[0] == err_msg
 
     # json_response_in_memory is invalid for multi timeseries request (multi is always download to dir)
-    assert fixture_api_sa_json_memory.output_choice == OutputChoices.json_response_in_memory
+    assert fixture_api_sa_json_memory.default_output_choice == OutputChoices.json_response_in_memory
     try:
         fixture_api_sa_json_memory.get_time_series_multi(
             location_ids=request_data.location_ids,
@@ -64,7 +64,7 @@ def test_sa_multi_timeseries_wrong_requests(fixture_api_sa_json_memory):
 
 
 def test_sa_multi_timeseries_ok_requests(fixture_api_sa_json_download):
-    assert fixture_api_sa_json_download.output_choice == OutputChoices.json_file_in_download_dir
+    assert fixture_api_sa_json_download.default_output_choice == OutputChoices.json_file_in_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti1
 
     all_file_paths = fixture_api_sa_json_download.get_time_series_multi(

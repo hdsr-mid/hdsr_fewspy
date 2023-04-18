@@ -14,7 +14,7 @@ def test_sa_single_timeseries_wrong_requests(fixture_api_sa_json_memory):
 
 
 def test_sa_single_timeseries_ok_requests(fixture_api_sa_json_memory):
-    assert fixture_api_sa_json_memory.output_choice == OutputChoices.json_response_in_memory
+    assert fixture_api_sa_json_memory.default_output_choice == OutputChoices.json_response_in_memory
     request_data = fixtures_requests.RequestTimeSeriesSingle1
 
     responses = fixture_api_sa_json_memory.get_time_series_single(
