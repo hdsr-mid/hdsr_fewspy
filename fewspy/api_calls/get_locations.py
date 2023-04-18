@@ -1,4 +1,5 @@
 from fewspy.api_calls.base import GetRequest
+from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import OutputChoices
 from fewspy.utils.conversions import attributes_to_array
 from fewspy.utils.conversions import camel_to_snake_case
@@ -14,26 +15,27 @@ logger = logging.getLogger(__name__)
 
 
 class GetLocations(GetRequest):
-    """Get FEWS locations as a geopandas GeoDataFrame.
-
-    Args:
-        - attributes (list): if not emtpy, the location attributes to include as columns in the pandas DataFrame.
-    Returns:
-        gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
-    """
-
-    url_post_fix = "locations"
-
-    def __init__(self, attributes: List = None, *args, **kwargs):
+    def __init__(self, show_attributes: bool = True, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.attributes = attributes
+        self.show_attributes = show_attributes
 
     @property
-    def whitelist_request_args(self) -> List[str]:
-        raise NotImplementedError("fill this list and move up to cls property above __init__")
+    def url_post_fix(self) -> str:
+        return "locations"
 
     @property
-    def valid_output_choices(self) -> List[str]:
+    def allowed_request_args(self) -> List[str]:
+        # possible but left out on purpose: paramterGroupId, includeLocationRelations, includeTimeDependency,
+        return [
+            ApiParameters.filter_id,
+            ApiParameters.parameter_ids,
+            ApiParameters.show_attributes,
+            ApiParameters.document_format,
+            ApiParameters.document_version,
+        ]
+
+    @property
+    def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.json_response_in_memory,
             OutputChoices.xml_response_in_memory,
@@ -57,9 +59,9 @@ class GetLocations(GetRequest):
             gdf.crs = geo_datum_to_crs(response.json()["geoDatum"])
 
             # handle attributes
-            if self.attributes:
-                gdf.loc[:, self.attributes] = attributes_to_array(
-                    attribute_values=gdf["attributes"].values, attributes=self.attributes
+            if self.show_attributes:
+                gdf.loc[:, self.show_attributes] = attributes_to_array(
+                    attribute_values=gdf["attributes"].values, attributes=self.show_attributes
                 )
             gdf.drop(columns=["attributes"], inplace=True)
 

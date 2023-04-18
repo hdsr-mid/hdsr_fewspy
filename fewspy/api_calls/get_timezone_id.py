@@ -10,24 +10,21 @@ logger = logging.getLogger(__name__)
 
 
 class GetTimeZoneId(GetRequest):
-    """Get FEWS timezone id.
-
-    Returns: str: timezone string, e.g. GMT+01:00 (expressing a GMT + 1 hour offset)
-    """
-
-    url_post_fix = "timezoneid"
-
     def __init__(self, *args, **kwargs):
         # No args here as only args 'documentFormat' and 'documentVersion' are already in GetRequest args
         super().__init__(*args, **kwargs)
 
     @property
-    def whitelist_request_args(self) -> List[str]:
+    def url_post_fix(self) -> str:
+        return "timezoneid"
+
+    @property
+    def allowed_request_args(self) -> List[str]:
         # sa test page states 'document_format'+'document_version', but those return http code 400 ..
         return []
 
     @property
-    def valid_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.json_response_in_memory,
             OutputChoices.xml_response_in_memory,

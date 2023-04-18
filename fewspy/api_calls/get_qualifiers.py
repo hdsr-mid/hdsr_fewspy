@@ -1,4 +1,5 @@
 from fewspy.api_calls.base import GetRequest
+from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import OutputChoices
 from typing import List
 from typing import Tuple
@@ -16,31 +17,26 @@ COLUMNS = ["id", "name", "group_id"]
 
 
 class GetQualifiers(GetRequest):
-    """Get FEWS qualifiers as Pandas DataFrame.
-    Args:
-        - url (str): url Delft-FEWS PI REST WebService.
-          e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-        - verify (bool, optional): passed to requests.get verify parameter. Defaults to False.
-    Returns:
-        df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-    """
-
-    url_post_fix = "qualifiers"
-    valid_output_choices = [
-        OutputChoices.json_response_in_memory,
-        OutputChoices.xml_response_in_memory,
-        OutputChoices.pandas_dataframe_in_memory,
-    ]
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     @property
-    def whitelist_request_args(self) -> List[str]:
-        raise NotImplementedError("fill this list and move up to cls property above __init__")
+    def url_post_fix(self) -> str:
+        return "qualifiers"
+
+    @property
+    def allowed_output_choices(self) -> List[str]:
+        return [
+            OutputChoices.json_response_in_memory,
+            OutputChoices.xml_response_in_memory,
+            OutputChoices.pandas_dataframe_in_memory,
+        ]
+
+    @property
+    def allowed_request_args(self) -> List[str]:
+        return [ApiParameters.show_attributes, ApiParameters.document_format, ApiParameters.document_version]
 
     def run(self) -> pd.DataFrame:
-
         # do the request
         response = self.retry_backoff_session.get(url=self.url, verify=self.pi_settings.ssl_verify)
 

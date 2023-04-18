@@ -9,7 +9,7 @@ import requests
 
 class GetTimeSeriesSingle(GetTimeSeriesBase):
     @property
-    def valid_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.json_response_in_memory,
             OutputChoices.xml_response_in_memory,

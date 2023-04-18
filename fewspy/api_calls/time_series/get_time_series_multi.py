@@ -17,7 +17,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
         super().__init__(*args, **kwargs)
 
     @property
-    def valid_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.xml_file_in_download_dir,
             OutputChoices.csv_file_in_download_dir,

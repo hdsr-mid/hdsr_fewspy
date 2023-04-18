@@ -17,26 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class GetTimeSeriesBase(GetRequest):
-
-    url_post_fix = "timeseries"
-    whitelist_request_args = [
-        ApiParameters.attributes,
-        ApiParameters.document_format,
-        ApiParameters.document_version,
-        ApiParameters.end_time,
-        ApiParameters.filter_id,
-        ApiParameters.include_location_relations,
-        ApiParameters.location_ids,
-        ApiParameters.module_instance_ids,
-        ApiParameters.omit_empty_timeseries,
-        ApiParameters.only_headers,
-        ApiParameters.parameter_ids,
-        ApiParameters.qualifier_ids,
-        ApiParameters.show_statistics,
-        ApiParameters.start_time,
-        ApiParameters.thinning,
-    ]
-
     def __init__(
         self,
         start_time: datetime,
@@ -54,20 +34,6 @@ class GetTimeSeriesBase(GetRequest):
         *args,
         **kwargs,
     ):
-        """
-        Args:
-            - start_time (datetime.datetime): datetime-object with start datetime to use in request.
-            - end_time (datetime.datetime): datetime-object with end datetime to use in request.
-            - location_ids (str): a FEWS location id to extract timeseries from.
-            - parameter_ids (str): a FEWS parameter id to extract timeseries from.
-            - qualifier_ids (str): a FEWS qualifier id to extract timeseries from. Defaults to None.
-            - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
-            - only_headers (bool): if True, only headers will be returned. Defaults to False.
-            - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
-            - omit_empty_timeseries (bool): if True, missing values (-999) are left out in response. Defaults to True.
-            - drop_missing_values (bool): Defaults to False.
-            - flag_threshold (int): Exclude unreliable values. Default to 6 (only values with flag<6 will be included).
-        """
         super().__init__(*args, **kwargs)
         self.start_time = start_time
         self.end_time = end_time
@@ -80,6 +46,30 @@ class GetTimeSeriesBase(GetRequest):
         self.omit_empty_timeseries = omit_empty_timeseries
         self.drop_missing_values = drop_missing_values
         self.flag_threshold = flag_threshold
+
+    @property
+    def url_post_fix(self):
+        return "timeseries"
+
+    @property
+    def allowed_request_args(self) -> List[str]:
+        return [
+            ApiParameters.document_format,
+            ApiParameters.document_version,
+            ApiParameters.end_time,
+            ApiParameters.filter_id,
+            ApiParameters.include_location_relations,
+            ApiParameters.location_ids,
+            ApiParameters.module_instance_ids,
+            ApiParameters.omit_empty_timeseries,
+            ApiParameters.only_headers,
+            ApiParameters.parameter_ids,
+            ApiParameters.qualifier_ids,
+            ApiParameters.show_attributes,
+            ApiParameters.show_statistics,
+            ApiParameters.start_time,
+            ApiParameters.thinning,
+        ]
 
     def _download_timeseries(
         self,

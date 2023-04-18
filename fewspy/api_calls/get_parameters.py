@@ -1,4 +1,5 @@
 from fewspy.api_calls.base import GetRequest
+from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import OutputChoices
 from fewspy.utils.conversions import camel_to_snake_case
 from typing import List
@@ -21,27 +22,25 @@ COLUMNS = [
 
 
 class GetParameters(GetRequest):
-    """Get FEWS parameters as a pandas DataFrame.
-
-    Args:
-        - url (str): url Delft-FEWS PI REST WebService.
-          e.g. http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/qualifiers
-    Returns:
-        df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-    """
-
-    url_post_fix = "parameters"
-
-    def __init__(self, attributes: List = None, *args, **kwargs):
+    def __init__(self, show_attributes: bool = True, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.attributes = attributes
+        self.show_attributes = show_attributes
 
     @property
-    def whitelist_request_args(self) -> List[str]:
-        raise NotImplementedError("fill this list and move up to cls property above __init__")
+    def url_post_fix(self) -> str:
+        return "parameters"
 
     @property
-    def valid_output_choices(self) -> List[str]:
+    def allowed_request_args(self) -> List[str]:
+        return [
+            ApiParameters.filter_id,
+            ApiParameters.show_attributes,
+            ApiParameters.document_format,
+            ApiParameters.document_version,
+        ]
+
+    @property
+    def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.json_response_in_memory,
             OutputChoices.xml_response_in_memory,

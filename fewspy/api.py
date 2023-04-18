@@ -90,14 +90,12 @@ class Api:
             raise exceptions.StandAloneFewsWebServiceNotRunningError(message=msg, errors=response.text)
         raise exceptions.FewsWebServiceNotRunningError(message=msg, errors=response.text)
 
-    @staticmethod
-    def _validate_output_choice(output_choice: str) -> str:
-        assert output_choice and isinstance(
-            output_choice, str
-        ), f"output_choice {output_choice} must be non empty string"
-        if output_choice in OutputChoices.get_all():
-            return output_choice
-        raise AssertionError(f"output_choice '{output_choice}' must be in {OutputChoices.get_all()}")
+    def _validate_output_choice(self, output_choice: str = None) -> str:
+        choice = output_choice if output_choice else self.default_output_choice
+        assert choice and isinstance(choice, str), f"output_choice {choice} must be non empty string"
+        if choice not in OutputChoices.get_all():
+            raise AssertionError(f"output_choice '{choice}' must be in {OutputChoices.get_all()}")
+        return choice
 
     def _validate_pi_settings(self, pi_settings: PiSettings) -> PiSettings:
         assert isinstance(
@@ -148,17 +146,18 @@ class Api:
         return result
 
     # @create_bug_report_when_error
-    def get_locations(self, attributes: list = None, output_choice: str = None):
+    def get_locations(self, show_attributes: bool = True, output_choice: str = None):
         """Get FEWS locations as a geopandas GeoDataFrame.
         Args:
-            - attributes (list): if not emtpy, the location attributes to include as columns in the pandas DataFrame.
+            - show_attributes (bool): If True, then the location attributes will be include as columns in the pandas DataFrame.
         Returns:
             gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
         """
         output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
-        attributes = attributes if attributes else []
         api_call = api_calls.GetLocations(
-            output_choice=output_choice, attributes=attributes, retry_backoff_session=self.retry_backoff_session
+            show_attributes=show_attributes,
+            output_choice=output_choice,
+            retry_backoff_session=self.retry_backoff_session,
         )
         result = api_call.run()
         return result
@@ -192,9 +191,10 @@ class Api:
         """Get FEWS samples as a pandas DataFrame."""
         output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
         api_call = api_calls.GetSamples(
-            output_choice=output_choice,
             start_time=start_time,
             end_time=end_time,
+            #
+            output_choice=output_choice,
             retry_backoff_session=self.retry_backoff_session,
         )
         result = api_call.run()
@@ -226,7 +226,6 @@ class Api:
             assert isinstance(qualifier_id, str) and "," not in qualifier_id
 
         api_call = api_calls.GetTimeSeriesSingle(
-            output_choice=output_choice,
             start_time=start_time,
             end_time=end_time,
             location_ids=location_id,
@@ -238,6 +237,8 @@ class Api:
             omit_empty_timeseries=omit_empty_timeseries,
             drop_missing_values=drop_missing_values,
             flag_threshold=flag_threshold,
+            #
+            output_choice=output_choice,
             retry_backoff_session=self.retry_backoff_session,
         )
         result = api_call.run()
@@ -266,7 +267,6 @@ class Api:
         any_multi = any([isinstance(x, list) and len(x) > 1 for x in (location_ids, parameter_ids, qualifier_ids)])
         assert any_multi
         api_call = api_calls.GetTimeSeriesMulti(
-            output_choice=output_choice,
             start_time=start_time,
             end_time=end_time,
             location_ids=location_ids,
@@ -278,6 +278,8 @@ class Api:
             omit_empty_timeseries=omit_empty_timeseries,
             drop_missing_values=drop_missing_values,
             flag_threshold=flag_threshold,
+            #
+            output_choice=output_choice,
             retry_backoff_session=self.retry_backoff_session,
         )
         all_file_paths = api_call.run()

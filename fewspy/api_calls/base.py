@@ -39,20 +39,21 @@ class GetRequest:
 
     @property
     @abstractmethod
-    def whitelist_request_args(self) -> List[str]:
+    def allowed_request_args(self) -> List[str]:
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def valid_output_choices(self) -> List[OutputChoices]:
+    def allowed_output_choices(self) -> List[str]:
+        """Every GetRequest has its own list with >=1 fewspy.constants.choices.OutputChoices."""
         raise NotImplementedError
 
     def validate_output_choice(self, output_choice: str) -> str:
-        if output_choice in self.valid_output_choices:
+        if output_choice in self.allowed_output_choices:
             return output_choice
         raise AssertionError(
             f"invalid output_choice '{output_choice}'. {self.__class__.__name__} has valid_output_choices "
-            f"{self.valid_output_choices}. See earlier logging why we use {self.__class__.__name__}."
+            f"{self.allowed_output_choices}. See earlier logging why we use {self.__class__.__name__}."
         )
 
     def validate_output_dir(self, output_dir: Path) -> Path:
@@ -79,24 +80,21 @@ class GetRequest:
         """Prepare Python API dictionary for FEWS API request.
 
         Arg:
-            - do_filter (bool): filters out all parameters not in whitelist_request_args."""
+            - do_filter (bool): filters out all parameters not in allowed_request_args."""
 
         def _convert_kv(k: str, v) -> Tuple[str, Any]:
             if k in ApiParameters.non_pi_settings_keys_datetime():
                 v = datetime_to_fews_str(v)
-            elif k == "attributes":
-                k = "show_attributes"
-                v = True
             k = snake_to_camel_case(k)
             return k, v
 
         # non pi settings
-        whitelist = self.whitelist_request_args if do_filter else ApiParameters.non_pi_settings_keys()
-        params_non_pi = [_convert_kv(k, v) for k, v in parameters.items() if k in whitelist]
+        filtered = self.allowed_request_args if do_filter else ApiParameters.non_pi_settings_keys()
+        params_non_pi = [_convert_kv(k, v) for k, v in parameters.items() if k in filtered]
 
         # pi settings
-        whitelist = self.whitelist_request_args if do_filter else ApiParameters.pi_settings_keys()
-        params_pi = [_convert_kv(k, v) for k, v in self.pi_settings.all_fields.items() if k in whitelist]
+        filtered = self.allowed_request_args if do_filter else ApiParameters.pi_settings_keys()
+        params_pi = [_convert_kv(k, v) for k, v in self.pi_settings.all_fields.items() if k in filtered]
 
         fews_parameters = {x[0]: x[1] for x in params_non_pi + params_pi if x[1] is not None}
         return fews_parameters

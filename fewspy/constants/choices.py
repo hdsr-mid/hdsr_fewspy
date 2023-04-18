@@ -62,44 +62,50 @@ class TimeZoneChoices(Enum):
 
 class ApiParameters:
 
-    attributes = "attributes"
     document_format = "document_format"
     document_version = "document_version"
+    end_creation_time = "end_creation_time"
     end_time = "end_time"
     filter_id = "filter_id"
     include_location_relations = "include_location_relations"
     location_ids = "location_ids"
     module_instance_ids = "module_instance_ids"
+    omit_missing = "omit_missing"
     omit_empty_timeseries = "omit_empty_timeSeries"
     only_headers = "only_headers"
     parameter_ids = "parameter_ids"
     qualifier_ids = "qualifier_ids"
+    sample_ids = "sample_ids"
+    show_attributes = "show_attributes"
     show_statistics = "show_statistics"
+    start_creation_time = "start_creation_time"
     start_time = "start_time"
     thinning = "thinning"
 
     @classmethod
-    def pi_settings_keys(cls):
+    def pi_settings_keys(cls) -> List[str]:
         return [cls.document_format, cls.document_version, cls.filter_id, cls.module_instance_ids]
 
     @classmethod
-    def non_pi_settings_keys_datetime(cls):
-        return [cls.start_time, cls.end_time]
+    def non_pi_settings_keys(cls) -> List[str]:
+        return cls.non_pi_settings_keys_non_datetime() + cls.non_pi_settings_keys_datetime()
 
     @classmethod
-    def non_pi_settings_keys_non_datetime(cls):
+    def non_pi_settings_keys_datetime(cls) -> List[str]:
+        return [cls.end_creation_time, cls.end_time, cls.start_creation_time, cls.start_time]
+
+    @classmethod
+    def non_pi_settings_keys_non_datetime(cls) -> List[str]:
         return [
-            cls.attributes,
             cls.include_location_relations,
             cls.location_ids,
+            cls.omit_missing,
             cls.omit_empty_timeseries,
             cls.only_headers,
             cls.parameter_ids,
             cls.qualifier_ids,
+            cls.sample_ids,
+            cls.show_attributes,
             cls.show_statistics,
             cls.thinning,
         ]
-
-    @classmethod
-    def non_pi_settings_keys(cls):
-        return cls.non_pi_settings_keys_non_datetime() + cls.non_pi_settings_keys_datetime()
