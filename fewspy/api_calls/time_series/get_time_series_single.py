@@ -18,10 +18,6 @@ class GetTimeSeriesSingle(GetTimeSeriesBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.validate_constructor()
-
-    def validate_constructor(self):
-        pass
 
     def run(self) -> List[requests.models.Response]:
         date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(

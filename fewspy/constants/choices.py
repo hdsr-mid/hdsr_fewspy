@@ -26,12 +26,6 @@ class OutputChoices:
         return PiRestDocumentFormatChoices.json
 
     @classmethod
-    def is_output_dir_needed(cls, output_choice: str) -> bool:
-        if output_choice in [cls.xml_file_in_download_dir, cls.csv_file_in_download_dir, cls.json_file_in_download_dir]:
-            return True
-        return False
-
-    @classmethod
     def get_all(cls) -> List[str]:
         return [
             cls.xml_file_in_download_dir,

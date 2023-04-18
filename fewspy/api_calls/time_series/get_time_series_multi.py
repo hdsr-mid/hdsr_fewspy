@@ -44,7 +44,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
             file_name_values = [request_params.get(param) for param in params if request_params.get(param)]
             file_paths_created = self.response_handler.run(responses=responses, file_name_values=file_name_values)
             all_file_paths.extend(file_paths_created)
-        logger.info(f"finished with download and writing to file(s)")
+        logger.info(f"finished download and writing to {len(all_file_paths)} file(s)")
         return all_file_paths
 
     @classmethod

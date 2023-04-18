@@ -60,12 +60,12 @@ class RetryBackoffSession:
         _request_settings: RequestSettings,
         pi_settings: PiSettings,
         output_choice: str,
-        output_directory_root: Optional[Path],
+        output_dir: Optional[Path],
     ):
         self.request_settings = _request_settings
         self.pi_settings = pi_settings
         self.output_choice = output_choice
-        self.output_directory_root = output_directory_root
+        self.output_dir = output_dir
         self.datetime_previous_request = pd.Timestamp.now()  # this immutable object is updated during runtime
         self.__retry_session = None
 

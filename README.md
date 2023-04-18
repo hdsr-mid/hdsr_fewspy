@@ -32,9 +32,9 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                     Stmts   Miss  Cover
 ----------------------------------------------------------------------------
-fewspy\api.py                                              125     29    77%
+fewspy\api.py                                              123     28    77%
 fewspy\api_calls\__init__.py                                16      0   100%
-fewspy\api_calls\base.py                                    74      9    88%
+fewspy\api_calls\base.py                                    73      9    88%
 fewspy\api_calls\get_filters.py                             21     10    52%
 fewspy\api_calls\get_locations.py                           33     17    48%
 fewspy\api_calls\get_parameters.py                          28     14    50%
@@ -43,16 +43,16 @@ fewspy\api_calls\get_samples.py                             19      7    63%
 fewspy\api_calls\get_timezone_id.py                         19      1    95%
 fewspy\api_calls\time_series\base.py                        68     11    84%
 fewspy\api_calls\time_series\get_time_series_multi.py       56      3    95%
-fewspy\api_calls\time_series\get_time_series_single.py      19      0   100%
-fewspy\constants\choices.py                                 62      2    97%
+fewspy\api_calls\time_series\get_time_series_single.py      16      0   100%
+fewspy\constants\choices.py                                 57      2    96%
 fewspy\constants\github.py                                   7      0   100%
 fewspy\constants\paths.py                                   21      0   100%
 fewspy\constants\pi_settings.py                             50      4    92%
 fewspy\constants\request_settings.py                        11      0   100%
 fewspy\exceptions.py                                        36      2    94%
 fewspy\permissions.py                                       75      9    88%
-fewspy\response_converters\base.py                          80     10    88%
-fewspy\retry_session.py                                     68     11    84%
+fewspy\response_converters\base.py                          95     15    84%
+fewspy\retry_session.py                                     68     12    82%
 fewspy\secrets.py                                           64     20    69%
 fewspy\time_series.py                                       96     96     0%
 fewspy\utils\bug_report.py                                  60     38    37%
@@ -62,7 +62,7 @@ fewspy\version.py                                            2      2     0%
 main.py                                                     27     27     0%
 setup.py                                                    16     16     0%
 ----------------------------------------------------------------------------
-TOTAL                                                     1283    394    69%
+TOTAL                                                     1287    399    69%
 ```
 
 ### Conda general tips

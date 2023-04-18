@@ -50,19 +50,31 @@ class Api:
     ):
         self.permissions = Permissions(hdsr_fewspy_email=hdsr_fewspy_email, hdsr_fewspy_token=hdsr_fewspy_token)
         self.output_choice: str = self._validate_output_choice(output_choice=output_choice)
-        self.output_directory_root: Path = self._validate_output_directory_root(
-            output_directory_root=output_directory_root
-        )
+        self.output_dir = self._get_output_dir(output_directory_root=output_directory_root)
         self.pi_settings = self._validate_pi_settings(pi_settings=pi_settings)
         self.request_settings: RequestSettings = default_request_settings
         self.retry_backoff_session = RetryBackoffSession(
             _request_settings=self.request_settings,
             pi_settings=self.pi_settings,
             output_choice=self.output_choice,
-            output_directory_root=self.output_directory_root,
+            output_dir=self.output_dir,
         )
         self.ensure_service_is_running()
         self.hdsr_fewspy_version = HDSR_FEWSPY_VERSION
+
+    @staticmethod
+    def _get_output_dir(output_directory_root: Union[str, Path] = None) -> Optional[Path]:
+        if output_directory_root is None:
+            return None
+        # check 1
+        output_directory_root = Path(output_directory_root)
+        assert output_directory_root.is_dir(), f"output_directory_root {output_directory_root} must exist"
+        # check 2
+        is_dir_writable = os.access(path=output_directory_root.as_posix(), mode=os.W_OK)
+        assert is_dir_writable, f"output_directory_root {output_directory_root} must be writable"
+        # create subdir
+        output_dir = output_directory_root / f"hdsr_fewspy_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        return output_dir
 
     @create_bug_report_when_error
     def ensure_service_is_running(self) -> None:
@@ -88,27 +100,6 @@ class Api:
         if output_choice in OutputChoices.get_all():
             return output_choice
         raise AssertionError(f"output_choice '{output_choice}' must be in {OutputChoices.get_all()}")
-
-    def _validate_output_directory_root(self, output_directory_root: Union[str, Path]) -> Optional[Path]:
-        is_output_dir_needed = OutputChoices.is_output_dir_needed(output_choice=self.output_choice)
-
-        # scenario 1: no output_dir needed
-        if not is_output_dir_needed:
-            if output_directory_root:
-                raise AssertionError(
-                    f"you specified a output_directory_root '{output_directory_root}' but we will not need it as "
-                    f"output_choice='{self.output_choice}'"
-                )
-            return None
-
-        # scenario 2: output_directory_root needed
-        assert output_directory_root, f"Please specify a output_directory_root as output_choice='{self.output_choice}'"
-        output_directory_root = Path(output_directory_root)
-        assert output_directory_root.is_dir(), f"output_directory_root {output_directory_root} must exist"
-        is_dir_writable = os.access(path=output_directory_root.as_posix(), mode=os.W_OK)
-        assert is_dir_writable, f"output_directory_root {output_directory_root} must be writable"
-
-        return output_directory_root
 
     def _validate_pi_settings(self, pi_settings: PiSettings) -> PiSettings:
         assert isinstance(

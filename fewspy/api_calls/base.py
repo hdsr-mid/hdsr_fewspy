@@ -21,16 +21,15 @@ class GetRequest:
         self.pi_settings: PiSettings = retry_backoff_session.pi_settings
         self.request_settings: RequestSettings = retry_backoff_session.request_settings
         self.output_choice: str = self.validate_output_choice(output_choice=retry_backoff_session.output_choice)
-        self.output_directory_root: Optional[Path] = retry_backoff_session.output_directory_root
+        self.output_dir: Optional[Path] = retry_backoff_session.output_dir
         self.url: str = f"{self.pi_settings.base_url}{self.url_post_fix}/"
-        self.do_save_to_output_dir: bool = OutputChoices.is_output_dir_needed(output_choice=self.output_choice)
         self._initial_fews_parameters = None
         self._filtered_fews_parameters = None
 
         self.response_handler = ResponseManager(
             output_choice=self.output_choice,
             request_method=self.url_post_fix.lower(),
-            output_directory_root=self.output_directory_root,
+            output_dir=self.output_dir,
         )
 
     @property
