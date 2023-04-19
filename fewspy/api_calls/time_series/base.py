@@ -3,6 +3,7 @@ from datetime import datetime
 from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import PiRestDocumentFormatChoices
+from fewspy.constants.custom_types import ResponseType
 from fewspy.response_converters.xml_to_python_obj import parse
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.date_frequency import DateFrequencyBuilder
@@ -12,7 +13,6 @@ from typing import Tuple
 
 import logging
 import pandas as pd
-import requests
 
 
 logger = logging.getLogger(__name__)
@@ -80,7 +80,7 @@ class GetTimeSeriesBase(GetRequest):
         request_params: Dict,
         drop_missing_values: bool,
         flag_threshold: int,
-    ) -> List[requests.models.Response]:
+    ) -> List[ResponseType]:
         """Download timeseries in little chunks by updating parameters 'startTime' and 'endTime' every loop.
 
         Before each download of actual timeseries we first check nr_timestamps_in_response (a small request with

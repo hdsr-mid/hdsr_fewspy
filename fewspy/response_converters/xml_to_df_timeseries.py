@@ -142,14 +142,14 @@ class TimeSeriesSet:
         return len(self.time_series)
 
     @classmethod
-    def from_pi_time_series(cls, pi_time_serie: dict, drop_missing_values: bool, flag_threshold: int) -> TimeSeriesSet:
+    def from_pi_time_series(cls, pi_time_series: dict, drop_missing_values: bool, flag_threshold: int) -> TimeSeriesSet:
         kwargs = dict()
-        kwargs["version"] = pi_time_serie.get("version", None)
+        kwargs["version"] = pi_time_series.get("version", None)
 
         # TODO: timeZone moet een int/float zijn, niet een str bijv '"Etc/GMT-0"'
-        kwargs["time_zone"] = float(pi_time_serie.get("timeZone", TimeZoneChoices.gmt_0))
+        kwargs["time_zone"] = float(pi_time_series.get("timeZone", TimeZoneChoices.gmt_0))
 
-        time_series = pi_time_serie.get("timeSeries", None)
+        time_series = pi_time_series.get("timeSeries", None)
         kwargs["time_series"] = [
             TimeSeries.from_pi_time_series(
                 pi_time_series=i,

@@ -1,5 +1,5 @@
 """
-orig script name = untangle.py
+original script name = untangle.py
 Converts xml to python objects.
 The only method you need to call is parse()
 Partially inspired by xml2obj (http://code.activestate.com/recipes/149368-xml2obj/)

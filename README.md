@@ -22,7 +22,7 @@ Hdsr_fewspy API support 8 different API calls:
 2. get_filters:
 3. get_locations:
 4. get_qualifiers: 
-5. get_timezone: 
+5. get_timezone_id: 
 6. get_samples: 
 7. get_time_series_single: 
 8. get_time_series_multi: 

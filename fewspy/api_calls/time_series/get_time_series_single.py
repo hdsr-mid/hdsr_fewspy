@@ -1,10 +1,10 @@
 from fewspy.api_calls.time_series.base import GetTimeSeriesBase
 from fewspy.constants.choices import OutputChoices
+from fewspy.constants.custom_types import ResponseType
 from fewspy.utils.date_frequency import DateFrequencyBuilder
 from typing import List
 
 import pandas as pd
-import requests
 
 
 class GetTimeSeriesSingle(GetTimeSeriesBase):
@@ -19,7 +19,7 @@ class GetTimeSeriesSingle(GetTimeSeriesBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def run(self) -> List[requests.models.Response]:
+    def run(self) -> List[ResponseType]:
         date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
             startdate_obj=pd.Timestamp(self.start_time),
             enddate_obj=pd.Timestamp(self.end_time),

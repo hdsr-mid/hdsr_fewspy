@@ -1,9 +1,9 @@
 from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import OutputChoices
+from fewspy.constants.custom_types import ResponseType
 from typing import List
 
 import logging
-import requests
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class GetTimeZoneId(GetRequest):
             OutputChoices.xml_response_in_memory,
         ]
 
-    def run(self) -> List[requests.models.Response]:
+    def run(self) -> List[ResponseType]:
         response = self.retry_backoff_session.get(
             url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
         )

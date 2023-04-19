@@ -26,7 +26,7 @@ class OutputChoices:
     @classmethod
     def get_pi_rest_document_format(cls, output_choice: str) -> str:
         output_choice = cls.validate(output_choice=output_choice)
-        if output_choice in {cls.xml_file_in_download_dir, cls.xml_response_in_memory}:
+        if output_choice in [cls.xml_file_in_download_dir, cls.xml_response_in_memory]:
             return PiRestDocumentFormatChoices.xml
         return PiRestDocumentFormatChoices.json
 

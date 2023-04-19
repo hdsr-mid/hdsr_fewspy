@@ -4,6 +4,7 @@ from fewspy.tests.fixtures import fixture_api_sa_no_download_dir
 from fewspy.tests.fixtures import fixture_api_sa_with_download_dir
 
 import json
+import pandas as pd
 import pytest
 
 
@@ -79,8 +80,8 @@ def test_sa_multi_timeseries_ok_json_download(fixture_api_sa_with_download_dir):
         output_choice=OutputChoices.json_file_in_download_dir,
     )
     assert len(all_file_paths) == 2
-    assert all_file_paths[0].name == "timeseries_ow433001_hg0_20120101t000000z_20120102t000000z_0.json"
-    assert all_file_paths[1].name == "timeseries_ow433002_hg0_20120101t000000z_20120102t000000z_0.json"
+    assert all_file_paths[0].name == "gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z_0.json"
+    assert all_file_paths[1].name == "gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_0.json"
 
     expected_jsons = request_data.get_expected_jsons()
     for downloaded_file in all_file_paths:
@@ -88,3 +89,24 @@ def test_sa_multi_timeseries_ok_json_download(fixture_api_sa_with_download_dir):
             found_json = json.load(src)
         expected_json = expected_jsons[downloaded_file.stem]
         assert found_json == expected_json
+
+
+def test_sa_multi_timeseries_ok_csv_download(fixture_api_sa_with_download_dir):
+    api = fixture_api_sa_with_download_dir
+    request_data = fixtures_requests.RequestTimeSeriesMulti1
+
+    all_file_paths = api.get_time_series_multi(
+        location_ids=request_data.location_ids,
+        parameter_ids=request_data.parameter_ids,
+        start_time=request_data.start_time,
+        end_time=request_data.end_time,
+        output_choice=OutputChoices.csv_file_in_download_dir,
+    )
+    assert len(all_file_paths) == 2
+    assert all_file_paths[0].name == "gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z.csv"
+    assert all_file_paths[1].name == "gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z.csv"
+
+    df_found1 = pd.read_csv(filepath_or_buffer=all_file_paths[0], sep=",")
+    df_found2 = pd.read_csv(filepath_or_buffer=all_file_paths[0], sep=",")
+
+    # raise NotImplementedError("finish this test")

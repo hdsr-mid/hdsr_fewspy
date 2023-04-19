@@ -2,6 +2,7 @@ from datetime import datetime
 from fewspy import api_calls
 from fewspy import exceptions
 from fewspy.constants.choices import TimeZoneChoices
+from fewspy.constants.custom_types import ResponseType
 from fewspy.constants.paths import HDSR_FEWSPY_VERSION
 from fewspy.constants.pi_settings import pi_settings_production
 from fewspy.constants.pi_settings import PiSettings
@@ -149,7 +150,7 @@ class Api:
         return result
 
     # @create_bug_report_when_error
-    def get_timezone(self, output_choice: str) -> List[requests.models.Response]:
+    def get_timezone_id(self, output_choice: str) -> List[ResponseType]:
         """Get FEWS timezone_id the FEWS API is running on."""
         api_call = api_calls.GetTimeZoneId(
             output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
@@ -187,7 +188,7 @@ class Api:
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
-    ) -> Union[List[requests.models.Response], List[pd.DataFrame]]:
+    ) -> Union[List[ResponseType], List[pd.DataFrame]]:
         assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
         assert isinstance(location_id, str) and location_id and "," not in location_id
         assert isinstance(parameter_id, str) and parameter_id and "," not in parameter_id
@@ -220,9 +221,9 @@ class Api:
         #
         start_time: datetime,
         end_time: datetime,
-        location_ids: Union[List[str], str] = None,
-        parameter_ids: Union[List[str], str] = None,
-        qualifier_ids: Union[List[str], str] = None,
+        location_ids: List[str] = None,
+        parameter_ids: List[str] = None,
+        qualifier_ids: List[str] = None,
         thinning: int = None,
         only_headers: bool = False,
         show_statistics: bool = False,
@@ -232,8 +233,17 @@ class Api:
         flag_threshold: int = 6,
     ) -> List[Path]:
         assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
-        any_multi = any([isinstance(x, list) and len(x) > 1 for x in (location_ids, parameter_ids, qualifier_ids)])
-        assert any_multi
+
+        any_multi = False
+        msg = "location_ids and/or parameter_ids and/or qualifier_ids"
+        for x in [location_ids, parameter_ids, qualifier_ids]:
+            if not x:
+                continue
+            assert isinstance(x, list), f"{msg} must be List[str]"
+            if len(x) > 1:
+                any_multi = True
+        assert any_multi, f"Please specify >1 {msg}. Or use get_time_series_single"
+
         api_call = api_calls.GetTimeSeriesMulti(
             start_time=start_time,
             end_time=end_time,

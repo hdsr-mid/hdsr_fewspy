@@ -1,9 +1,10 @@
 from abc import abstractmethod
 from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import OutputChoices
+from fewspy.constants.custom_types import ResponseType
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import RequestSettings
-from fewspy.response_converters.base import ResponseManager
+from fewspy.response_converters.manager import ResponseManager
 from fewspy.retry_session import RetryBackoffSession
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.conversions import snake_to_camel_case
@@ -26,10 +27,9 @@ class GetRequest:
         self.pi_settings.document_format = OutputChoices.get_pi_rest_document_format(output_choice)
         self._initial_fews_parameters = None
         self._filtered_fews_parameters = None
-
-        self.response_handler = ResponseManager(
+        self.response_manager = ResponseManager(
             output_choice=self.output_choice,
-            request_method=self.url_post_fix.lower(),
+            request_class=self.__class__.__name__.lower(),
             output_dir=self.output_dir,
         )
 
@@ -104,5 +104,5 @@ class GetRequest:
     def run(self, *args, **kwargs):
         raise NotImplementedError
 
-    def handle_response(self, response):
-        return self.response_handler.run(response)
+    def handle_response(self, response: ResponseType, **kwargs):
+        return self.response_manager.run(response=response, **kwargs)
