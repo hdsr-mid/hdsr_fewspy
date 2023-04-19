@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import List
 
 
@@ -20,10 +19,25 @@ class OutputChoices:
     pandas_dataframe_in_memory = "pandas_dataframe_in_memory"
 
     @classmethod
+    def validate(cls, output_choice: str) -> str:
+        assert output_choice in cls.get_all(), f"output_choice {output_choice} must be in {cls.get_all()}"
+        return output_choice
+
+    @classmethod
     def get_pi_rest_document_format(cls, output_choice: str) -> str:
+        output_choice = cls.validate(output_choice=output_choice)
         if output_choice in {cls.xml_file_in_download_dir, cls.xml_response_in_memory}:
             return PiRestDocumentFormatChoices.xml
         return PiRestDocumentFormatChoices.json
+
+    @classmethod
+    def needs_output_dir(cls, output_choice: str) -> bool:
+        cls.validate(output_choice=output_choice)
+        return output_choice in {
+            cls.xml_file_in_download_dir,
+            cls.json_file_in_download_dir,
+            cls.csv_file_in_download_dir,
+        }
 
     @classmethod
     def get_all(cls) -> List[str]:
@@ -35,15 +49,6 @@ class OutputChoices:
             cls.json_response_in_memory,
             cls.pandas_dataframe_in_memory,
         ]
-
-    @classmethod
-    def needs_output_dir(cls, output_choice: str) -> bool:
-        assert output_choice in cls.get_all(), f"output_choice {output_choice} must be in {cls.get_all()}"
-        return output_choice in {
-            cls.xml_file_in_download_dir,
-            cls.json_file_in_download_dir,
-            cls.csv_file_in_download_dir,
-        }
 
 
 class TimeZoneChoices:

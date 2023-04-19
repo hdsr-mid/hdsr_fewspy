@@ -1,24 +1,17 @@
 from fewspy.constants.choices import OutputChoices
 from fewspy.response_converters.xml_to_python_obj import parse
-from fewspy.response_converters.xml_to_python_obj import parse_raw
 from fewspy.tests import fixtures_requests
-from fewspy.tests.fixtures import fixture_api_sa_json_download
-from fewspy.tests.fixtures import fixture_api_sa_json_memory
-from fewspy.tests.fixtures import fixture_api_sa_xml_download
-from fewspy.tests.fixtures import fixture_api_sa_xml_memory
-from xml.etree import ElementTree
+from fewspy.tests.fixtures import fixture_api_sa_no_download_dir
+from fewspy.tests.fixtures import fixture_api_sa_with_download_dir
 
 
 # silence flake8
-fixture_api_sa_json_memory = fixture_api_sa_json_memory
-fixture_api_sa_json_download = fixture_api_sa_json_download
-fixture_api_sa_xml_memory = fixture_api_sa_xml_memory
-fixture_api_sa_xml_download = fixture_api_sa_xml_download
+fixture_api_sa_json_memory = fixture_api_sa_no_download_dir
+fixture_api_sa_xml_download = fixture_api_sa_with_download_dir
 
 
-def test_sa_single_timeseries_json_ok(fixture_api_sa_json_memory):
-    api = fixture_api_sa_json_memory
-    assert api.default_output_choice == OutputChoices.json_response_in_memory
+def test_sa_single_timeseries_ok_json_memory(fixture_api_sa_no_download_dir):
+    api = fixture_api_sa_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingle1
 
     responses = api.get_time_series_single(
@@ -26,6 +19,7 @@ def test_sa_single_timeseries_json_ok(fixture_api_sa_json_memory):
         parameter_id=request_data.parameter_ids,
         start_time=request_data.start_time,
         end_time=request_data.end_time,
+        output_choice=OutputChoices.json_response_in_memory,
     )
     assert len(responses) == 1
     response = responses[0]
@@ -35,9 +29,8 @@ def test_sa_single_timeseries_json_ok(fixture_api_sa_json_memory):
     assert json_found == json_expected
 
 
-def test_sa_single_timeseries_xml_ok(fixture_api_sa_xml_memory):
-    api = fixture_api_sa_xml_memory
-    assert api.default_output_choice == OutputChoices.xml_response_in_memory
+def test_sa_single_timeseries_ok_xml_memory(fixture_api_sa_no_download_dir):
+    api = fixture_api_sa_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingle1
 
     responses = api.get_time_series_single(
@@ -45,6 +38,7 @@ def test_sa_single_timeseries_xml_ok(fixture_api_sa_xml_memory):
         parameter_id=request_data.parameter_ids,
         start_time=request_data.start_time,
         end_time=request_data.end_time,
+        output_choice=OutputChoices.xml_response_in_memory,
     )
     assert len(responses) == 1
     response = responses[0]

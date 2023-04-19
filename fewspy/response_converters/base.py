@@ -110,6 +110,7 @@ class ResponseManager:
         self.response_handler = self._get_response_handler()
 
     def _get_response_handler(self):
+        OutputChoices.validate(output_choice=self.output_choice)
         if self.output_choice == OutputChoices.xml_file_in_download_dir:
             return XmlDownloadDir(request_method=self.request_method, output_dir=self.output_dir)
         elif self.output_choice == OutputChoices.json_file_in_download_dir:
@@ -122,8 +123,6 @@ class ResponseManager:
             return JsonMemory()
         elif self.output_choice == OutputChoices.pandas_dataframe_in_memory:
             return PdDataFrameMemory()
-        else:
-            raise AssertionError(f"code error: output_choice {self.output_choice} must be in {OutputChoices.get_all()}")
 
     def run(self, responses: List[requests.models.Response], file_name_values: List[str] = None):
         if file_name_values:

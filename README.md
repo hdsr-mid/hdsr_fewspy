@@ -13,9 +13,9 @@
 
 ### Description
 A python project to request data (locations, timeseries, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
-Note that this project only works on HDSR's internal network, so within the VDI. 
-The project combines the best from two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds 
-"authentication" and "throttling" to minimize request load on HDSR's internal FEWS instances. 
+Note that this project only works on HDSR's internal network, so within the VDI. The project combines the best from 
+two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds authentication, authorisation, and 
+throttling. The latter is to minimize request load on HDSR's internal FEWS instances. 
 
 Hdsr_fewspy API support 8 different API calls:
 1. get_parameters:
@@ -63,34 +63,44 @@ pip install hdsr_fewspy
 or 
 conda install hdsr_fewspy -c hdsr-mid
 ```
-3. Instantiate hdsr_fewspy API
+3. Run imports and instantiate hdsr_fewspy API 
 ```
 from hdsr_fewspy import API, OutputChoices
+from datetime import datetime
 
-# Create API and sselect your default output_choice. 
-# Note that you can override output_choice in every single API call.
-API = API(default_output_choice=OutputChoices.json_response_in_memory)
 ```
 ###### Examples different API calls
 1. Example get_time_series_single
 ```
-from datetime import datetime
-responses = API.get_time_series_single(
+api = Api()
+
+responses = api.get_time_series_single(
     location_id = "OW433001",
     parameter_id = "H.G.0",
-    start_time = datetime(2012, 1, 1)
-    end_time = datetime(2012, 1, 2)
+    start_time = datetime(year=2012, month=1, day=1),
+    end_time = datetime(year=2012, month=1, day=2),
+    output_choice = OutputChoices.xml_response_in_memory,
 )
 ```
 2. Example get_time_series_multi
 ```
-from datetime import datetime
-responses = API.get_time_series_multi(
+# we need a download dir for this!
+output_directory_root='xxx'
+api = Api(output_directory_root=output_directory_root)
+list_of_donwloaded_file_paths = api.get_time_series_multi(
     location_ids = ["OW433001", "OW433002"]
     parameter_ids = ["H.G.0", "H.G.d"],
-    start_time = datetime(2012, 1, 1)
-    end_time = datetime(2012, 1, 2)
+    start_time = datetime(year=2012, month=1, day=1),
+    end_time = datetime(year=2012, month=1, day=2),
+    output_choice = OutputChoices.csv_file_in_download_dir,
 )
+
+# all these donwloaded_file_path are in a sub directory the root dir you used:
+print(api.output_dir)
+# results in "xxx/hdsr_fewspy_20230419_143834"
+```
+
+
 ```
 
 ######  GITHUB_PERSONAL_ACCESS_TOKEN

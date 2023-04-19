@@ -150,7 +150,10 @@ class GetTimeSeriesBase(GetRequest):
             # error since too many timeseries
             msg = "Found multiple timeseries in _get_nr_timestamps"
             if "moduleInstanceIds" not in params:
-                msg += f"Please specify 1 moduleInstanceIds in pi_settings instead of '{self.pi_settings.module_instance_ids}'"
+                msg += (
+                    f"Please specify 1 moduleInstanceIds in pi_settings instead of "
+                    f"'{self.pi_settings.module_instance_ids}'"
+                )
             raise AssertionError(msg)
         elif self.pi_settings.document_format == PiRestDocumentFormatChoices.xml:
             xml_python_obj = parse(response.text)

@@ -23,6 +23,7 @@ class GetRequest:
         self.output_choice: str = self.validate_output_choice(output_choice=output_choice)
         self.output_dir: Optional[Path] = self.validate_output_dir(output_dir=retry_backoff_session.output_dir)
         self.url: str = f"{self.pi_settings.base_url}{self.url_post_fix}/"
+        self.pi_settings.document_format = OutputChoices.get_pi_rest_document_format(output_choice)
         self._initial_fews_parameters = None
         self._filtered_fews_parameters = None
 

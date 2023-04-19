@@ -6,6 +6,7 @@ Partially inspired by xml2obj (http://code.activestate.com/recipes/149368-xml2ob
 Author: Christian Stefanescu (http://0chris.com)
 License: MIT License - http://www.opensource.org/licenses/mit-license.php
 """
+from typing import Any
 from xml.sax import handler
 from xml.sax import make_parser
 
@@ -16,15 +17,18 @@ try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
-try:
-    from types import StringTypes
-
-    is_string = lambda x: isinstance(x, StringTypes)
-except ImportError:
-    is_string = lambda x: isinstance(x, str)
 
 
-def is_url(string):
+def _is_string(value: Any) -> bool:
+    try:
+        from types import StringTypes
+
+        return isinstance(value, StringTypes)
+    except ImportError:
+        return isinstance(value, str)
+
+
+def _is_url(string):
     """Checks if the given string starts with 'http(s)'."""
     try:
         return string.startswith("http://") or string.startswith("https://")
@@ -144,27 +148,27 @@ def parse(filename, **parser_features):
     Raises ``AttributeError`` if a requested xml.sax feature is not found in ``xml.sax.handler``.
     Raises ``xml.sax.SAXParseException`` if something goes wrong  during parsing.
     """
-    if filename is None or (is_string(filename) and filename.strip()) == "":
+    if filename is None or (_is_string(filename) and filename.strip()) == "":
         raise ValueError("parse() takes a filename, URL or XML string")
     parser = make_parser()
     for feature, value in parser_features.items():
         parser.setFeature(getattr(handler, feature), value)
     sax_handler = Handler()
     parser.setContentHandler(sax_handler)
-    if is_string(filename) and (os.path.exists(filename) or is_url(filename)):
+    if _is_string(filename) and (os.path.exists(filename) or _is_url(filename)):
         parser.parse(filename)
     else:
         parser.parse(filename) if hasattr(filename, "read") else parser.parse(StringIO(filename))
     return sax_handler.root
 
 
-def parse_raw(xml, **parser_features):
+def _parse_raw(xml, **parser_features):
     """Parses the given string as an XML data string, returning a Python object which represents the document.
 
     Raises ``ValueError`` if the argument is None / empty string.
     Raises ``xml.sax.SAXParseException`` if something goes wrong during parsing.
     """
-    if xml is None or not is_string(xml) or xml.strip() == "":
+    if xml is None or not _is_string(xml) or xml.strip() == "":
         raise ValueError("parse_raw() takes an XML string")
     parser = make_parser()
     sax_handler = Handler()
