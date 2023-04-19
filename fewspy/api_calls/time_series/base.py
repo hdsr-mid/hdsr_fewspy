@@ -2,6 +2,8 @@ from abc import abstractmethod
 from datetime import datetime
 from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import ApiParameters
+from fewspy.constants.choices import PiRestDocumentFormatChoices
+from fewspy.response_converters.xml_to_python_obj import parse_raw
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.date_frequency import DateFrequencyBuilder
 from typing import Dict
@@ -138,21 +140,27 @@ class GetTimeSeriesBase(GetRequest):
         response = self.retry_backoff_session.get(url=self.url, params=params, verify=self.pi_settings.ssl_verify)
         if not response.ok:
             raise AssertionError(f"response not okay, status_code={response.status_code}, err={response.text}")
-        timeseries = response.json().get("timeSeries", None)
-        if not timeseries:
-            return 0
-        if len(timeseries) == 1:
-            nr_timestamps = int(timeseries[0]["header"]["valueCount"])
-            return nr_timestamps
-
-        # error since too many timeseries
-        msg = "Found multiple timeseries in _get_nr_timestamps"
-        if "moduleInstanceIds" not in params:
-            msg += (
-                f"Please specify 1 moduleInstanceIds in pi_settings instead of '{self.pi_settings.module_instance_ids}'"
-            )
-
-        raise AssertionError(msg)
+        if self.pi_settings.document_format == PiRestDocumentFormatChoices.json:
+            timeseries = response.json().get("timeSeries", None)
+            if not timeseries:
+                return 0
+            if len(timeseries) == 1:
+                nr_timestamps = int(timeseries[0]["header"]["valueCount"])
+                return nr_timestamps
+            # error since too many timeseries
+            msg = "Found multiple timeseries in _get_nr_timestamps"
+            if "moduleInstanceIds" not in params:
+                msg += f"Please specify 1 moduleInstanceIds in pi_settings instead of '{self.pi_settings.module_instance_ids}'"
+            raise AssertionError(msg)
+        elif self.pi_settings.document_format == PiRestDocumentFormatChoices.xml:
+            xml_python_obj = parse_raw(xml=response.text)
+            try:
+                nr_timestamps = int(xml_python_obj.TimeSeries.series.header.valueCount.cdata)
+                return nr_timestamps
+            except Exception as err:
+                raise AssertionError(f"could not get nr_timestamps from xml_python_obj, err={err}")
+        else:
+            raise NotImplementedError("only xml and json are available")
 
     @abstractmethod
     def run(self, *args, **kwargs):

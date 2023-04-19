@@ -99,6 +99,7 @@ class Api:
             pi_settings, PiSettings
         ), "pi_settings must be a PiSettings, see README.ml example how to create one"
         mapper = {
+            # setting: (used, allowed)
             "domain": (pi_settings.domain, self.permissions.allowed_domain),
             "module_instance_id": (pi_settings.module_instance_ids, self.permissions.allowed_module_instance_id),
             "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all()),
@@ -173,7 +174,7 @@ class Api:
         return result
 
     # @create_bug_report_when_error
-    def get_timezone_id(self, output_choice: str = None) -> List[requests.models.Response]:
+    def get_timezone(self, output_choice: str = None) -> List[requests.models.Response]:
         """Get FEWS timezone_id the FEWS API is running on."""
         output_choice = self._validate_output_choice(output_choice if output_choice else self.default_output_choice)
         api_call = api_calls.GetTimeZoneId(

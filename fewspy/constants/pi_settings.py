@@ -104,7 +104,7 @@ pi_settings_sa = PiSettings(
     service="FewsWebServices",
     filter_ids="INTERNAL-API",
     module_instance_ids="WerkFilter",  # "ImportOpvlWater",
-    time_zone=TimeZoneChoices.gmt_0.value,
+    time_zone=TimeZoneChoices.gmt_0,
 )
 
 pi_settings_production = PiSettings(
@@ -116,5 +116,5 @@ pi_settings_production = PiSettings(
     service="OwdPiService",
     filter_ids="owdapi-opvlwater-noneq",
     module_instance_ids="WerkFilter",
-    time_zone=TimeZoneChoices.gmt_0.value,
+    time_zone=TimeZoneChoices.gmt_0,
 )

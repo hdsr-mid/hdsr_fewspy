@@ -147,7 +147,7 @@ class TimeSeriesSet:
         kwargs["version"] = pi_time_serie.get("version", None)
 
         # TODO: timeZone moet een int/float zijn, niet een str bijv '"Etc/GMT-0"'
-        kwargs["time_zone"] = float(pi_time_serie.get("timeZone", TimeZoneChoices.gmt_0.value))
+        kwargs["time_zone"] = float(pi_time_serie.get("timeZone", TimeZoneChoices.gmt_0))
 
         time_series = pi_time_serie.get("timeSeries", None)
         kwargs["time_series"] = [

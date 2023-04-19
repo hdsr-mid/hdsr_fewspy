@@ -46,14 +46,14 @@ class OutputChoices:
         }
 
 
-class TimeZoneChoices(Enum):
+class TimeZoneChoices:
     gmt = "GMT"  # "Etc/GMT" -> 0.0
     gmt_0 = "Etc/GMT-0"  # -> 0.0
     eu_amsterdam = "Europe/Amsterdam"  # -> 1.0
 
     @classmethod
     def get_all(cls) -> List[str]:
-        return [x.value for x in cls.__members__.values()]
+        return [cls.gmt, cls.gmt_0, cls.eu_amsterdam]
 
     @classmethod
     def date_string_format(cls) -> str:

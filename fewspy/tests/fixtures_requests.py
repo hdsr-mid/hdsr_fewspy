@@ -1,5 +1,6 @@
 from datetime import datetime
 from fewspy.constants.paths import TEST_INPUT_DIR
+from fewspy.response_converters.xml_to_python_obj import parse
 from pathlib import Path
 from typing import Dict
 from typing import Optional
@@ -29,8 +30,8 @@ class SingleBase:
         file_path = cls.file_path_expected_xml()
         assert file_path.is_file()
         with open(file_path.as_posix()) as src:
-            response_json = json.load(src)
-        return response_json
+            xml_python_obj = parse(src)
+        return xml_python_obj
 
 
 class MultiBase:
@@ -89,7 +90,7 @@ class RequestTimeSeriesSingle1(SingleBase):
 
     @classmethod
     def file_path_expected_xml(cls):
-        raise NotImplementedError
+        return TEST_INPUT_DIR / "RequestTimeSeriesSingle1.xml"
 
 
 class RequestTimeSeriesMulti1(MultiBase):
