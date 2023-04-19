@@ -50,12 +50,19 @@ def test_sa_single_timeseries_xml_ok(fixture_api_sa_xml_memory):
     response = responses[0]
     assert response.status_code == 200
 
+    # create new expected file?
     # with open(request_data.file_path_expected_xml().as_posix(), 'w') as f:
     #     f.write(response.text)
 
     expected = parse(filename=request_data.file_path_expected_xml().as_posix())
-    found = parse_raw(xml=response.text)
+    found = parse(response.text)
 
-    print(1)
+    expected_header = expected.TimeSeries.series.header
+    found_header = found.TimeSeries.series.header
+    assert found_header.timeStep._attributes["unit"] == expected_header.timeStep._attributes["unit"] == "nonequidistant"
 
-    # renier fix deze sheit
+    expected_events = expected.TimeSeries.series.event
+    found_events = found.TimeSeries.series.event
+    assert len(found_events) == len(expected_events) == 102
+    assert found_events[0]._attributes["date"] == expected_events[0]._attributes["date"] == "2012-01-01"
+    assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"] == "2012-01-02"

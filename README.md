@@ -120,32 +120,33 @@ TODO
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (18 april 2023)
+### Test Coverage (19 april 2023)
 ```
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                     Stmts   Miss  Cover
 ----------------------------------------------------------------------------
-fewspy\API.py                                              123     28    77%
-fewspy\API_calls\__init__.py                                16      0   100%
-fewspy\API_calls\base.py                                    73      9    88%
-fewspy\API_calls\get_filters.py                             21     10    52%
-fewspy\API_calls\get_locations.py                           33     17    48%
-fewspy\API_calls\get_parameters.py                          28     14    50%
-fewspy\API_calls\get_qualifiers.py                          34     17    50%
-fewspy\API_calls\get_samples.py                             19      7    63%
-fewspy\API_calls\get_timezone_id.py                         19      1    95%
-fewspy\API_calls\time_series\base.py                        68     11    84%
-fewspy\API_calls\time_series\get_time_series_multi.py       56      3    95%
-fewspy\API_calls\time_series\get_time_series_single.py      16      0   100%
-fewspy\constants\choices.py                                 57      2    96%
+fewspy\api.py                                              124     28    77%
+fewspy\api_calls\__init__.py                                16      0   100%
+fewspy\api_calls\base.py                                    75      9    88%
+fewspy\api_calls\get_filters.py                             20      5    75%
+fewspy\api_calls\get_locations.py                           26      6    77%
+fewspy\api_calls\get_parameters.py                          24      6    75%
+fewspy\api_calls\get_qualifiers.py                          33     11    67%
+fewspy\api_calls\get_samples.py                             23      7    70%
+fewspy\api_calls\get_timezone_id.py                         23      1    96%
+fewspy\api_calls\time_series\base.py                        82     15    82%
+fewspy\api_calls\time_series\get_time_series_multi.py       56      3    95%
+fewspy\api_calls\time_series\get_time_series_single.py      16      0   100%
+fewspy\constants\choices.py                                 69      1    99%
 fewspy\constants\github.py                                   7      0   100%
 fewspy\constants\paths.py                                   21      0   100%
 fewspy\constants\pi_settings.py                             50      4    92%
 fewspy\constants\request_settings.py                        11      0   100%
-fewspy\exceptions.py                                        36      2    94%
-fewspy\permissions.py                                       75      9    88%
-fewspy\response_converters\base.py                          95     15    84%
-fewspy\retry_session.py                                     68     12    82%
+fewspy\exceptions.py                                        12      0   100%
+fewspy\permissions.py                                       68      5    93%
+fewspy\response_converters\base.py                          95     14    85%
+fewspy\response_converters\xml_to_python_obj.py            103     27    74%
+fewspy\retry_session.py                                     69     13    81%
 fewspy\secrets.py                                           64     20    69%
 fewspy\time_series.py                                       96     96     0%
 fewspy\utils\bug_report.py                                  60     38    37%
@@ -155,7 +156,7 @@ fewspy\version.py                                            2      2     0%
 main.py                                                     27     27     0%
 setup.py                                                    16     16     0%
 ----------------------------------------------------------------------------
-TOTAL                                                     1287    399    69%
+TOTAL                                                     1384    393    72%
 ```
 
 ### Conda general tips

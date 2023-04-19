@@ -3,7 +3,7 @@ from datetime import datetime
 from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import PiRestDocumentFormatChoices
-from fewspy.response_converters.xml_to_python_obj import parse_raw
+from fewspy.response_converters.xml_to_python_obj import parse
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.date_frequency import DateFrequencyBuilder
 from typing import Dict
@@ -153,7 +153,7 @@ class GetTimeSeriesBase(GetRequest):
                 msg += f"Please specify 1 moduleInstanceIds in pi_settings instead of '{self.pi_settings.module_instance_ids}'"
             raise AssertionError(msg)
         elif self.pi_settings.document_format == PiRestDocumentFormatChoices.xml:
-            xml_python_obj = parse_raw(xml=response.text)
+            xml_python_obj = parse(response.text)
             try:
                 nr_timestamps = int(xml_python_obj.TimeSeries.series.header.valueCount.cdata)
                 return nr_timestamps
