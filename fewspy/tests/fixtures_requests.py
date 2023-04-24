@@ -1,6 +1,6 @@
 from datetime import datetime
 from fewspy.constants.paths import TEST_INPUT_DIR
-from fewspy.response_converters.xml_to_python_obj import parse
+from fewspy.converters.xml_to_python_obj import parse
 from pathlib import Path
 from typing import Dict
 
@@ -8,7 +8,7 @@ import json
 import pandas as pd
 
 
-class SingleBase:
+class RequestTimeSeriesBase:
     @classmethod
     def file_dir_expected_files(cls) -> Path:
         raise NotImplementedError
@@ -42,10 +42,8 @@ class SingleBase:
             response_xmls[file_path.stem] = response_xml
         return response_xmls
 
-
-class MultiBase(SingleBase):
     @classmethod
-    def get_expected_csvs(cls) -> Dict:
+    def get_expected_dfs_from_csvs(cls) -> Dict:
         dir_path = cls.file_dir_expected_files()
         assert dir_path.is_dir()
 
@@ -59,7 +57,7 @@ class MultiBase(SingleBase):
         return csv_paths
 
 
-class RequestTimeSeriesSingle1(SingleBase):
+class RequestTimeSeriesSingle1(RequestTimeSeriesBase):
     """Single as we use 1 location_ids and 1 parameter_ids."""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
@@ -73,7 +71,21 @@ class RequestTimeSeriesSingle1(SingleBase):
         return TEST_INPUT_DIR / "RequestTimeSeriesSingle1"
 
 
-class RequestTimeSeriesMulti1(MultiBase):
+class RequestTimeSeriesSingle2(RequestTimeSeriesBase):
+    """Single as we use 1 location_ids and 1 parameter_ids."""
+
+    # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
+    location_ids = "OW433001"
+    parameter_ids = "H.G.0"
+    start_time = datetime(2012, 1, 1)
+    end_time = datetime(2012, 6, 1)  # get many timestamp
+
+    @classmethod
+    def file_dir_expected_files(cls) -> Path:
+        return Path("not used in test")
+
+
+class RequestTimeSeriesMulti1(RequestTimeSeriesBase):
     """Multi since we use 2 location_ids."""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
@@ -88,7 +100,7 @@ class RequestTimeSeriesMulti1(MultiBase):
         return TEST_INPUT_DIR / "RequestTimeSeriesMulti1"
 
 
-class RequestTimeSeriesMulti2(MultiBase):
+class RequestTimeSeriesMulti2(RequestTimeSeriesBase):
     """Multi since we use 2 location_ids and 2 parameter_ids."""
 
     #     KW215710 (hoofdlocatie met gemaal)

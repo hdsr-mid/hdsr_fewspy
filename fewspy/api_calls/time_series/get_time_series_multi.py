@@ -37,8 +37,6 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 date_ranges=date_ranges,
                 date_range_freq=date_range_freq,
                 request_params=request_params,
-                drop_missing_values=self.drop_missing_values,
-                flag_threshold=self.flag_threshold,
             )
             file_name_keys = ["locationIds", "parameterIds", "qualifierIds", "startTime", "endTime"]
             file_name_values = [request_params.get(param, None) for param in file_name_keys]

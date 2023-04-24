@@ -4,7 +4,7 @@ from fewspy.constants.choices import OutputChoices
 from fewspy.constants.custom_types import ResponseType
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import RequestSettings
-from fewspy.response_converters.manager import ResponseManager
+from fewspy.converters.manager import ResponseManager
 from fewspy.retry_session import RetryBackoffSession
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.conversions import snake_to_camel_case

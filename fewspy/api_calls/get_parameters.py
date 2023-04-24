@@ -1,9 +1,10 @@
 from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import OutputChoices
-
-# from fewspy.utils.conversions import camel_to_snake_case
+from fewspy.constants.custom_types import ResponseType
+from fewspy.utils.conversions import camel_to_snake_case
 from typing import List
+from typing import Union
 
 import logging
 import pandas as pd
@@ -48,23 +49,38 @@ class GetParameters(GetRequest):
             OutputChoices.pandas_dataframe_in_memory,
         ]
 
-    def run(self) -> pd.DataFrame:
-        raise NotImplementedError
-        # response = self.retry_backoff_session.get(
-        #     url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
-        # )
-        #
-        # # parse the response
-        # df = pd.DataFrame(columns=COLUMNS)
-        # if response.status_code == 200:
-        #     if "timeSeriesParameters" in response.json().keys():
-        #         df = pd.DataFrame(response.json()["timeSeriesParameters"])
-        #         df.columns = [camel_to_snake_case(i) for i in df.columns]
-        #         df["uses_datum"] = df["uses_datum"] == "true"
-        #
-        # else:
-        #     logger.error(f"FEWS Server responds {response.text}")
-        #
-        # df.set_index("id", inplace=True)
-        #
-        # return df
+    def run(self) -> Union[ResponseType, pd.DataFrame]:
+        response = self.retry_backoff_session.get(
+            url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
+        )
+
+        # TODO: I expect filter_id in request parameters as
+        #  - self.pi_settings.filter_ids = 'INTERNAL-API' AND
+        #  - AND ApiParameters.filter_id is in allowed_request_args..
+        # self.initial_fews_parameters
+        #   {'showAttributes': True,
+        #   'documentVersion': 1.25,
+        #   'moduleInstanceIds': 'WerkFilter',
+        #   'documentFormat': 'PI_JSON'
+        #   }
+        # self.filtered_fews_parameters
+        #   {'showAttributes': True,
+        #   'documentVersion': 1.25,
+        #   'documentFormat': 'PI_JSON'
+        #   }
+
+        if self.output_choice in {OutputChoices.json_response_in_memory, OutputChoices.xml_response_in_memory}:
+            return response
+
+        # parse the response to dataframe
+        df = pd.DataFrame(columns=COLUMNS)
+        if response.status_code == 200:
+            if "timeSeriesParameters" in response.json().keys():
+                df = pd.DataFrame(response.json()["timeSeriesParameters"])
+                df.columns = [camel_to_snake_case(i) for i in df.columns]
+                df["uses_datum"] = df["uses_datum"] == "true"
+        else:
+            logger.error(f"FEWS Server responds {response.text}")
+        df.set_index("id", inplace=True)
+
+        return df

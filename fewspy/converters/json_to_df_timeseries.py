@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
+from fewspy.constants.custom_types import ResponseType
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.conversions import dict_to_datetime
 from typing import List
@@ -179,3 +180,22 @@ class TimeSeriesSet:
         qualifiers = [i for i in qualifiers if i is not None]
         flat_list = [i for j in qualifiers for i in j]
         return list(set(flat_list))
+
+
+def response_jsons_to_one_df(
+    responses: List[ResponseType], drop_missing_values: bool, flag_threshold: int
+) -> pd.DataFrame:
+    df = pd.DataFrame(data=None)
+    for index, response in enumerate(responses):
+        data = response.json()
+        time_series_set = TimeSeriesSet.from_pi_time_series(
+            pi_time_series=data, drop_missing_values=drop_missing_values, flag_threshold=flag_threshold
+        )
+        for time_series in time_series_set.time_series:
+            _df = time_series.events
+            _df["location_id"] = time_series_set.location_ids[0]
+            _df["parameter_id"] = time_series_set.parameter_ids[0]
+            if not df.empty:
+                assert sorted(_df.columns) == sorted(df.columns), "code error"
+            df = pd.concat(objs=[df, _df], axis=0)
+    return df

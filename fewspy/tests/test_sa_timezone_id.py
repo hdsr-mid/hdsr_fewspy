@@ -4,7 +4,7 @@ from fewspy.tests.fixtures import fixture_api_sa_no_download_dir
 
 
 # silence flake8
-fixture_api_sa_json_memory = fixture_api_sa_no_download_dir
+fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
 
 
 def test_sa_timezone_response(fixture_api_sa_no_download_dir):

@@ -68,6 +68,12 @@ conda install hdsr_fewspy -c hdsr-mid
 from hdsr_fewspy import API, OutputChoices
 from datetime import datetime
 
+# instantiate API using default settings
+api = Api()
+
+# instantiate API using custom settings
+
+
 ```
 ###### Examples different API calls
 1. Example get_time_series_single
@@ -137,41 +143,40 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                     Stmts   Miss  Cover
 ----------------------------------------------------------------------------
-fewspy\api.py                                              113     23    80%
+fewspy\api.py                                              112     17    85%
 fewspy\api_calls\__init__.py                                16      0   100%
 fewspy\api_calls\base.py                                    77      9    88%
-fewspy\api_calls\get_filters.py                             20      5    75%
+fewspy\api_calls\get_filters.py                             22      0   100%
 fewspy\api_calls\get_locations.py                           21      6    71%
-fewspy\api_calls\get_parameters.py                          23      6    74%
+fewspy\api_calls\get_parameters.py                          37      1    97%
 fewspy\api_calls\get_qualifiers.py                          33     11    67%
 fewspy\api_calls\get_samples.py                             23      7    70%
 fewspy\api_calls\get_timezone_id.py                         23      1    96%
-fewspy\api_calls\time_series\base.py                        82     14    83%
+fewspy\api_calls\time_series\base.py                        84     10    88%
 fewspy\api_calls\time_series\get_time_series_multi.py       56      3    95%
-fewspy\api_calls\time_series\get_time_series_single.py      16      0   100%
+fewspy\api_calls\time_series\get_time_series_single.py      21      0   100%
 fewspy\constants\choices.py                                 73      1    99%
 fewspy\constants\custom_types.py                             2      0   100%
 fewspy\constants\github.py                                   7      0   100%
 fewspy\constants\paths.py                                   19      0   100%
 fewspy\constants\pi_settings.py                             50      4    92%
 fewspy\constants\request_settings.py                        11      0   100%
+fewspy\converters\download.py                               93      4    96%
+fewspy\converters\json_to_df_timeseries.py                 110      8    93%
+fewspy\converters\manager.py                                27      0   100%
+fewspy\converters\xml_to_python_obj.py                     105     26    75%
 fewspy\exceptions.py                                        12      0   100%
 fewspy\permissions.py                                       68      5    93%
-fewspy\response_converters\download.py                      85      5    94%
-fewspy\response_converters\json_to_df_timeseries.py         96     10    90%
-fewspy\response_converters\manager.py                       32      2    94%
-fewspy\response_converters\memory.py                        16      4    75%
-fewspy\response_converters\xml_to_python_obj.py            105     27    74%
-fewspy\retry_session.py                                     68     13    81%
+fewspy\retry_session.py                                     68     12    82%
 fewspy\secrets.py                                           64     20    69%
 fewspy\utils\bug_report.py                                  60     38    37%
 fewspy\utils\conversions.py                                 50     27    46%
-fewspy\utils\date_frequency.py                              46      8    83%
+fewspy\utils\date_frequency.py                              46      5    89%
 fewspy\version.py                                            2      2     0%
 main.py                                                     27     27     0%
 setup.py                                                    16     16     0%
 ----------------------------------------------------------------------------
-TOTAL                                                     1412    294    79%
+TOTAL                                                     1435    260    82%
 ```
 
 ### Conda general tips

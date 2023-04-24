@@ -12,7 +12,6 @@ from fewspy.permissions import Permissions
 from fewspy.retry_session import RetryBackoffSession
 from fewspy.utils.bug_report import create_bug_report_when_error
 from pathlib import Path
-from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
@@ -21,7 +20,7 @@ import logging
 import os
 import pandas as pd
 import requests
-import urllib3
+import urllib3  # noqa
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -105,7 +104,7 @@ class Api:
         return pi_settings
 
     # @create_bug_report_when_error
-    def get_parameters(self, output_choice: str) -> pd.DataFrame:
+    def get_parameters(self, output_choice: str) -> Union[ResponseType, pd.DataFrame]:
         """Get FEWS parameters as a pandas DataFrame."""
         api_call = api_calls.GetParameters(
             output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
@@ -114,7 +113,7 @@ class Api:
         return result
 
     # @create_bug_report_when_error
-    def get_filters(self, output_choice: str) -> List[Dict]:
+    def get_filters(self, output_choice: str) -> ResponseType:
         """Get FEWS filters as a list with dictionaries."""
         api_call = api_calls.GetFilters(output_choice=output_choice, retry_backoff_session=self.retry_backoff_session)
         result = api_call.run()
@@ -150,7 +149,7 @@ class Api:
         return result
 
     # @create_bug_report_when_error
-    def get_timezone_id(self, output_choice: str) -> List[ResponseType]:
+    def get_timezone_id(self, output_choice: str) -> ResponseType:
         """Get FEWS timezone_id the FEWS API is running on."""
         api_call = api_calls.GetTimeZoneId(
             output_choice=output_choice, retry_backoff_session=self.retry_backoff_session

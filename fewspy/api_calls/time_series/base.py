@@ -4,7 +4,7 @@ from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import PiRestDocumentFormatChoices
 from fewspy.constants.custom_types import ResponseType
-from fewspy.response_converters.xml_to_python_obj import parse
+from fewspy.converters.xml_to_python_obj import parse
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.date_frequency import DateFrequencyBuilder
 from typing import Dict
@@ -78,8 +78,6 @@ class GetTimeSeriesBase(GetRequest):
         date_ranges: List[Tuple[pd.Timestamp, pd.Timestamp]],
         date_range_freq: pd.Timedelta,
         request_params: Dict,
-        drop_missing_values: bool,
-        flag_threshold: int,
     ) -> List[ResponseType]:
         """Download timeseries in little chunks by updating parameters 'startTime' and 'endTime' every loop.
 
@@ -114,8 +112,6 @@ class GetTimeSeriesBase(GetRequest):
                     date_ranges=new_date_ranges,
                     date_range_freq=new_date_range_freq,
                     request_params=request_params,
-                    drop_missing_values=drop_missing_values,
-                    flag_threshold=flag_threshold,
                 )
             else:
                 DateFrequencyBuilder.log_progress_download_ts(
@@ -139,6 +135,8 @@ class GetTimeSeriesBase(GetRequest):
         params["showStatistics"] = True
         response = self.retry_backoff_session.get(url=self.url, params=params, verify=self.pi_settings.ssl_verify)
         if not response.ok:
+            if response.text == "No timeSeries found":
+                return 0
             raise AssertionError(f"response not okay, status_code={response.status_code}, err={response.text}")
         if self.pi_settings.document_format == PiRestDocumentFormatChoices.json:
             timeseries = response.json().get("timeSeries", None)

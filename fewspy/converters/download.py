@@ -1,12 +1,13 @@
 from fewspy.constants.custom_types import ResponseType
-from fewspy.response_converters.json_to_df_timeseries import TimeSeriesSet
+from fewspy.converters.json_to_df_timeseries import response_jsons_to_one_df
 from pathlib import Path
+from typing import Dict
 from typing import List
 
 import json
 import logging
-import pandas as pd
 import requests
+import xml.etree.cElementTree as ET  # TODO: from xml.etree import ElementTree
 
 
 logger = logging.getLogger(__name__)
@@ -60,11 +61,20 @@ class DownloadBase:
             logger.info(f"create output_dir {self.output_dir}")
             self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def run(self, responses: List[requests.models.Response], file_name_values: List[str], *args, **kwargs):
+    def run(self, responses: List[requests.models.Response], file_name_values: List[str], **kwargs):
         raise NotImplementedError
 
 
 class XmlDownloadDir(DownloadBase):
+    @staticmethod
+    def create_custom_xml_tree(data: Dict):
+        root = ET.Element("root")
+        doc = ET.SubElement(root, "doc")
+        for key, value in data.items():
+            ET.SubElement(doc, key, name=key).text = str(value)
+        tree = ET.ElementTree(root)
+        return tree
+
     def run(self, responses: List[ResponseType], file_name_values: List[str], **kwargs) -> List[Path]:
         """Create for every response a separate .xml file.
         All responses are for a unique location_parameter_qualifier combi in get_time_series_multi."""
@@ -74,8 +84,14 @@ class XmlDownloadDir(DownloadBase):
             file_path = self.output_dir / f"{file_name_base}_{index}.xml"
             logger.info(f"writing response to new file {file_path}")
             self._ensure_output_dir_exists(file_path=file_path)
-            with open(file=file_path.as_posix(), mode="w", encoding="utf-8") as xml_file:
-                xml_file.write(response.text)
+            if response.status_code != 200:
+                response_in_xml = self.create_custom_xml_tree(
+                    data={"response_http_status": response.status_code, "response_text": response.text}
+                )
+                response_in_xml.write(file_or_filename=file_path.as_posix(), encoding="utf-8")
+            else:
+                with open(file=file_path.as_posix(), mode="w", encoding="utf-8") as xml_file:
+                    xml_file.write(response.text)
             file_paths_created.append(file_path)
         return file_paths_created
 
@@ -98,29 +114,17 @@ class JsonDownloadDir(DownloadBase):
 
 
 class CsvDownloadDir(DownloadBase):
-    def run(
-        self,
-        responses: List[ResponseType],
-        file_name_values: List[str],
-        drop_missing_values: bool,
-        flag_threshold: int,
-        **kwargs,
-    ) -> List[Path]:
+    def run(self, responses: List[ResponseType], file_name_values: List[str], **kwargs) -> List[Path]:
         """Only for timeseries: Aggregate all responses into 1 .csv file as all responses are for a unique
         location_parameter_qualifier combi in get_time_series_multi."""
+        drop_missing_values: bool = kwargs["drop_missing_values"]
+        flag_threshold: int = kwargs["flag_threshold"]
         file_name_base = self._get_base_file_name(request_class=self.request_class, file_name_values=file_name_values)
-        df = pd.DataFrame(data=None)
-        for index, response in enumerate(responses):
-            data = response.json()
-            time_series_set = TimeSeriesSet.from_pi_time_series(
-                pi_time_series=data, drop_missing_values=drop_missing_values, flag_threshold=flag_threshold
-            )
-            for time_series in time_series_set.time_series:
-                _df = time_series.events
-                if not df.empty:
-                    assert sorted(_df.columns) == sorted(df.columns), "code error"
-                df = pd.concat(objs=[df, _df], axis=1)
-
+        df = response_jsons_to_one_df(
+            responses=responses, drop_missing_values=drop_missing_values, flag_threshold=flag_threshold
+        )
+        if df.empty:
+            return []
         file_path = self.output_dir / f"{file_name_base}.csv"
         logger.info(f"writing response to new file {file_path}")
         self._ensure_output_dir_exists(file_path=file_path)

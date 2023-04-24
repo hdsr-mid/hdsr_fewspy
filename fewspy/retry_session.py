@@ -53,7 +53,7 @@ class RetryBackoffSession:
     backoff_factor: float = 0.3
     status_force_list: Tuple = (500, 502, 504)
     allowed_methods: List[str] = ["HEAD", "GET", "OPTIONS"]  # we do not PUT/PATCH to PiWebService
-    timeout_seconds: int = 2
+    timeout_seconds: int = 6  # /parameters and /filters respond within 5 seconds..
 
     def __init__(
         self,

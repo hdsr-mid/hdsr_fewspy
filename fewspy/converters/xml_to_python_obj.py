@@ -148,6 +148,7 @@ def parse(filename, **parser_features):
     Raises ``AttributeError`` if a requested xml.sax feature is not found in ``xml.sax.handler``.
     Raises ``xml.sax.SAXParseException`` if something goes wrong  during parsing.
     """
+
     if filename is None or (_is_string(filename) and filename.strip()) == "":
         raise ValueError("parse() takes a filename, URL or XML string")
     parser = make_parser()
@@ -162,7 +163,7 @@ def parse(filename, **parser_features):
     return sax_handler.root
 
 
-def _parse_raw(xml, **parser_features):
+def _parse_raw(xml):
     """Parses the given string as an XML data string, returning a Python object which represents the document.
 
     Raises ``ValueError`` if the argument is None / empty string.

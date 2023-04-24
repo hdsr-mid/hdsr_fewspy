@@ -1,13 +1,15 @@
 from fewspy.constants.choices import OutputChoices
 from fewspy.constants.custom_types import ResponseType
-from fewspy.response_converters.download import CsvDownloadDir
-from fewspy.response_converters.download import JsonDownloadDir
-from fewspy.response_converters.download import XmlDownloadDir
-from fewspy.response_converters.memory import JsonMemory
-from fewspy.response_converters.memory import PdDataFrameMemory
-from fewspy.response_converters.memory import XmlMemory
+from fewspy.converters.download import CsvDownloadDir
+from fewspy.converters.download import JsonDownloadDir
+from fewspy.converters.download import XmlDownloadDir
 from pathlib import Path
 from typing import List
+
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ResponseManager:
@@ -27,12 +29,9 @@ class ResponseManager:
             return JsonDownloadDir(request_class=self.request_class, output_dir=self.output_dir)
         elif self.output_choice == OutputChoices.csv_file_in_download_dir:
             return CsvDownloadDir(request_class=self.request_class, output_dir=self.output_dir)
-        elif self.output_choice == OutputChoices.xml_response_in_memory:
-            return XmlMemory()
-        elif self.output_choice == OutputChoices.json_response_in_memory:
-            return JsonMemory()
-        elif self.output_choice == OutputChoices.pandas_dataframe_in_memory:
-            return PdDataFrameMemory()
+        else:
+            logger.info(f"memory choice {self.output_choice} must be handled in GetRequest.run() itself")
+            return None
 
     def run(self, responses: List[ResponseType], **kwargs):
         # allowed_kwargs = ["file_name_values", "drop_missing_values", "flag_threshold"]
