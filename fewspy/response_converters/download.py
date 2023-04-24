@@ -1,5 +1,5 @@
 from fewspy.constants.custom_types import ResponseType
-from fewspy.response_converters.xml_to_df_timeseries import TimeSeriesSet
+from fewspy.response_converters.json_to_df_timeseries import TimeSeriesSet
 from pathlib import Path
 from typing import List
 
@@ -65,8 +65,19 @@ class DownloadBase:
 
 
 class XmlDownloadDir(DownloadBase):
-    def run(self, responses: List[ResponseType], **kwargs) -> List[Path]:
-        print(1)
+    def run(self, responses: List[ResponseType], file_name_values: List[str], **kwargs) -> List[Path]:
+        """Create for every response a separate .xml file.
+        All responses are for a unique location_parameter_qualifier combi in get_time_series_multi."""
+        file_name_base = self._get_base_file_name(request_class=self.request_class, file_name_values=file_name_values)
+        file_paths_created = []
+        for index, response in enumerate(responses):
+            file_path = self.output_dir / f"{file_name_base}_{index}.xml"
+            logger.info(f"writing response to new file {file_path}")
+            self._ensure_output_dir_exists(file_path=file_path)
+            with open(file=file_path.as_posix(), mode="w", encoding="utf-8") as xml_file:
+                xml_file.write(response.text)
+            file_paths_created.append(file_path)
+        return file_paths_created
 
 
 class JsonDownloadDir(DownloadBase):
@@ -95,13 +106,12 @@ class CsvDownloadDir(DownloadBase):
         flag_threshold: int,
         **kwargs,
     ) -> List[Path]:
-        """Aggregate all responses into 1 .csv file as all responses are for a unique location_parameter_qualifier
-        combi in get_time_series_multi."""
+        """Only for timeseries: Aggregate all responses into 1 .csv file as all responses are for a unique
+        location_parameter_qualifier combi in get_time_series_multi."""
         file_name_base = self._get_base_file_name(request_class=self.request_class, file_name_values=file_name_values)
         df = pd.DataFrame(data=None)
         for index, response in enumerate(responses):
             data = response.json()
-            # TODO: get drop_missing_values here from kwargs
             time_series_set = TimeSeriesSet.from_pi_time_series(
                 pi_time_series=data, drop_missing_values=drop_missing_values, flag_threshold=flag_threshold
             )

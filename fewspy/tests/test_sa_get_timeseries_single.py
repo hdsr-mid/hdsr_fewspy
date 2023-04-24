@@ -21,12 +21,14 @@ def test_sa_single_timeseries_ok_json_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.json_response_in_memory,
     )
-    assert len(responses) == 1
-    response = responses[0]
-    assert response.status_code == 200
-    json_found = response.json()
-    json_expected = request_data.get_expected_json()
-    assert json_found == json_expected
+
+    jsons_expected = request_data.get_expected_jsons()
+    assert len(jsons_expected.keys()) == len(responses) == 1
+    for response_found, expected_json_key in zip(responses, jsons_expected.keys()):
+        assert response_found.status_code == 200
+        json_found = response_found.json()
+        json_expected = jsons_expected[expected_json_key]
+        assert json_found == json_expected
 
 
 def test_sa_single_timeseries_ok_xml_memory(fixture_api_sa_no_download_dir):
@@ -40,23 +42,25 @@ def test_sa_single_timeseries_ok_xml_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.xml_response_in_memory,
     )
-    assert len(responses) == 1
-    response = responses[0]
-    assert response.status_code == 200
 
-    # create new expected file?
-    # with open(request_data.file_path_expected_xml().as_posix(), 'w') as f:
-    #     f.write(response.text)
+    xmls_expected = request_data.get_expected_xmls()
+    assert len(xmls_expected.keys()) == len(responses) == 1
+    for response_found, expected_xml_key in zip(responses, xmls_expected.keys()):
+        assert response_found.status_code == 200
 
-    expected = parse(filename=request_data.file_path_expected_xml().as_posix())
-    found = parse(response.text)
+        xml_expected = xmls_expected[expected_xml_key]
+        expected_header = xml_expected.TimeSeries.series.header
+        expected_events = xml_expected.TimeSeries.series.event
 
-    expected_header = expected.TimeSeries.series.header
-    found_header = found.TimeSeries.series.header
-    assert found_header.timeStep._attributes["unit"] == expected_header.timeStep._attributes["unit"] == "nonequidistant"
+        found = parse(response_found.text)
+        found_header = found.TimeSeries.series.header
+        found_events = found.TimeSeries.series.event
 
-    expected_events = expected.TimeSeries.series.event
-    found_events = found.TimeSeries.series.event
-    assert len(found_events) == len(expected_events) == 102
-    assert found_events[0]._attributes["date"] == expected_events[0]._attributes["date"] == "2012-01-01"
-    assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"] == "2012-01-02"
+        assert (
+            found_header.timeStep._attributes["unit"]
+            == expected_header.timeStep._attributes["unit"]
+            == "nonequidistant"
+        )
+        assert len(found_events) == len(expected_events) == 102
+        assert found_events[0]._attributes["date"] == expected_events[0]._attributes["date"] == "2012-01-01"
+        assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"] == "2012-01-02"

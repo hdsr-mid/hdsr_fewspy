@@ -1,7 +1,8 @@
 from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import OutputChoices
-from fewspy.utils.conversions import camel_to_snake_case
+
+# from fewspy.utils.conversions import camel_to_snake_case
 from typing import List
 
 import logging

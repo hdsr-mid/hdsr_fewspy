@@ -1,13 +1,14 @@
 from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import ApiParameters
 from fewspy.constants.choices import OutputChoices
-from fewspy.utils.conversions import attributes_to_array
-from fewspy.utils.conversions import camel_to_snake_case
-from fewspy.utils.conversions import geo_datum_to_crs
-from fewspy.utils.conversions import xy_array_to_point
+
+# from fewspy.utils.conversions import attributes_to_array
+# from fewspy.utils.conversions import camel_to_snake_case
+# from fewspy.utils.conversions import geo_datum_to_crs
+# from fewspy.utils.conversions import xy_array_to_point
 from typing import List
 
-import geopandas as gpd
+# import geopandas as gpd
 import logging
 
 
