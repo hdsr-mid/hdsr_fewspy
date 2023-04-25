@@ -3,14 +3,12 @@ from fewspy import api_calls
 from fewspy import exceptions
 from fewspy.constants.choices import TimeZoneChoices
 from fewspy.constants.custom_types import ResponseType
-from fewspy.constants.paths import HDSR_FEWSPY_VERSION
 from fewspy.constants.pi_settings import pi_settings_production
 from fewspy.constants.pi_settings import PiSettings
 from fewspy.constants.request_settings import default_request_settings
 from fewspy.constants.request_settings import RequestSettings
 from fewspy.permissions import Permissions
 from fewspy.retry_session import RetryBackoffSession
-from fewspy.utils.bug_report import create_bug_report_when_error
 from pathlib import Path
 from typing import List
 from typing import Optional
@@ -52,7 +50,6 @@ class Api:
             output_dir=self.output_dir,
         )
         self._ensure_service_is_running()
-        self.hdsr_fewspy_version = HDSR_FEWSPY_VERSION
 
     @staticmethod
     def _get_output_dir(output_directory_root: Union[str, Path] = None) -> Optional[Path]:
@@ -68,7 +65,6 @@ class Api:
         output_dir = output_directory_root / f"hdsr_fewspy_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         return output_dir
 
-    @create_bug_report_when_error
     def _ensure_service_is_running(self) -> None:
         # check endpoint with smallest response (=timezonid)
         response = requests.get(url=f"{self.pi_settings.base_url}timezoneid/", verify=self.pi_settings.ssl_verify)
@@ -104,7 +100,6 @@ class Api:
 
         return pi_settings
 
-    # @create_bug_report_when_error
     def get_parameters(self, output_choice: str) -> Union[ResponseType, pd.DataFrame]:
         """Get FEWS parameters as a pandas DataFrame."""
         # show_attributes does not make a difference in response (both for Pi_JSON and PI_XML)
@@ -115,14 +110,12 @@ class Api:
         result = api_call.run()
         return result
 
-    # @create_bug_report_when_error
     def get_filters(self, output_choice: str) -> ResponseType:
         """Get FEWS filters as a list with dictionaries."""
         api_call = api_calls.GetFilters(output_choice=output_choice, retry_backoff_session=self.retry_backoff_session)
         result = api_call.run()
         return result
 
-    # @create_bug_report_when_error
     def get_locations(self, output_choice: str, show_attributes: bool = True) -> Union[ResponseType, gpd.GeoDataFrame]:
         """Get FEWS locations as a geopandas GeoDataFrame."""
         api_call = api_calls.GetLocations(
@@ -133,7 +126,6 @@ class Api:
         result = api_call.run()
         return result
 
-    # @create_bug_report_when_error
     def get_qualifiers(self, output_choice: str) -> pd.DataFrame:
         """Get FEWS qualifiers as Pandas DataFrame
 
@@ -146,7 +138,6 @@ class Api:
         result = api_call.run()
         return result
 
-    # @create_bug_report_when_error
     def get_timezone_id(self, output_choice: str) -> ResponseType:
         """Get FEWS timezone_id the FEWS API is running on."""
         api_call = api_calls.GetTimeZoneId(
@@ -155,8 +146,9 @@ class Api:
         result = api_call.run()
         return result
 
-    # @create_bug_report_when_error
-    def get_samples(self, output_choice: str, start_time: datetime, end_time: datetime) -> pd.DataFrame:
+    def get_samples(
+        self, output_choice: str, start_time: datetime, end_time: datetime
+    ) -> Union[ResponseType, pd.DataFrame]:
         """Get FEWS samples as a pandas DataFrame."""
         api_call = api_calls.GetSamples(
             start_time=start_time,
@@ -179,7 +171,7 @@ class Api:
         qualifier_id: str = None,
         thinning: int = None,
         omit_empty_timeseries: bool = True,
-    ):
+    ) -> ResponseType:
         """
         Example response PI_JSON =
             {'timeSeries': [{'header': {'endDate': {'date': '2012-01-02',
@@ -223,7 +215,6 @@ class Api:
         result = api_call.run()
         return result
 
-    # @create_bug_report_when_error
     def get_time_series_single(
         self,
         output_choice: str,
@@ -238,7 +229,7 @@ class Api:
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
-    ) -> Union[List[ResponseType], List[pd.DataFrame]]:
+    ) -> Union[List[ResponseType], pd.DataFrame]:
         api_call = api_calls.GetTimeSeriesSingle(
             start_time=start_time,
             end_time=end_time,
@@ -256,7 +247,6 @@ class Api:
         result = api_call.run()
         return result
 
-    # @create_bug_report_when_error
     def get_time_series_multi(
         self,
         output_choice: str,
@@ -288,3 +278,68 @@ class Api:
         )
         all_file_paths = api_call.run()
         return all_file_paths
+
+
+# DONE: Use BackoffRetry strategy
+
+# DONE: add rate_limiting to requests (freq and size)
+
+# TODO: don't use strings as urls...
+
+# Done: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
+
+# DONE: test other get requests than get_timeseries
+
+# TODO: improve documentation
+
+# DONE: enable users to override Api.pi_settings
+
+# DONE: conversion client - server timezone
+
+# DONE: fix moduleInstanceIds and filterId
+
+# DONE: wat als iemand alleen maar statistieken wil van tijdseries?
+
+# DONE: besides allowed_request_args use a required_request_args (get_locations zonder filter duurt tering lang!!)
+
+# TODO: create pypi package
+
+
+# TODO: Ciska wel interesse wel in:
+#  --------------------------------
+#  get_samples (grote request)
+#  - Deltares is hier begin 2024 klaar. Nu geeft FEWS EFICS piwebservice na 2 of 5 minuten een timeout
+#  get_timeseries (grote request)
+#  - altijd start + end
+#  - altijd omitEmptyTimeSeries op True anders geeft ie minimaal weken aan tijdseries terug
+#  - vaak filter_id
+#  - soms parameter_id, location_id, moduleinstance_id
+#  - heel soms qualifier_id
+#  get_parameters (middlegrote request = 400 parameters)
+#  get_locations (kleine request = 300 locaties)
+#
+
+# TODO: Ciska geen interesse in:
+#  --------------------------------
+#  get_qualifiers
+
+# TODO: check of properties goed meekomen in get_timeseries in PI_JSON (in PI_XML gaat het goed) -> Ciska:" bij
+#  EFICS werkt niet helemaal lekker. bij get_samples gaat het helemaal fout"
+
+# TODO: potentieel van grote naar kleine belasting (retry-backoff nodig): get_samples, get_timeseries,
+#  get_qualifiers (25 groepen * 100k regels per groep), get_parameters (4000), get_locations (300)
+
+# TODO: use onlyHeader=True kan voor get_timeseries en get_samples (beide hebben ook start + eind).
+#  Echter, get_qualifiers heeft dat niet. FEWS-WIS response is snel (<1sec). FEWS-EFICS duurt lang (8 sec)
+#  get_lcoations duurt 7 sec.
+#  Voorstel Ciska: alleen func get_timeseries + get_samples via PiWebService. De andere request disabelen:
+#  logger.info('Stuur ciska.overbeek@hdsr.nl een mailtje of dat lijstje mag, dan krijg je er ook nog meer info bij)
+#  die lijstjes worden 2 a 3 per jaar script + handmatig ge-update.
+
+# TODO: add usage examples to readme.md
+#  pip install hdsr_fewspy
+#  user + token
+#  request naar repo met bovenstaande csv (check)
+#  api = Api(user=rob, token=adsfads;flkj, output_folder=..., convert_output_to_csv=False)
+#  response = api.get_time_series(parameter_ids=['H.G.0'])
+#  # TODO: voor Ciska belangrijk dat er een xml uitkomt

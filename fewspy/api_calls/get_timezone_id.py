@@ -33,11 +33,11 @@ class GetTimeZoneId(GetRequest):
             OutputChoices.xml_response_in_memory,
         ]
 
-    def run(self) -> List[ResponseType]:
+    def run(self) -> ResponseType:
         response = self.retry_backoff_session.get(
             url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
         )
         # parse the response
         if response.status_code != 200:
             logger.error(f"FEWS Server responds {response.text}")
-        return [response]
+        return response
