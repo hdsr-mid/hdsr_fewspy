@@ -72,14 +72,6 @@ def xy_array_to_point(xy_array: np.ndarray) -> List[Point]:
     return [Point(i.astype(float)) for i in xy_array]
 
 
-def attributes_to_array(attribute_values: np.ndarray, attributes: list) -> np.ndarray:
-    def _get_values(x, _attributes):
-        selection = {i["id"]: i["value"] for i in x if i["id"] in _attributes}
-        return [selection[i] if i in selection.keys() else None for i in _attributes]
-
-    return np.array([_get_values(x=i, _attributes=attributes) for i in attribute_values])
-
-
 def geo_datum_to_crs(geo_datum: str) -> str:
     if geo_datum.startswith("UTM"):
         epsg_code = 32600

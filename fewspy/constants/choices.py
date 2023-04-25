@@ -1,4 +1,5 @@
 from typing import List
+from typing import Union
 
 
 class PiRestDocumentFormatChoices:
@@ -52,17 +53,40 @@ class OutputChoices:
 
 
 class TimeZoneChoices:
-    gmt = "GMT"  # "Etc/GMT" -> 0.0
-    gmt_0 = "Etc/GMT-0"  # -> 0.0
-    eu_amsterdam = "Europe/Amsterdam"  # -> 1.0
+    gmt = 0.0  # ["GMT"= "Etc/GMT" = "Etc/GMT-0"]
+    eu_amsterdam = 1.0  # ["Europe/Amsterdam"]
 
     @classmethod
-    def get_all(cls) -> List[str]:
-        return [cls.gmt, cls.gmt_0, cls.eu_amsterdam]
+    def get_hdsr_default(cls) -> float:
+        return cls.gmt
+
+    @classmethod
+    def get_all(cls) -> List[float]:
+        return [cls.gmt, cls.eu_amsterdam]
 
     @classmethod
     def date_string_format(cls) -> str:
         return "%Y-%m-%dT%H:%M:%SZ"
+
+    @classmethod
+    def get_tz_float(cls, value: Union[str, float, int]) -> float:
+        mapper = {
+            "GMT": cls.gmt,
+            "GMT-0": cls.gmt,
+            "Etc/GMT": cls.gmt,
+            "Etc/GMT-0": cls.gmt,
+            "Europe/Amsterdam": cls.eu_amsterdam,
+        }
+        if isinstance(value, str):
+            if value in mapper.keys():
+                return mapper[value]
+        msg = "could not determine time-zone float (0.0, 1.0, etc) for"
+        try:
+            float_value = float(value)
+        except ValueError:
+            raise AssertionError(f"{msg} value {value}")
+        assert float_value in cls.get_all(), f"{msg} value {value} and float_value {float_value}"
+        return float_value
 
 
 class ApiParameters:

@@ -23,6 +23,10 @@ class GetFilters(GetRequest):
         return [ApiParameters.filter_id, ApiParameters.document_format, ApiParameters.document_version]
 
     @property
+    def required_request_args(self) -> List[str]:
+        return [ApiParameters.filter_id, ApiParameters.document_format, ApiParameters.document_version]
+
+    @property
     def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.json_response_in_memory,

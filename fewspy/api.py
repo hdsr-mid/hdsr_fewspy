@@ -16,6 +16,7 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+import geopandas as gpd
 import logging
 import os
 import pandas as pd
@@ -91,7 +92,7 @@ class Api:
             "domain": (pi_settings.domain, self.permissions.allowed_domain),
             "module_instance_id": (pi_settings.module_instance_ids, self.permissions.allowed_module_instance_id),
             "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all()),
-            "filter_id": (pi_settings.filter_ids, self.permissions.allowed_filter_id),
+            "filter_id": (pi_settings.filter_id, self.permissions.allowed_filter_id),
             "service": (pi_settings.service, self.permissions.allowed_service),
         }
         for setting, value in mapper.items():
@@ -106,8 +107,10 @@ class Api:
     # @create_bug_report_when_error
     def get_parameters(self, output_choice: str) -> Union[ResponseType, pd.DataFrame]:
         """Get FEWS parameters as a pandas DataFrame."""
+        # show_attributes does not make a difference in response (both for Pi_JSON and PI_XML)
         api_call = api_calls.GetParameters(
-            output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
+            output_choice=output_choice,
+            retry_backoff_session=self.retry_backoff_session,
         )
         result = api_call.run()
         return result
@@ -120,13 +123,8 @@ class Api:
         return result
 
     # @create_bug_report_when_error
-    def get_locations(self, output_choice: str, show_attributes: bool = True):
-        """Get FEWS locations as a geopandas GeoDataFrame.
-        Args:
-            - show_attributes (bool): If True, then location attributes will be include as columns in the DataFrame.
-        Returns:
-            gpd (geopandas.GeoDataFrame): GeoDataFrame with index "id" and columns "name" and "group_id".
-        """
+    def get_locations(self, output_choice: str, show_attributes: bool = True) -> Union[ResponseType, gpd.GeoDataFrame]:
+        """Get FEWS locations as a geopandas GeoDataFrame."""
         api_call = api_calls.GetLocations(
             show_attributes=show_attributes,
             output_choice=output_choice,

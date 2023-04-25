@@ -36,6 +36,10 @@ class GetQualifiers(GetRequest):
     def allowed_request_args(self) -> List[str]:
         return [ApiParameters.show_attributes, ApiParameters.document_format, ApiParameters.document_version]
 
+    @property
+    def required_request_args(self) -> List[str]:
+        return [ApiParameters.document_format, ApiParameters.document_version]
+
     def run(self) -> pd.DataFrame:
         raise NotImplementedError
         # response = self.retry_backoff_session.get(

@@ -32,6 +32,7 @@ class GetRequest:
             request_class=self.__class__.__name__.lower(),
             output_dir=self.output_dir,
         )
+        self.validate_base_constructor()
 
     @property
     @abstractmethod
@@ -45,9 +46,23 @@ class GetRequest:
 
     @property
     @abstractmethod
+    def required_request_args(self) -> List[str]:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
     def allowed_output_choices(self) -> List[str]:
         """Every GetRequest has its own list with >=1 fewspy.constants.choices.OutputChoices."""
         raise NotImplementedError
+
+    def validate_base_constructor(self):
+        all_parameters = self._unpack_all_parameters()
+        msg = "code error required_request_args"
+        for x in self.required_request_args:
+            if x not in self.allowed_request_args:
+                raise AssertionError(f"{msg} {x} not in allowed {self.allowed_request_args}")
+            if x not in all_parameters.keys():
+                raise AssertionError(f"{msg} {x} not in all_parameters {all_parameters.keys()}")
 
     def validate_output_choice(self, output_choice: str) -> str:
         if output_choice in self.allowed_output_choices:
@@ -63,18 +78,62 @@ class GetRequest:
             raise AssertionError(msg)
         return output_dir
 
+    def _unpack_all_parameters(self) -> Dict:
+        """
+        Returns for example:
+            {
+                '_filtered_fews_parameters': None,
+                '_initial_fews_parameters': None,
+                 'default_request_period': Timedelta('35 days 00:00:00'),
+                 'document_format': 'PI_JSON',
+                 'document_version': 1.25,
+                 'domain': 'localhost',
+                 'filter_id': 'INTERNAL-API',
+                 'max_request_nr_timestamps': 100000,
+                 'max_request_period': Timedelta('728 days 00:00:00'),
+                 'max_request_size_kb': 3000,
+                 'max_response_time': Timedelta('0 days 00:00:20'),
+                 'min_request_nr_timestamps': 10000,
+                 'min_time_between_requests': Timedelta('0 days 00:00:01'),
+                 'module_instance_ids': 'WerkFilter',
+                 'output_choice': 'json_response_in_memory',
+                 'output_dir': None,
+                 'port': 8080,
+                 'service': 'FewsWebServices',
+                 'settings_name': 'default stand-alone',
+                 'show_attributes': True,
+                 'ssl_verify': True,
+                 'time_zone': 'Etc/GMT-0',
+                 'url': 'http://localhost:8080/FewsWebServices/rest/fewspiservice/v1/parameters/'
+            }
+        """
+        all_parameters = dict()
+        for key, value in self.__dict__.items():
+            if isinstance(value, RetryBackoffSession) or isinstance(value, ResponseManager):
+                continue
+            elif isinstance(value, PiSettings) or isinstance(value, RequestSettings):
+                for k, v in value.__dict__.items():
+                    all_parameters[k] = v
+            else:
+                all_parameters[key] = value
+        return all_parameters
+
     @property
     def initial_fews_parameters(self) -> Dict:
         if self._initial_fews_parameters is not None:
             return self._initial_fews_parameters
-        self._initial_fews_parameters = self._parameters_to_fews(parameters=self.__dict__, do_filter=False)
+        self._initial_fews_parameters = self._parameters_to_fews(
+            parameters=self._unpack_all_parameters(), do_filter=False
+        )
         return self._initial_fews_parameters
 
     @property
     def filtered_fews_parameters(self) -> Dict:
         if self._filtered_fews_parameters is not None:
             return self._filtered_fews_parameters
-        self._filtered_fews_parameters = self._parameters_to_fews(parameters=self.__dict__, do_filter=True)
+        self._filtered_fews_parameters = self._parameters_to_fews(
+            parameters=self._unpack_all_parameters(), do_filter=True
+        )
         return self._filtered_fews_parameters
 
     def _parameters_to_fews(self, parameters: Dict, do_filter: bool) -> Dict:

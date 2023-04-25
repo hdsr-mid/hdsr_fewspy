@@ -23,6 +23,10 @@ class GetTimeZoneId(GetRequest):
         return []
 
     @property
+    def required_request_args(self) -> List[str]:
+        return []
+
+    @property
     def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.json_response_in_memory,

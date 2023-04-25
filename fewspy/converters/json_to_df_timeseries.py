@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
+from fewspy.constants.choices import TimeZoneChoices
 from fewspy.constants.custom_types import ResponseType
 from fewspy.utils.conversions import camel_to_snake_case
 from fewspy.utils.conversions import dict_to_datetime
@@ -146,8 +147,9 @@ class TimeSeriesSet:
         kwargs = dict()
         kwargs["version"] = pi_time_series.get("version", None)
 
-        time_zone = pi_time_series.get("timeZone", None)
-        kwargs["time_zone"] = float(time_zone) if time_zone else None
+        time_zone = pi_time_series.get("timeZone", TimeZoneChoices.get_hdsr_default())
+        time_zone_float = TimeZoneChoices.get_tz_float(value=time_zone)
+        kwargs["time_zone"] = time_zone_float
 
         time_series = pi_time_series.get("timeSeries", [])
         kwargs["time_series"] = [

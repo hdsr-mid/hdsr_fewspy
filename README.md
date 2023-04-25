@@ -40,7 +40,7 @@ Each API call supports a subset of output formats:
 
 API call| Supported outputs | Notes 
 --------|-------------------|--------
-1       | 4, 5              | Not implemented yet
+1       | 4, 5, 6           | Not implemented yet
 2       | 4, 5              | Not implemented yet  
 3       | 4, 5              | Not implemented yet              
 4       | 4, 5              | Not implemented yet
@@ -67,16 +67,15 @@ conda install hdsr_fewspy -c hdsr-mid
 ```
 3. Run imports and instantiate hdsr_fewspy API 
 ```
-from hdsr_fewspy import API, OutputChoices
-from datetime import datetime
-
-# instantiate API using default settings
+# instantiate API using default settings:
 api = Api()
 
-# instantiate API using custom settings
-
-
+# or instantiate API using custom settings:
+custom_
+api 
 ```
+
+
 ###### Examples different API calls
 1. Example get_time_series_single
 ```
@@ -108,8 +107,6 @@ print(api.output_dir)
 # results in "xxx/hdsr_fewspy_20230419_143834"
 ```
 
-
-```
 
 ######  GITHUB_PERSONAL_ACCESS_TOKEN
 A github personal token (a long hash) has to be created once and updated when it expires. You can have maximum 1 token.
@@ -143,27 +140,27 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                         Stmts   Miss  Cover
 --------------------------------------------------------------------------------
-fewspy\api.py                                                  101     16    84%
+fewspy\api.py                                                  102     13    87%
 fewspy\api_calls\__init__.py                                    18      0   100%
-fewspy\api_calls\base.py                                        77      9    88%
-fewspy\api_calls\get_filters.py                                 22      0   100%
-fewspy\api_calls\get_locations.py                               21      6    71%
-fewspy\api_calls\get_parameters.py                              37      1    97%
-fewspy\api_calls\get_qualifiers.py                              33     11    67%
-fewspy\api_calls\get_samples.py                                 23      7    70%
-fewspy\api_calls\get_timezone_id.py                             23      1    96%
-fewspy\api_calls\time_series\base.py                            91      9    90%
+fewspy\api_calls\base.py                                       100     12    88%
+fewspy\api_calls\get_filters.py                                 25      0   100%
+fewspy\api_calls\get_locations.py                               44      2    95%
+fewspy\api_calls\get_parameters.py                              40      1    98%
+fewspy\api_calls\get_qualifiers.py                              36     12    67%
+fewspy\api_calls\get_samples.py                                 26      8    69%
+fewspy\api_calls\get_timezone_id.py                             26      1    96%
+fewspy\api_calls\time_series\base.py                            91      6    93%
 fewspy\api_calls\time_series\get_time_series_multi.py           67      5    93%
-fewspy\api_calls\time_series\get_time_series_single.py          27      1    96%
-fewspy\api_calls\time_series\get_time_series_statistics.py      14      0   100%
-fewspy\constants\choices.py                                     73      1    99%
+fewspy\api_calls\time_series\get_time_series_single.py          28      1    96%
+fewspy\api_calls\time_series\get_time_series_statistics.py      12      0   100%
+fewspy\constants\choices.py                                     89      3    97%
 fewspy\constants\custom_types.py                                 2      0   100%
 fewspy\constants\github.py                                       7      0   100%
 fewspy\constants\paths.py                                       19      0   100%
 fewspy\constants\pi_settings.py                                 50      4    92%
 fewspy\constants\request_settings.py                            11      0   100%
 fewspy\converters\download.py                                   93      4    96%
-fewspy\converters\json_to_df_timeseries.py                     110      8    93%
+fewspy\converters\json_to_df_timeseries.py                     112      8    93%
 fewspy\converters\manager.py                                    27      0   100%
 fewspy\converters\xml_to_python_obj.py                         105     26    75%
 fewspy\exceptions.py                                            12      0   100%
@@ -171,13 +168,13 @@ fewspy\permissions.py                                           68      5    93%
 fewspy\retry_session.py                                         68     12    82%
 fewspy\secrets.py                                               64     20    69%
 fewspy\utils\bug_report.py                                      60     38    37%
-fewspy\utils\conversions.py                                     50     27    46%
+fewspy\utils\conversions.py                                     45     17    62%
 fewspy\utils\date_frequency.py                                  46      5    89%
 fewspy\version.py                                                2      2     0%
 main.py                                                         27     27     0%
 setup.py                                                        16     16     0%
 --------------------------------------------------------------------------------
-TOTAL                                                         1464    261    82%
+TOTAL                                                         1538    248    84%
 ```
 
 ### Conda general tips

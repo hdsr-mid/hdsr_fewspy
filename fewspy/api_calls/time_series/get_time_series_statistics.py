@@ -10,9 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class GetTimeSeriesStatistics(GetTimeSeriesSingle):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def allowed_output_choices(self) -> List[str]:
         return [

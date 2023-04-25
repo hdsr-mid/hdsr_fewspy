@@ -48,9 +48,13 @@ if __name__ == "__main__":
 
 # DONE: enable users to override Api.pi_settings
 
-# TODO: conversion client - server timezone
+# DONE: conversion client - server timezone
+
+# DONE: fix moduleInstanceIds and filterId
 
 # DONE: wat als iemand alleen maar statistieken wil van tijdseries?
+
+# TODO: besides allowed_request_args use a required_request_args (get_locations zonder filter duurt tering lang!!)
 
 # TODO: create pypi package (delete main.py etc)
 

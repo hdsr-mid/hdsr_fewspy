@@ -39,6 +39,20 @@ class GetSamples(GetRequest):
         ]
 
     @property
+    def required_request_args(self) -> List[str]:
+        return [
+            ApiParameters.filter_id,
+            ApiParameters.location_ids,
+            ApiParameters.parameter_ids,
+            ApiParameters.qualifier_ids,
+            ApiParameters.start_time,
+            ApiParameters.end_time,
+            ApiParameters.omit_missing,
+            ApiParameters.document_format,
+            ApiParameters.document_version,
+        ]
+
+    @property
     def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.xml_file_in_download_dir,

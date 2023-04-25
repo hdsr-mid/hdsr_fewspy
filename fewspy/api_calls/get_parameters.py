@@ -24,9 +24,9 @@ COLUMNS = [
 
 
 class GetParameters(GetRequest):
-    def __init__(self, show_attributes: bool = True, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        # show_attributes does not make a difference in response (both for Pi_JSON and PI_XML)
         super().__init__(*args, **kwargs)
-        self.show_attributes = show_attributes
 
     @property
     def url_post_fix(self) -> str:
@@ -36,7 +36,14 @@ class GetParameters(GetRequest):
     def allowed_request_args(self) -> List[str]:
         return [
             ApiParameters.filter_id,
-            ApiParameters.show_attributes,
+            ApiParameters.document_format,
+            ApiParameters.document_version,
+        ]
+
+    @property
+    def required_request_args(self) -> List[str]:
+        return [
+            ApiParameters.filter_id,
             ApiParameters.document_format,
             ApiParameters.document_version,
         ]
@@ -53,25 +60,10 @@ class GetParameters(GetRequest):
         response = self.retry_backoff_session.get(
             url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
         )
-
-        # TODO: I expect filter_id in request parameters as
-        #  - self.pi_settings.filter_ids = 'INTERNAL-API' AND
-        #  - AND ApiParameters.filter_id is in allowed_request_args..
-        # self.initial_fews_parameters
-        #   {'showAttributes': True,
-        #   'documentVersion': 1.25,
-        #   'moduleInstanceIds': 'WerkFilter',
-        #   'documentFormat': 'PI_JSON'
-        #   }
-        # self.filtered_fews_parameters
-        #   {'showAttributes': True,
-        #   'documentVersion': 1.25,
-        #   'documentFormat': 'PI_JSON'
-        #   }
-
         if self.output_choice in {OutputChoices.json_response_in_memory, OutputChoices.xml_response_in_memory}:
             return response
 
+        assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error"
         # parse the response to dataframe
         df = pd.DataFrame(columns=COLUMNS)
         if response.status_code == 200:

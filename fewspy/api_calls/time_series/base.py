@@ -35,7 +35,7 @@ class GetTimeSeriesBase(GetRequest):
         *args,
         **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+
         self.start_time = start_time
         self.end_time = end_time
         self.location_ids = location_ids
@@ -47,6 +47,7 @@ class GetTimeSeriesBase(GetRequest):
         self.flag_threshold = flag_threshold
         #
         self.__validate_constructor_base()
+        super().__init__(*args, **kwargs)
 
     def __validate_constructor_base(self):
         assert self.start_time < self.end_time, f"start_time {self.start_time} must be before end_time {self.end_time}"
@@ -73,6 +74,19 @@ class GetTimeSeriesBase(GetRequest):
             ApiParameters.show_statistics,
             ApiParameters.start_time,
             ApiParameters.thinning,
+        ]
+
+    @property
+    def required_request_args(self) -> List[str]:
+        return [
+            ApiParameters.document_format,
+            ApiParameters.document_version,
+            ApiParameters.end_time,
+            ApiParameters.filter_id,
+            ApiParameters.location_ids,
+            ApiParameters.module_instance_ids,
+            ApiParameters.parameter_ids,
+            ApiParameters.start_time,
         ]
 
     def _download_timeseries(
@@ -141,6 +155,7 @@ class GetTimeSeriesBase(GetRequest):
         return response
 
     def _get_nr_timestamps(self, request_params: Dict) -> int:
+        assert "moduleInstanceIds" in request_params, "code error"
         response = self._get_statistics(request_params=request_params)
         if not response.ok:
             if response.text == "No timeSeries found":
@@ -150,17 +165,11 @@ class GetTimeSeriesBase(GetRequest):
             timeseries = response.json().get("timeSeries", None)
             if not timeseries:
                 return 0
-            if len(timeseries) == 1:
+            nr_timeseries = len(timeseries)
+            if nr_timeseries == 1:
                 nr_timestamps = int(timeseries[0]["header"]["valueCount"])
                 return nr_timestamps
-            # error since too many timeseries
-            msg = "Found multiple timeseries in _get_nr_timestamps"
-            if "moduleInstanceIds" not in request_params:
-                msg += (
-                    f"Please specify 1 moduleInstanceIds in pi_settings instead of "
-                    f"'{self.pi_settings.module_instance_ids}'"
-                )
-            raise AssertionError(msg)
+            raise AssertionError(f"code error: found {nr_timeseries} timeseries in _get_nr_timestamps. Expected 0 or 1")
         elif self.pi_settings.document_format == PiRestDocumentFormatChoices.xml:
             xml_python_obj = parse(response.text)
             try:

@@ -11,4 +11,5 @@ def test_sa_timezone_response(fixture_api_sa_no_download_dir):
     responses = fixture_api_sa_no_download_dir.get_timezone_id(output_choice=OutputChoices.json_response_in_memory)
     assert len(responses) == 1
     response = responses[0]
-    assert response.text == TimeZoneChoices.gmt
+    assert response.text == "GMT"
+    assert TimeZoneChoices.get_tz_float(value=response.text) == TimeZoneChoices.gmt
