@@ -17,7 +17,7 @@ Note that this project only works on HDSR's internal network, so within the VDI.
 two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds authentication, authorisation, and 
 throttling. The latter is to minimize request load on HDSR's internal FEWS instances. 
 
-Hdsr_fewspy API support 8 different API calls:
+Hdsr_fewspy API support 9 different API calls:
 1. get_parameters:
 2. get_filters:
 3. get_locations:
@@ -25,7 +25,8 @@ Hdsr_fewspy API support 8 different API calls:
 5. get_timezone_id: 
 6. get_samples: 
 7. get_time_series_single: 
-8. get_time_series_multi: 
+8. get_time_series_multi:
+9: get_time_series_statistics:
 
 An API call can return 6 different output formats:   
 1. xml_file_in_download_dir: The xml response is written to a .xml file in your download_dir
@@ -46,7 +47,8 @@ API call| Supported outputs | Notes
 5       | 4, 5              | Not implemented yet
 6       | 1, 2              | Not implemented yet
 7       | 4, 5, 6           | One large call can results in multiple small calls. Output 4 and 5 return a list with >=1 responses. Output 6 aggregates all responses and returns one dataframe.    
-8       | 1, 2, 3           | One unique location_parameter_qualifier combination results in >=1 API calls = >=1 responses. For output 1 and 2 each response results in 1 file. Output 3 creates 1 csv per unique combination.  
+8       | 1, 2, 3           | One unique location_parameter_qualifier combination results in >=1 API calls = >=1 responses. For output 1 and 2 each response results in 1 file. Output 3 creates 1 csv per unique combination.
+9       | 4, 5              | Not implemented yet 
 
 ### Usage
 
@@ -136,47 +138,46 @@ TODO
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (24 april 2023)
+### Test Coverage (25 april 2023)
 ```
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
-Name                                                     Stmts   Miss  Cover
-----------------------------------------------------------------------------
-fewspy\api.py                                              112     17    85%
-fewspy\api_calls\__init__.py                                16      0   100%
-fewspy\api_calls\base.py                                    77      9    88%
-fewspy\api_calls\get_filters.py                             22      0   100%
-fewspy\api_calls\get_locations.py                           21      6    71%
-fewspy\api_calls\get_parameters.py                          37      1    97%
-fewspy\api_calls\get_qualifiers.py                          33     11    67%
-fewspy\api_calls\get_samples.py                             23      7    70%
-fewspy\api_calls\get_timezone_id.py                         23      1    96%
-fewspy\api_calls\time_series\base.py                        84     10    88%
-fewspy\api_calls\time_series\get_time_series_multi.py       56      3    95%
-fewspy\api_calls\time_series\get_time_series_single.py      21      0   100%
-fewspy\constants\choices.py                                 73      1    99%
-fewspy\constants\custom_types.py                             2      0   100%
-fewspy\constants\github.py                                   7      0   100%
-fewspy\constants\paths.py                                   19      0   100%
-fewspy\constants\pi_settings.py                             50      4    92%
-fewspy\constants\request_settings.py                        11      0   100%
-fewspy\converters\download.py                               93      4    96%
-fewspy\converters\json_to_df_timeseries.py                 110      8    93%
-fewspy\converters\manager.py                                27      0   100%
-fewspy\converters\xml_to_python_obj.py                     105     26    75%
-fewspy\exceptions.py                                        12      0   100%
-fewspy\permissions.py                                       68      5    93%
-fewspy\retry_session.py                                     68     12    82%
-fewspy\secrets.py                                           64     20    69%
-fewspy\utils\bug_report.py                                  60     38    37%
-fewspy\utils\conversions.py                                 50     27    46%
-fewspy\utils\date_frequency.py                              46      5    89%
-fewspy\version.py                                            2      2     0%
-main.py                                                     27     27     0%
-setup.py                                                    16     16     0%
-----------------------------------------------------------------------------
-TOTAL                                                     1435    260    82%
+Name                                                         Stmts   Miss  Cover
+--------------------------------------------------------------------------------
+fewspy\api.py                                                  101     16    84%
+fewspy\api_calls\__init__.py                                    18      0   100%
+fewspy\api_calls\base.py                                        77      9    88%
+fewspy\api_calls\get_filters.py                                 22      0   100%
+fewspy\api_calls\get_locations.py                               21      6    71%
+fewspy\api_calls\get_parameters.py                              37      1    97%
+fewspy\api_calls\get_qualifiers.py                              33     11    67%
+fewspy\api_calls\get_samples.py                                 23      7    70%
+fewspy\api_calls\get_timezone_id.py                             23      1    96%
+fewspy\api_calls\time_series\base.py                            91      9    90%
+fewspy\api_calls\time_series\get_time_series_multi.py           67      5    93%
+fewspy\api_calls\time_series\get_time_series_single.py          27      1    96%
+fewspy\api_calls\time_series\get_time_series_statistics.py      14      0   100%
+fewspy\constants\choices.py                                     73      1    99%
+fewspy\constants\custom_types.py                                 2      0   100%
+fewspy\constants\github.py                                       7      0   100%
+fewspy\constants\paths.py                                       19      0   100%
+fewspy\constants\pi_settings.py                                 50      4    92%
+fewspy\constants\request_settings.py                            11      0   100%
+fewspy\converters\download.py                                   93      4    96%
+fewspy\converters\json_to_df_timeseries.py                     110      8    93%
+fewspy\converters\manager.py                                    27      0   100%
+fewspy\converters\xml_to_python_obj.py                         105     26    75%
+fewspy\exceptions.py                                            12      0   100%
+fewspy\permissions.py                                           68      5    93%
+fewspy\retry_session.py                                         68     12    82%
+fewspy\secrets.py                                               64     20    69%
+fewspy\utils\bug_report.py                                      60     38    37%
+fewspy\utils\conversions.py                                     50     27    46%
+fewspy\utils\date_frequency.py                                  46      5    89%
+fewspy\version.py                                                2      2     0%
+main.py                                                         27     27     0%
+setup.py                                                        16     16     0%
+--------------------------------------------------------------------------------
+TOTAL                                                         1464    261    82%
 ```
 
 ### Conda general tips
@@ -191,7 +192,7 @@ Note2: env_directory can be anywhere, it does not have to be in your code projec
 #### Start the application from any directory:
 ```
 > conda activate <env_name>
-At any location:
+# At any location:
 > (<env_name>) python <path_to_project>/main.py
 ```
 #### Test the application:

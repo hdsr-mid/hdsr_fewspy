@@ -5,11 +5,38 @@ from fewspy.tests.fixtures import fixture_api_sa_no_download_dir
 from fewspy.tests.fixtures import fixture_api_sa_with_download_dir
 
 import pandas as pd
+import pytest
 
 
 # silence flake8
 fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
 fixture_api_sa_with_download_dir = fixture_api_sa_with_download_dir
+
+
+def test_sa_single_timeseries_1_wrong(fixture_api_sa_no_download_dir):
+    api = fixture_api_sa_no_download_dir
+
+    request_data = fixtures_requests.RequestTimeSeriesMulti1
+    # multiple location_ids is not possible
+    with pytest.raises(AssertionError):
+        api.get_time_series_single(
+            location_id=request_data.location_ids,
+            parameter_id=request_data.parameter_ids,
+            start_time=request_data.start_time,
+            end_time=request_data.end_time,
+            output_choice=OutputChoices.json_response_in_memory,
+        )
+
+    request_data = fixtures_requests.RequestTimeSeriesSingle1
+    # output_choice xml_file_in_download_dir is not possible
+    with pytest.raises(AssertionError):
+        api.get_time_series_single(
+            location_id=request_data.location_ids,
+            parameter_id=request_data.parameter_ids,
+            start_time=request_data.start_time,
+            end_time=request_data.end_time,
+            output_choice=OutputChoices.xml_file_in_download_dir,
+        )
 
 
 def test_sa_single_timeseries_1_ok_json_memory(fixture_api_sa_no_download_dir):

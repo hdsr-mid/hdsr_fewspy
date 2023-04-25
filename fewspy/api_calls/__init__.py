@@ -6,6 +6,7 @@ from fewspy.api_calls.get_samples import GetSamples
 from fewspy.api_calls.get_timezone_id import GetTimeZoneId
 from fewspy.api_calls.time_series.get_time_series_multi import GetTimeSeriesMulti
 from fewspy.api_calls.time_series.get_time_series_single import GetTimeSeriesSingle
+from fewspy.api_calls.time_series.get_time_series_statistics import GetTimeSeriesStatistics
 
 
 # silence flake8 errors
@@ -14,6 +15,7 @@ GetLocations = GetLocations
 GetParameters = GetParameters
 GetQualifiers = GetQualifiers
 GetSamples = GetSamples
+GetTimeSeriesStatistics = GetTimeSeriesStatistics
 GetTimeSeriesSingle = GetTimeSeriesSingle
 GetTimeSeriesMulti = GetTimeSeriesMulti
 GetTimeZoneId = GetTimeZoneId

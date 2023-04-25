@@ -10,6 +10,16 @@ import pandas as pd
 
 
 class GetTimeSeriesSingle(GetTimeSeriesBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.validate_constructor()
+
+    def validate_constructor(self):
+        assert isinstance(self.location_ids, str) and self.location_ids and "," not in self.location_ids
+        assert isinstance(self.parameter_ids, str) and self.parameter_ids and "," not in self.parameter_ids
+        if self.qualifier_ids:
+            assert isinstance(self.qualifier_ids, str) and "," not in self.qualifier_ids
+
     @property
     def allowed_output_choices(self) -> List[str]:
         return [
@@ -17,9 +27,6 @@ class GetTimeSeriesSingle(GetTimeSeriesBase):
             OutputChoices.xml_response_in_memory,
             OutputChoices.pandas_dataframe_in_memory,
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def run(self) -> Union[List[ResponseType], pd.DataFrame]:
         date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(

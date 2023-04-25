@@ -42,13 +42,18 @@ if __name__ == "__main__":
 
 # Done: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
 
-# TODO: test other get requests than get_timeseries
+# DONE: test other get requests than get_timeseries
 
 # TODO: create documentation
 
 # DONE: enable users to override Api.pi_settings
 
 # TODO: conversion client - server timezone
+
+# DONE: wat als iemand alleen maar statistieken wil van tijdseries?
+
+# TODO: create pypi package (delete main.py etc)
+
 
 # TODO: Ciska wel interesse wel in:
 #  --------------------------------

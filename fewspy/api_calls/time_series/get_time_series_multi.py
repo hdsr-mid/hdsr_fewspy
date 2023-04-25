@@ -15,6 +15,23 @@ logger = logging.getLogger(__name__)
 class GetTimeSeriesMulti(GetTimeSeriesBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.validate_constructor()
+
+    def validate_constructor(self):
+        assert isinstance(self.location_ids, list) and self.location_ids
+        assert [isinstance(x, str) for x in self.location_ids]
+
+        assert isinstance(self.parameter_ids, list) and self.parameter_ids
+        assert [isinstance(x, str) for x in self.parameter_ids]
+
+        if self.qualifier_ids:
+            assert isinstance(self.qualifier_ids, list) and self.qualifier_ids
+            assert [isinstance(x, str) for x in self.qualifier_ids]
+
+        any_multi = any([len(x) > 1 for x in (self.location_ids, self.parameter_ids, self.qualifier_ids) if x])
+        assert (
+            any_multi
+        ), "Please specify >1 location_ids and/or parameter_ids and/or qualifier_ids. Or use get_time_series_single"
 
     @property
     def allowed_output_choices(self) -> List[str]:
@@ -59,8 +76,6 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
             'endTime': '2023-01-01T00:00:00Z',
             'locationIds': ['KW215712', 'KW322613'],
             'parameterIds': ['Q.B.y', 'DD.y'],
-            'onlyHeaders': False,
-            'showStatistics': False,
             'documentVersion': 1.25,
             'documentFormat': 'PI_JSON',
             'filterId': 'INTERAL-API'

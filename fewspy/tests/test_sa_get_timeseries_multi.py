@@ -48,8 +48,7 @@ def test_sa_multi_timeseries_wrong(fixture_api_sa_with_download_dir):
             output_choice=OutputChoices.json_file_in_download_dir,
         )
     except AssertionError as err:
-        err_msg = f"start_time {request_data.end_time} must be earlier than end_time {request_data.start_time}"
-        assert err.args[0] == err_msg
+        assert err.args[0] == f"start_time {request_data.end_time} must be before end_time {request_data.start_time}"
 
     # OutputChoices json_response_in_memory is invalid for get_time_series_multi()
     try:

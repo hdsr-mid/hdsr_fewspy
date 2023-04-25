@@ -170,6 +170,61 @@ class Api:
         result = api_call.run()
         return result
 
+    def get_time_series_statistics(
+        self,
+        output_choice: str,
+        #
+        start_time: datetime,
+        end_time: datetime,
+        location_id: str,
+        parameter_id: str,
+        qualifier_id: str = None,
+        thinning: int = None,
+        omit_empty_timeseries: bool = True,
+    ):
+        """
+        Example response PI_JSON =
+            {'timeSeries': [{'header': {'endDate': {'date': '2012-01-02',
+                                            'time': '00:00:00'},
+                                'firstValueTime': {'date': '2012-01-01',
+                                                   'time': '00:15:00'},
+                                'lastValueTime': {'date': '2012-01-02',
+                                                  'time': '00:00:00'},
+                                'lat': '52.08992726570302',
+                                'locationId': 'OW433001',
+                                'lon': '4.9547458967486095',
+                                'maxValue': '-0.28',
+                                'minValue': '-0.44',
+                                'missVal': '-999.0',
+                                'moduleInstanceId': 'WerkFilter',
+                                'parameterId': 'H.G.0',
+                                'startDate': {'date': '2012-01-01',
+                                              'time': '00:00:00'},
+                                'stationName': 'HAANWIJKERSLUIS_4330-w_Leidsche '
+                                               'Rijn',
+                                'timeStep': {'unit': 'nonequidistant'},
+                                'type': 'instantaneous',
+                                'units': 'mNAP',
+                                'valueCount': '102',
+                                'x': '125362.0',
+                                'y': '455829.0',
+                                'z': '-0.18'}}],
+        """
+        api_call = api_calls.GetTimeSeriesStatistics(
+            start_time=start_time,
+            end_time=end_time,
+            location_ids=location_id,
+            parameter_ids=parameter_id,
+            qualifier_ids=qualifier_id,
+            thinning=thinning,
+            omit_empty_timeseries=omit_empty_timeseries,
+            #
+            output_choice=output_choice,
+            retry_backoff_session=self.retry_backoff_session,
+        )
+        result = api_call.run()
+        return result
+
     # @create_bug_report_when_error
     def get_time_series_single(
         self,
@@ -181,19 +236,11 @@ class Api:
         parameter_id: str,
         qualifier_id: str = None,
         thinning: int = None,
-        only_headers: bool = False,
-        show_statistics: bool = False,
         omit_empty_timeseries: bool = True,
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
     ) -> Union[List[ResponseType], List[pd.DataFrame]]:
-        assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
-        assert isinstance(location_id, str) and location_id and "," not in location_id
-        assert isinstance(parameter_id, str) and parameter_id and "," not in parameter_id
-        if qualifier_id:
-            assert isinstance(qualifier_id, str) and "," not in qualifier_id
-
         api_call = api_calls.GetTimeSeriesSingle(
             start_time=start_time,
             end_time=end_time,
@@ -201,8 +248,6 @@ class Api:
             parameter_ids=parameter_id,
             qualifier_ids=qualifier_id,
             thinning=thinning,
-            only_headers=only_headers,
-            show_statistics=show_statistics,
             omit_empty_timeseries=omit_empty_timeseries,
             drop_missing_values=drop_missing_values,
             flag_threshold=flag_threshold,
@@ -224,25 +269,11 @@ class Api:
         parameter_ids: List[str] = None,
         qualifier_ids: List[str] = None,
         thinning: int = None,
-        only_headers: bool = False,
-        show_statistics: bool = False,
         omit_empty_timeseries: bool = True,
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
     ) -> List[Path]:
-        assert start_time < end_time, f"start_time {start_time} must be earlier than end_time {end_time}"
-
-        any_multi = False
-        msg = "location_ids and/or parameter_ids and/or qualifier_ids"
-        for x in [location_ids, parameter_ids, qualifier_ids]:
-            if not x:
-                continue
-            assert isinstance(x, list), f"{msg} must be List[str]"
-            if len(x) > 1:
-                any_multi = True
-        assert any_multi, f"Please specify >1 {msg}. Or use get_time_series_single"
-
         api_call = api_calls.GetTimeSeriesMulti(
             start_time=start_time,
             end_time=end_time,
@@ -250,8 +281,6 @@ class Api:
             parameter_ids=parameter_ids,
             qualifier_ids=qualifier_ids,
             thinning=thinning,
-            only_headers=only_headers,
-            show_statistics=show_statistics,
             omit_empty_timeseries=omit_empty_timeseries,
             drop_missing_values=drop_missing_values,
             flag_threshold=flag_threshold,

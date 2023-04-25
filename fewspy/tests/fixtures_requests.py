@@ -89,7 +89,7 @@ class RequestTimeSeriesMulti1(RequestTimeSeriesBase):
     """Multi since we use 2 location_ids."""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
-    # TODO
+
     location_ids = ["OW433001", "OW433002"]
     parameter_ids = ["H.G.0"]
     start_time = datetime(2012, 1, 1)

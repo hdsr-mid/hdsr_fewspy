@@ -10,6 +10,7 @@ from fewspy.utils.date_frequency import DateFrequencyBuilder
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import logging
 import pandas as pd
@@ -23,12 +24,10 @@ class GetTimeSeriesBase(GetRequest):
         self,
         start_time: datetime,
         end_time: datetime,
-        location_ids: str,
-        parameter_ids: str,
-        qualifier_ids: str = None,
+        location_ids: Union[List[str], str],
+        parameter_ids: Union[List[str], str],
+        qualifier_ids: Union[List[str], str] = None,
         thinning: int = None,
-        only_headers: bool = False,
-        show_statistics: bool = False,
         omit_empty_timeseries: bool = True,
         #
         drop_missing_values: bool = False,
@@ -43,11 +42,14 @@ class GetTimeSeriesBase(GetRequest):
         self.parameter_ids = parameter_ids
         self.qualifier_ids = qualifier_ids
         self.thinning = thinning
-        self.only_headers = only_headers
-        self.show_statistics = show_statistics
         self.omit_empty_timeseries = omit_empty_timeseries
         self.drop_missing_values = drop_missing_values
         self.flag_threshold = flag_threshold
+        #
+        self.__validate_constructor_base()
+
+    def __validate_constructor_base(self):
+        assert self.start_time < self.end_time, f"start_time {self.start_time} must be before end_time {self.end_time}"
 
     @property
     def url_post_fix(self):
@@ -82,7 +84,7 @@ class GetTimeSeriesBase(GetRequest):
         """Download timeseries in little chunks by updating parameters 'startTime' and 'endTime' every loop.
 
         Before each download of actual timeseries we first check nr_timestamps_in_response (a small request with
-        showStatistics=True, and showStatistics=True). If that number if outside a certain bandwith, then we update
+        showHeaders=True, and showStatistics=True). If that number if outside a certain bandwith, then we update
         (smaller or larger windows) parameters 'startTime' and 'endTime' again.
         """
         responses = []
@@ -90,7 +92,7 @@ class GetTimeSeriesBase(GetRequest):
             # update start and end in request params
             request_params["startTime"] = datetime_to_fews_str(data_range_start)
             request_params["endTime"] = datetime_to_fews_str(data_range_end)
-            nr_timestamps_in_response = self._get_nr_timestamps(params=request_params)
+            nr_timestamps_in_response = self._get_nr_timestamps(request_params=request_params)
             logger.debug(f"nr_timestamps_in_response={nr_timestamps_in_response}")
             new_date_range_freq = DateFrequencyBuilder.optional_change_date_range_freq(
                 nr_timestamps=nr_timestamps_in_response,
@@ -130,10 +132,16 @@ class GetTimeSeriesBase(GetRequest):
                 responses.append(response)
         return responses
 
-    def _get_nr_timestamps(self, params: Dict) -> int:
-        params["onlyHeaders"] = True
-        params["showStatistics"] = True
-        response = self.retry_backoff_session.get(url=self.url, params=params, verify=self.pi_settings.ssl_verify)
+    def _get_statistics(self, request_params: Dict) -> ResponseType:
+        request_params["onlyHeaders"] = True
+        request_params["showStatistics"] = True
+        response = self.retry_backoff_session.get(
+            url=self.url, params=request_params, verify=self.pi_settings.ssl_verify
+        )
+        return response
+
+    def _get_nr_timestamps(self, request_params: Dict) -> int:
+        response = self._get_statistics(request_params=request_params)
         if not response.ok:
             if response.text == "No timeSeries found":
                 return 0
@@ -147,7 +155,7 @@ class GetTimeSeriesBase(GetRequest):
                 return nr_timestamps
             # error since too many timeseries
             msg = "Found multiple timeseries in _get_nr_timestamps"
-            if "moduleInstanceIds" not in params:
+            if "moduleInstanceIds" not in request_params:
                 msg += (
                     f"Please specify 1 moduleInstanceIds in pi_settings instead of "
                     f"'{self.pi_settings.module_instance_ids}'"
