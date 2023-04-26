@@ -60,11 +60,7 @@ def test_sa_multi_timeseries_wrong(fixture_api_sa_with_download_dir):
             output_choice=OutputChoices.json_response_in_memory,
         )
     except Exception as err:
-        msg = (
-            "invalid output_choice 'json_response_in_memory'. GetTimeSeriesMulti has valid_output_choices "
-            "['xml_file_in_download_dir', 'csv_file_in_download_dir', 'json_file_in_download_dir']. See earlier "
-            "logging why we use GetTimeSeriesMulti."
-        )
+        msg = "invalid output_choice 'json_response_in_memory'. GetTimeSeriesMulti has valid_output_choices ['xml_file_in_download_dir', 'json_file_in_download_dir', 'csv_file_in_download_dir']. See earlier logging why we use GetTimeSeriesMulti."
         assert err.args[0] == msg
 
 
