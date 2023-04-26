@@ -17,18 +17,7 @@ Note that this project only works on HDSR's internal network, so within the VDI.
 two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds authentication, authorisation, and 
 throttling. The latter is to minimize request load on HDSR's internal FEWS instances. 
 
-Hdsr_fewspy API support 9 different API calls:
-1. get_parameters:
-2. get_filters:
-3. get_locations:
-4. get_qualifiers: 
-5. get_timezone_id: 
-6. get_samples: 
-7. get_time_series_single: 
-8. get_time_series_multi:
-9: get_time_series_statistics:
-
-An API call can return 6 different output formats:   
+Hdsr_fewspy API support 9 different API calls that can return 6 different output formats:   
 1. xml_file_in_download_dir: The xml response is written to a .xml file in your download_dir
 2. json_file_in_download_dir: The json response is written to a .json file in your download_dir
 3. csv_file_in_download_dir: The json response is converted to csv and written to a .csv file in your download_dir
@@ -36,19 +25,20 @@ An API call can return 6 different output formats:
 5. json_response_in_memory: the json response is returned memory meaning you get a list with one or more responses        
 6. pandas_dataframe_in_memory: the json response is converted to a pandas dataframe meaning you get one dataframe 
 
-Each API call supports a subset of output formats:
+API call                      | Supported outputs  | Notes 
+------------------------------|--------------------|--------
+get_parameters                | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
+get_filters                   | 4, 5               | Returns 1 object (xml/json response)  
+get_locations                 | 4, 5               | Returns 1 object (xml/json response)              
+get_qualifiers                | 4, 5               | Returns 1 object (xml/json response)
+get_timezone_id               | 4, 5               | Returns 1 object (xml/json response)
+get_samples                   | 1, 2               | Not implemented yet
+get_time_series_single        | 4, 5, 6            | Returns a 1 dataframe or a list with >=1 xml/json responses or     
+get_time_series_multi         | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
+get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json response) 
 
-API call| Supported outputs | Notes 
---------|-------------------|--------
-1       | 4, 5, 6           | Not implemented yet
-2       | 4, 5              | Not implemented yet  
-3       | 4, 5              | Not implemented yet              
-4       | 4, 5              | Not implemented yet
-5       | 4, 5              | Not implemented yet
-6       | 1, 2              | Not implemented yet
-7       | 4, 5, 6           | One large call can results in multiple small calls. Output 4 and 5 return a list with >=1 responses. Output 6 aggregates all responses and returns one dataframe.    
-8       | 1, 2, 3           | One unique location_parameter_qualifier combination results in >=1 API calls = >=1 responses. For output 1 and 2 each response results in 1 file. Output 3 creates 1 csv per unique combination.
-9       | 4, 5              | Not implemented yet 
+- One large call can result in multiple small calls. Output 4 and 5 return a list with >=1 responses. Output 6 aggregates all responses and returns one dataframe.
+- One unique location_parameter_qualifier combination results in >=1 API calls = >=1 responses. For output 1 and 2 each response results in 1 file. Output 3 creates 1 csv per unique combination.
 
 ### Usage
 
@@ -61,20 +51,34 @@ HDSR_FEWSPY_TOKEN=<contact renier.kramer.hdsr.nl to get HDSR_FEWSPY_TOKEN>
 ```
 2. Only once per project: install hdsr_fewspy dependency
 ```
-pip install hdsr_fewspy 
-or 
-conda install hdsr_fewspy -c hdsr-mid
+pip install hdsr-fewspy (or 'conda install hdsr-fewspy -channel hdsr-mid')
 ```
 3. Run imports and instantiate hdsr_fewspy API 
 ```
+from hdsr_fewspy imoprt Api
+from hdsr_fewspy import PiSettings
+
 # instantiate API using default settings:
-api = Api()
+api = Api()  
 
 # or instantiate API using custom settings:
-custom_
-api 
-```
+custom_settings = PiSettings(
+   settings_name="blablabla",            
+   document_version=1.25",
+   ssl_verify=True,
+   domain="localhost",
+   port="8080",
+   service="FewsWebServices",
+   filter_id="INTERNAL-API",
+   module_instance_ids="WerkFilter",
+   time_zone=0.0,
+)
+api = Api(pi_settings=custom_settings)
 
+# or if you want download responses (xml, json, csv), then you need to specify a download_dir.
+# The files will be downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/  
+api = Api(output_directory_root=<path_to_your_directory>)
+```
 
 ###### Examples different API calls
 1. Example get_time_series_single
@@ -135,44 +139,44 @@ TODO
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (25 april 2023)
+### Test Coverage (26 april 2023)
 ```
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
-Name                                                         Stmts   Miss  Cover
---------------------------------------------------------------------------------
-fewspy\__init__.py                                               4      0   100%
-fewspy\api.py                                                   98     13    87%
-fewspy\api_calls\__init__.py                                    18      0   100%
-fewspy\api_calls\base.py                                       100     12    88%
-fewspy\api_calls\get_filters.py                                 25      0   100%
-fewspy\api_calls\get_locations.py                               44      2    95%
-fewspy\api_calls\get_parameters.py                              40      1    98%
-fewspy\api_calls\get_qualifiers.py                              36     12    67%
-fewspy\api_calls\get_samples.py                                 26      8    69%
-fewspy\api_calls\get_timezone_id.py                             26      1    96%
-fewspy\api_calls\time_series\base.py                            91      6    93%
-fewspy\api_calls\time_series\get_time_series_multi.py           67      5    93%
-fewspy\api_calls\time_series\get_time_series_single.py          28      1    96%
-fewspy\api_calls\time_series\get_time_series_statistics.py      12      0   100%
-fewspy\constants\choices.py                                     89      3    97%
-fewspy\constants\custom_types.py                                 2      0   100%
-fewspy\constants\github.py                                       7      0   100%
-fewspy\constants\paths.py                                       12      0   100%
-fewspy\constants\pi_settings.py                                 50      4    92%
-fewspy\constants\request_settings.py                            11      0   100%
-fewspy\converters\download.py                                   93      4    96%
-fewspy\converters\json_to_df_timeseries.py                     112      8    93%
-fewspy\converters\manager.py                                    27      0   100%
-fewspy\converters\xml_to_python_obj.py                         105     26    75%
-fewspy\exceptions.py                                            12      0   100%
-fewspy\permissions.py                                           67      5    93%
-fewspy\retry_session.py                                         68     12    82%
-fewspy\secrets.py                                               64     20    69%
-fewspy\utils\conversions.py                                     45     17    62%
-fewspy\utils\date_frequency.py                                  46      5    89%
-setup.py                                                        10     10     0%
---------------------------------------------------------------------------------
-TOTAL                                                         1435    175    88%
+Name                                                              Stmts   Miss  Cover
+-------------------------------------------------------------------------------------
+hdsr_fewspy\__init__.py                                               4      0   100%
+hdsr_fewspy\api.py                                                   98     13    87%
+hdsr_fewspy\api_calls\__init__.py                                    18      0   100%
+hdsr_fewspy\api_calls\base.py                                       100     12    88%
+hdsr_fewspy\api_calls\get_filters.py                                 25      0   100%
+hdsr_fewspy\api_calls\get_locations.py                               44      2    95%
+hdsr_fewspy\api_calls\get_parameters.py                              40      1    98%
+hdsr_fewspy\api_calls\get_qualifiers.py                              36     12    67%
+hdsr_fewspy\api_calls\get_samples.py                                 26      8    69%
+hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
+hdsr_fewspy\api_calls\time_series\base.py                            91      6    93%
+hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           67      5    93%
+hdsr_fewspy\api_calls\time_series\get_time_series_single.py          28      1    96%
+hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      12      0   100%
+hdsr_fewspy\constants\choices.py                                     89      3    97%
+hdsr_fewspy\constants\custom_types.py                                 2      0   100%
+hdsr_fewspy\constants\github.py                                       8      0   100%
+hdsr_fewspy\constants\paths.py                                       11      0   100%
+hdsr_fewspy\constants\pi_settings.py                                 73      7    90%
+hdsr_fewspy\constants\request_settings.py                            11      0   100%
+hdsr_fewspy\converters\download.py                                   93      4    96%
+hdsr_fewspy\converters\json_to_df_timeseries.py                     112      8    93%
+hdsr_fewspy\converters\manager.py                                    27      0   100%
+hdsr_fewspy\converters\utils.py                                      45     17    62%
+hdsr_fewspy\converters\xml_to_python_obj.py                         105     26    75%
+hdsr_fewspy\date_frequency.py                                        46      5    89%
+hdsr_fewspy\exceptions.py                                            12      0   100%
+hdsr_fewspy\permissions.py                                           67      5    93%
+hdsr_fewspy\retry_session.py                                         68     12    82%
+hdsr_fewspy\secrets.py                                               64     20    69%
+setup.py                                                             10     10     0%
+-------------------------------------------------------------------------------------
+TOTAL                                                              1458    178    88%
 ```
 
 ### Conda general tips

@@ -8,7 +8,7 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-version = "1.0"
+version = "1.1"
 
 install_requires = [
     "requests",
@@ -24,17 +24,21 @@ tests_require = ["pytest", "pytest-cov"]
 
 setup(
     name="hdsr_fewspy",
-    packages=find_packages(include=["fewspy", "fewspy.*"]),
+    packages=find_packages(include=["hdsr_fewspy", "hdsr_fewspy.*"]),
     version=version,
     license="MIT",
-    description="An interface for interacting with hdsr github repos",
+    description="A python project to get data (locations, timeseries, etc.) from a HDSR FEWS PiWebService",
     long_description_content_type="text/markdown",
     long_description=long_description,
     author="Renier Kramer",
     author_email="renier.kramer@hdsr.nl",
-    url="https://github.com/hdsr-mid/hdsr_pygithub",
-    download_url=f"https://github.com/hdsr-mid/hdsr_pygithub/archive/v{version}.tar.gz",
-    keywords=["interface", "interaction", "github", "files", "hdsr"],
+    url="https://github.com/hdsr-mid/hdsr_fewspy",
+    download_url=f"https://github.com/hdsr-mid/hdsr_fewspy/archive/v{version}.tar.gz",
+    keywords=[
+        "hdsr",
+        "fews",
+        "api",
+    ],
     zip_safe=False,
     install_requires=install_requires,
     tests_require=tests_require,
