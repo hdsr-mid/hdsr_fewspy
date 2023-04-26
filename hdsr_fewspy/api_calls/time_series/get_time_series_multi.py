@@ -33,12 +33,17 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
             any_multi
         ), "Please specify >1 location_ids and/or parameter_ids and/or qualifier_ids. Or use get_time_series_single"
 
+        if self.output_choice != OutputChoices.csv_file_in_download_dir:
+            logger.warning(f"flag_threshold is not used for output_choice {self.output_choice}")
+            if self.drop_missing_values == True:  # noqa
+                logger.warning(f"drop_missing_values is not used for output_choice {self.output_choice}")
+
     @property
     def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.xml_file_in_download_dir,
-            OutputChoices.csv_file_in_download_dir,
             OutputChoices.json_file_in_download_dir,
+            OutputChoices.csv_file_in_download_dir,
         ]
 
     def run(self) -> List[Path]:

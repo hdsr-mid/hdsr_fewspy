@@ -1,8 +1,10 @@
 from hdsr_fewspy.api_calls.base import GetRequest
 from hdsr_fewspy.constants.choices import ApiParameters
 from hdsr_fewspy.constants.choices import OutputChoices
+from hdsr_fewspy.constants.custom_types import ResponseType
 from typing import List
 from typing import Tuple
+from typing import Union
 from xml.etree import ElementTree
 
 import logging
@@ -26,11 +28,7 @@ class GetQualifiers(GetRequest):
 
     @property
     def allowed_output_choices(self) -> List[str]:
-        return [
-            OutputChoices.json_response_in_memory,
-            OutputChoices.xml_response_in_memory,
-            OutputChoices.pandas_dataframe_in_memory,
-        ]
+        return [OutputChoices.xml_response_in_memory]
 
     @property
     def allowed_request_args(self) -> List[str]:
@@ -40,23 +38,25 @@ class GetQualifiers(GetRequest):
     def required_request_args(self) -> List[str]:
         return [ApiParameters.document_format, ApiParameters.document_version]
 
-    def run(self) -> pd.DataFrame:
-        raise NotImplementedError
-        # response = self.retry_backoff_session.get(
-        #     url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
-        # )
-        # # parse the response
-        # if response.status_code == 200:
-        #     tree = ElementTree.fromstring(response.content)
-        #     qualifiers_tree = [i for i in tree.iter(tag=f"{NS}qualifier")]
-        #     qualifiers_tuple = (self._element_to_tuple(i) for i in qualifiers_tree)
-        #     df = pd.DataFrame(qualifiers_tuple, columns=COLUMNS)
-        # else:
-        #     logger.error(f"FEWS Server responds {response.text}")
-        #     df = pd.DataFrame(columns=COLUMNS)
-        # df.set_index("id", inplace=True)
-        #
-        # return df
+    def run(self) -> Union[ResponseType, pd.DataFrame]:
+        response = self.retry_backoff_session.get(
+            url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
+        )
+        if self.output_choice == OutputChoices.xml_response_in_memory:
+            return response
+
+        assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error"
+        # parse the response to dataframe
+        if response.status_code == 200:
+            tree = ElementTree.fromstring(response.content)
+            qualifiers_tree = [i for i in tree.iter(tag=f"{NS}qualifier")]
+            qualifiers_tuple = (self._element_to_tuple(i) for i in qualifiers_tree)
+            df = pd.DataFrame(qualifiers_tuple, columns=COLUMNS)
+        else:
+            logger.error(f"FEWS Server responds {response.text}")
+            df = pd.DataFrame(columns=COLUMNS)
+        df.set_index("id", inplace=True)
+        return df
 
     @classmethod
     def _element_to_tuple(cls, qualifier_element: ElementTree.Element) -> Tuple:

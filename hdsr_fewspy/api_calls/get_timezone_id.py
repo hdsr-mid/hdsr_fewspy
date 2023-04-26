@@ -37,7 +37,7 @@ class GetTimeZoneId(GetRequest):
         response = self.retry_backoff_session.get(
             url=self.url, params=self.filtered_fews_parameters, verify=self.pi_settings.ssl_verify
         )
-        # parse the response
+        # parse the response to dataframe
         if response.status_code != 200:
             logger.error(f"FEWS Server responds {response.text}")
         return response

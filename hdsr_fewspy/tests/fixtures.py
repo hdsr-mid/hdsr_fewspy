@@ -23,6 +23,7 @@ def fixture_api_sa_with_download_dir(tmpdir_factory):
     output_dir_path = Path(output_dir)
     assert output_dir_path.is_dir()
     api = Api(pi_settings=pi_settings_sa, output_directory_root=output_dir_path)
+    assert isinstance(api.output_dir, Path)
     assert api.pi_settings.base_url == pi_settings_sa.base_url
     assert api.pi_settings.ssl_verify == True  # noqa
     assert api.pi_settings.settings_name == "standalone"

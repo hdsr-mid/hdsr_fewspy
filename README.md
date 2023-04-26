@@ -1,5 +1,5 @@
 ### Context
-* Created: February 2023
+* Created: April 2023
 * Author: Renier Kramer, renier.kramer@hdsr.nl
 * Python version: >3.7
 
@@ -9,7 +9,6 @@
 [Deltares FEWS PI]: https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
 [issues page]: https://github.com/hdsr-mid/hdsr_fewspy/issues
 [github personal token]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
-
 
 ### Description
 A python project to request data (locations, timeseries, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
@@ -30,15 +29,12 @@ API call                      | Supported outputs  | Notes
 get_parameters                | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
 get_filters                   | 4, 5               | Returns 1 object (xml/json response)  
 get_locations                 | 4, 5               | Returns 1 object (xml/json response)              
-get_qualifiers                | 4, 5               | Returns 1 object (xml/json response)
+get_qualifiers                | 4, 6               | Returns 1 object (xml response or dataframe)
 get_timezone_id               | 4, 5               | Returns 1 object (xml/json response)
-get_samples                   | 1, 2               | Not implemented yet
+get_samples                   | TODO               | Not implemented yet
 get_time_series_single        | 4, 5, 6            | Returns a 1 dataframe or a list with >=1 xml/json responses or     
 get_time_series_multi         | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
 get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json response) 
-
-- One large call can result in multiple small calls. Output 4 and 5 return a list with >=1 responses. Output 6 aggregates all responses and returns one dataframe.
-- One unique location_parameter_qualifier combination results in >=1 API calls = >=1 responses. For output 1 and 2 each response results in 1 file. Output 3 creates 1 csv per unique combination.
 
 ### Usage
 
@@ -49,21 +45,25 @@ GITHUB_PERSONAL_ACCESS_TOKEN=<see topic 'GITHUB_PERSONAL_ACCESS_TOKEN' below>
 HDSR_FEWSPY_EMAIL=<your_hdsr_email>
 HDSR_FEWSPY_TOKEN=<contact renier.kramer.hdsr.nl to get HDSR_FEWSPY_TOKEN>
 ```
-2. Only once per project: install hdsr_fewspy dependency
+2. Only once per project: install hdsr_fewspy dependency:
 ```
 pip install hdsr-fewspy (or 'conda install hdsr-fewspy -channel hdsr-mid')
 ```
-3. Run imports and instantiate hdsr_fewspy API 
+3. Run imports and instantiate a hdsr_fewspy API: 
 ```
-from hdsr_fewspy imoprt Api
-from hdsr_fewspy import PiSettings
+from datetime import datetime
+from hdsr_fewspy import Api, PiSettings, OutputChoices
+import geopandas as gpd  # comes with hdsr_fewspy
+import pandas as pd  # comes with hdsr_fewspy
 
-# instantiate API using default settings:
+# option 1: 
+# Instantiate API using default settings:
 api = Api()  
 
-# or instantiate API using custom settings:
+# option 2
+# Instantiate API using custom settings:
 custom_settings = PiSettings(
-   settings_name="blablabla",            
+   settings_name="does not matter blabla",            
    document_version=1.25",
    ssl_verify=True,
    domain="localhost",
@@ -75,15 +75,80 @@ custom_settings = PiSettings(
 )
 api = Api(pi_settings=custom_settings)
 
-# or if you want download responses (xml, json, csv), then you need to specify a download_dir.
-# The files will be downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/  
-api = Api(output_directory_root=<path_to_your_directory>)
+# option 3.
+# If you want to download responses to file, then you need to specify a output_directory_root.
+# Note: the files will be downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/
+api = Api(output_directory_root=<path_to_a_dir>)
 ```
 
-###### Examples different API calls
-1. Example get_time_series_single
+###### Examples 9 different API calls (using api option 3 from above)
+1. get_parameters
 ```
-api = Api()
+df = api.get_parameters(output_choice=OutputChoices.pandas_dataframe_in_memory)
+
+# id       name                                parameter_type unit display_unit uses_datum parameter_group  
+# ---------------------------------------------------------------------------------------------------------                                                                                                                                 
+# BG.b.0   Oppervlaktebegroeiing [%] - noneq   instantaneous  %    %            False      Begroeiingsgraad   
+# BG.fd.0  Flab en draadwieren [%] - noneq     instantaneous  %    %            False      Begroeiingsgraad   
+# BG.ka.0  Algen-/kroosbedekking [%] - noneq   instantaneous  %    %            False      Begroeiingsgraad  
+# ...etc...
+```
+2. get_filters
+```
+response = api.get_filters(output_choice=OutputChoices.json_response_in_memory)
+response.json() 
+
+# {
+# "version": "1.25",
+# "filters": [
+#     {
+#         "id": "INTERNAL-API",
+#         "name": "INTERNAL-API",
+#         "child": [{"id": "INTERNAL-API.RUWMET", "name": "Ruwe metingen (punt)"
+# ...etc...
+```
+3. get_locations
+```
+gdf = get_locations(output_choice=OutputChoices.pandas_dataframe_in_memory, show_attributes=True)
+
+# location_id description          short_name          lat               lon                x        y        z   parent_location_id geometry                      attributes
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                                  
+# beg_062     BEGROEIINGSMEETPUNT  beg_062-LR_13_xruim 52.58907339700342 5.1718081593021505 140251.0 460118.0 0.0 NaN                POINT (140251.000 460118.000) [{'name': 'LOC_NAME', 'type': 'text', 'id': 'LOC_NAME', 'value': 'beg_062 ...etc...]
+# beg_084     BEGROEIINGSMEETPUNT  beg_084-LR_17_xruim 52.06261306007392 5.12600382893812   137088.0 452734.0 0.0 NaN                POINT (137088.000 452734.000) [{'name': 'LOC_NAME', 'type': 'text', 'id': 'LOC_NAME', 'value': 'beg_084 ...etc...]
+# beg_102     BEGROEIINGSMEETPUNT  beg_102-KR_9_xruim  52.07249358678008 5.215531005948442  143230.0 453815.0 0.0 NaN                POINT (143230.000 453815.000) [{'name': 'LOC_NAME', 'type': 'text', 'id': 'LOC_NAME', 'value': 'beg_102 ...etc...]
+# ...etc...
+```
+4. get_qualifiers
+```
+df = fixture_api_sa_no_download_dir.get_qualifiers(output_choice=OutputChoices.pandas_dataframe_in_memory)
+    
+# id      name               group_id
+# -----------------------------------
+# ergkrap erg krap (max 10%) None
+# krap    krap (max 30%)     None
+# normaal normaal (max 50%)  None
+# ruim    ruim (max 70%)     None
+```
+
+5. get_timezone_id
+```
+response = api.get_timezone_id(output_choice=OutputChoices.json_response_in_memory)
+
+# verify response
+assert response.text == "GMT"
+assert TimeZoneChoices.get_tz_float(value=response.text) == TimeZoneChoices.gmt == 0.0
+```
+6. get_samples
+```
+# Not yet implemented
+```
+7. get_time_series_single
+```
+# Single means: use max 1 location_id and/or parameter_id and/or qualifier_id.
+# One large call can result in multiple small calls and therefore multiple responses.
+
+# If your output_choice is json/xml in memory, then you get a list with >=1 responses. 
+# Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
 
 responses = api.get_time_series_single(
     location_id = "OW433001",
@@ -92,13 +157,74 @@ responses = api.get_time_series_single(
     end_time = datetime(year=2012, month=1, day=2),
     output_choice = OutputChoices.xml_response_in_memory,
 )
+
+# <?xml version="1.0" encoding="UTF-8"?>
+# <TimeSeries xmlns="http://www.wldelft.nl/fews/PI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wldelft.nl/fews/PI http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd" version="1.25" xmlns:fs="http://www.wldelft.nl/fews/fs">
+#     <timeZone>0.0</timeZone>
+#     <series>
+#         <header>
+#             <type>instantaneous</type>
+#             <moduleInstanceId>WerkFilter</moduleInstanceId>
+#             <locationId>OW433001</locationId>
+#             <parameterId>H.G.0</parameterId>
+#             <timeStep unit="nonequidistant"/>
+#             <startDate date="2012-01-01" time="00:00:00"/>
+#             <endDate date="2012-01-02" time="00:00:00"/>
+#             <missVal>-999.0</missVal>
+#             <stationName>HAANWIJKERSLUIS_4330-w_Leidsche Rijn</stationName>
+#             <lat>52.08992726570302 asdf renier</lat>
+#             <lon>4.9547458967486095</lon>
+#             <x>125362.0</x>
+#             <y>455829.0</y>
+#             <z>-0.18</z>
+#             <units>mNAP</units>
+#         </header>
+#         <event date="2012-01-01" time="00:15:00" value="-0.35" flag="0" fs:PRIMAIR="OK" fs:VISUEEL="OK"/>
+#         <event date="2012-01-01" time="00:45:00" value="-0.36" flag="0" fs:PRIMAIR="OK" fs:VISUEEL="OK"/>
+#         <event date="2012-01-01" time="02:30:00" value="-0.37" flag="0" fs:PRIMAIR="OK" fs:VISUEEL="OK"/>
+#         <event date="2012-01-01" time="02:31:17" value="-0.38" flag="0" fs:PRIMAIR="OK" fs:VISUEEL="OK"/>
+#         <event date="2012-01-01" time="03:15:00" value="-0.39" flag="0" fs:PRIMAIR="OK" fs:VISUEEL="OK"/>
+#         ...etc..
+
+# If your output_choice is dataframe, then all responses are aggregated into one dataframe. 
+# Arguments 'flag_threshold' and 'drop_missing_values' do have effect.
+
+df = api.get_time_series_single(
+    location_id = "OW433001",
+    parameter_id = "H.G.0",
+    start_time = datetime(year=2012, month=1, day=1),
+    end_time = datetime(year=2012, month=1, day=2),
+    drop_missing_values = True,
+    flag_threshold = 6,  # all flags 6 and higher are removed from dataframe
+    output_choice = OutputChoices.pandas_dataframe_in_memory,
+)
 ```
-2. Example get_time_series_multi
+8. get_time_series_multi 
 ```
-# we need a download dir for this!
-output_directory_root='xxx'
-api = Api(output_directory_root=output_directory_root)
-list_of_donwloaded_file_paths = api.get_time_series_multi(
+# Multi means: use >=1 location_id and/or parameter_id and/or qualifier_id.
+# The api call below results in 4 unique location_parameter_qualifier comibinations: OW433001_hg0, OW433001_hgd, OW433002_hg0, OW433002_hgd
+# Per unique combination we do >=1 requests which therefore results in >=1 responses.
+
+# If output_choice is xml/json to file, then each response results in a file. 
+# Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
+
+list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
+    location_ids = ["OW433001", "OW433002"]
+    parameter_ids = ["H.G.0", "H.G.d"],
+    start_time = datetime(year=2012, month=1, day=1),
+    end_time = datetime(year=2012, month=1, day=2),
+    output_choice = OutputChoices.xml_file_in_download_dir,
+)
+
+print(list_with_donwloaded_csv_filepaths)
+# <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z_0.json
+# <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_0.json
+
+
+# If output_choice is csv to file, then all responses per unique combi are grouped in one csv file. 
+# Arguments 'flag_threshold' and 'drop_missing_values' do have effect.
+  
+list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
     location_ids = ["OW433001", "OW433002"]
     parameter_ids = ["H.G.0", "H.G.d"],
     start_time = datetime(year=2012, month=1, day=1),
@@ -106,11 +232,50 @@ list_of_donwloaded_file_paths = api.get_time_series_multi(
     output_choice = OutputChoices.csv_file_in_download_dir,
 )
 
-# all these donwloaded_file_path are in a sub directory the root dir you used:
-print(api.output_dir)
-# results in "xxx/hdsr_fewspy_20230419_143834"
+print(list_with_donwloaded_csv_filepaths) 
+# <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z.csv
+# <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z.csv
 ```
+9. get_time_series_statistics
+```
+response = api.get_time_series_statistics(
+    location_id = "OW433001",
+    parameter_id = "H.G.0",
+    start_time = datetime(year=2012, month=1, day=1),
+    end_time = datetime(year=2012, month=1, day=2),
+    output_choice = OutputChoices.json_response_in_memory
+)
 
+print(response.text)
+# {
+#    "timeSeries": [
+#        {
+#            "header": {
+#                "endDate": {"date": "2012-01-02", "time": "00:00:00"},
+#                "firstValueTime": {"date": "2012-01-01", "time": "00:15:00"},
+#                "lastValueTime": {"date": "2012-01-02", "time": "00:00:00"},
+#                "lat": "52.08992726570302",
+#                "locationId": "OW433001",
+#                "lon": "4.9547458967486095",
+#                "maxValue": "-0.28",
+#                "minValue": "-0.44",
+#                "missVal": "-999.0",
+#                "moduleInstanceId": "WerkFilter",
+#                "parameterId": "H.G.0",
+#                "startDate": {"date": "2012-01-01", "time": "00:00:00"},
+#                "stationName": "HAANWIJKERSLUIS_4330-w_Leidsche " "Rijn",
+#                "timeStep": {"unit": "nonequidistant"},
+#                "type": "instantaneous",
+#                "units": "mNAP",
+#                "valueCount": "102",
+#                "x": "125362.0",
+#                "y": "455829.0",
+#                "z": "-0.18",
+#            }
+#        }
+#    ]
+# }       
+```
 
 ######  GITHUB_PERSONAL_ACCESS_TOKEN
 A github personal token (a long hash) has to be created once and updated when it expires. You can have maximum 1 token.
@@ -144,20 +309,20 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
-hdsr_fewspy\__init__.py                                               4      0   100%
-hdsr_fewspy\api.py                                                   98     13    87%
+hdsr_fewspy\__init__.py                                               8      0   100%
+hdsr_fewspy\api.py                                                   98     10    90%
 hdsr_fewspy\api_calls\__init__.py                                    18      0   100%
 hdsr_fewspy\api_calls\base.py                                       100     12    88%
 hdsr_fewspy\api_calls\get_filters.py                                 25      0   100%
 hdsr_fewspy\api_calls\get_locations.py                               44      2    95%
 hdsr_fewspy\api_calls\get_parameters.py                              40      1    98%
-hdsr_fewspy\api_calls\get_qualifiers.py                              36     12    67%
-hdsr_fewspy\api_calls\get_samples.py                                 26      8    69%
+hdsr_fewspy\api_calls\get_qualifiers.py                              50     16    68%
+hdsr_fewspy\api_calls\get_samples.py                                 24      8    67%
 hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
 hdsr_fewspy\api_calls\time_series\base.py                            91      6    93%
-hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           67      5    93%
-hdsr_fewspy\api_calls\time_series\get_time_series_single.py          28      1    96%
-hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      12      0   100%
+hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           71      6    92%
+hdsr_fewspy\api_calls\time_series\get_time_series_single.py          34      2    94%
+hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      23      2    91%
 hdsr_fewspy\constants\choices.py                                     89      3    97%
 hdsr_fewspy\constants\custom_types.py                                 2      0   100%
 hdsr_fewspy\constants\github.py                                       8      0   100%
@@ -176,7 +341,7 @@ hdsr_fewspy\retry_session.py                                         68     12  
 hdsr_fewspy\secrets.py                                               64     20    69%
 setup.py                                                             10     10     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1458    178    88%
+TOTAL                                                              1495    183    88%
 ```
 
 ### Conda general tips

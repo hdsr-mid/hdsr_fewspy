@@ -58,7 +58,7 @@ class GetLocations(GetRequest):
             return response
 
         assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error"
-        # parse the response
+        # parse the response to dataframe
         if response.status_code == 200:
 
             # convert to gdf and snake_case

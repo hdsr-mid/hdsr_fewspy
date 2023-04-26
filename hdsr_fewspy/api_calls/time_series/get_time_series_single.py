@@ -6,7 +6,11 @@ from hdsr_fewspy.date_frequency import DateFrequencyBuilder
 from typing import List
 from typing import Union
 
+import logging
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 class GetTimeSeriesSingle(GetTimeSeriesBase):
@@ -19,6 +23,11 @@ class GetTimeSeriesSingle(GetTimeSeriesBase):
         assert isinstance(self.parameter_ids, str) and self.parameter_ids and "," not in self.parameter_ids
         if self.qualifier_ids:
             assert isinstance(self.qualifier_ids, str) and "," not in self.qualifier_ids
+
+        if self.output_choice != OutputChoices.pandas_dataframe_in_memory:
+            logger.warning(f"flag_threshold is not used for output_choice {self.output_choice}")
+            if self.drop_missing_values == True:  # noqa
+                logger.warning(f"drop_missing_values is not used for output_choice {self.output_choice}")
 
     @property
     def allowed_output_choices(self) -> List[str]:
