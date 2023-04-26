@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TimeSeries xmlns="http://www.wldelft.nl/fews/PI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wldelft.nl/fews/PI http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd" version="1.25" xmlns:fs="http://www.wldelft.nl/fews/fs">
+    <timeZone>0.0</timeZone>
+    <series>
+        <header>
+            <type>instantaneous</type>
+            <moduleInstanceId>WerkFilter</moduleInstanceId>
+            <locationId>KW322613</locationId>
+            <parameterId>Q.B.y</parameterId>
+            <timeStep unit="nonequidistant"/>
+            <startDate date="2004-12-31" time="23:00:00"/>
+            <endDate date="2005-12-31" time="23:00:00"/>
+            <missVal>-999.0</missVal>
+            <stationName>HAZEPAD_3226-K_HAZEPAD-totaal_afvoer</stationName>
+            <lat>51.99579122241161</lat>
+            <lon>4.905477458374005</lon>
+            <x>121916.0</x>
+            <y>445377.0</y>
+            <units>m3/s</units>
+        </header>
+        <event date="2004-12-31" time="23:00:00" value="-0.1496" flag="0" flagSource="d1u0"/>
+        <event date="2005-12-31" time="23:00:00" value="0.0107" flag="0" flagSource="d0u1"/>
+    </series>
+</TimeSeries>

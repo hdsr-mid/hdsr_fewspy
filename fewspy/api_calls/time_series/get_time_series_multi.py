@@ -15,9 +15,26 @@ logger = logging.getLogger(__name__)
 class GetTimeSeriesMulti(GetTimeSeriesBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.validate_constructor()
+
+    def validate_constructor(self):
+        assert isinstance(self.location_ids, list) and self.location_ids
+        assert [isinstance(x, str) for x in self.location_ids]
+
+        assert isinstance(self.parameter_ids, list) and self.parameter_ids
+        assert [isinstance(x, str) for x in self.parameter_ids]
+
+        if self.qualifier_ids:
+            assert isinstance(self.qualifier_ids, list) and self.qualifier_ids
+            assert [isinstance(x, str) for x in self.qualifier_ids]
+
+        any_multi = any([len(x) > 1 for x in (self.location_ids, self.parameter_ids, self.qualifier_ids) if x])
+        assert (
+            any_multi
+        ), "Please specify >1 location_ids and/or parameter_ids and/or qualifier_ids. Or use get_time_series_single"
 
     @property
-    def valid_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[str]:
         return [
             OutputChoices.xml_file_in_download_dir,
             OutputChoices.csv_file_in_download_dir,
@@ -37,12 +54,15 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 date_ranges=date_ranges,
                 date_range_freq=date_range_freq,
                 request_params=request_params,
+            )
+            file_name_keys = ["locationIds", "parameterIds", "qualifierIds", "startTime", "endTime"]
+            file_name_values = [request_params.get(param, None) for param in file_name_keys]
+            file_paths_created = self.response_manager.run(
+                responses=responses,
+                file_name_values=file_name_values,
                 drop_missing_values=self.drop_missing_values,
                 flag_threshold=self.flag_threshold,
             )
-            params = ["locationIds", "parameterIds", "qualifierIds", "startTime", "endTime"]
-            file_name_values = [request_params.get(param) for param in params if request_params.get(param)]
-            file_paths_created = self.response_handler.run(responses=responses, file_name_values=file_name_values)
             all_file_paths.extend(file_paths_created)
         logger.info(f"finished download and writing to {len(all_file_paths)} file(s)")
         return all_file_paths
@@ -56,8 +76,6 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
             'endTime': '2023-01-01T00:00:00Z',
             'locationIds': ['KW215712', 'KW322613'],
             'parameterIds': ['Q.B.y', 'DD.y'],
-            'onlyHeaders': False,
-            'showStatistics': False,
             'documentVersion': 1.25,
             'documentFormat': 'PI_JSON',
             'filterId': 'INTERAL-API'

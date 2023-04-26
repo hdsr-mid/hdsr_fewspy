@@ -1,50 +1,21 @@
 from datetime import datetime
 from fewspy.constants.paths import TEST_INPUT_DIR
+from fewspy.converters.xml_to_python_obj import parse
 from pathlib import Path
 from typing import Dict
-from typing import Optional
 
 import json
+import pandas as pd
 
 
-class SingleBase:
+class RequestTimeSeriesBase:
     @classmethod
-    def file_path_expected_json(cls) -> Optional[Path]:
-        raise NotImplementedError
-
-    @classmethod
-    def file_path_expected_xml(cls) -> Optional[Path]:
-        raise NotImplementedError
-
-    @classmethod
-    def get_expected_json(cls):
-        file_path = cls.file_path_expected_json()
-        assert file_path.is_file()
-        with open(file_path.as_posix()) as src:
-            response_json = json.load(src)
-        return response_json
-
-    @classmethod
-    def get_expected_xml(cls):
-        file_path = cls.file_path_expected_xml()
-        assert file_path.is_file()
-        with open(file_path.as_posix()) as src:
-            response_json = json.load(src)
-        return response_json
-
-
-class MultiBase:
-    @classmethod
-    def file_dir_expected_jsons(cls) -> Optional[Path]:
-        raise NotImplementedError
-
-    @classmethod
-    def file_dir_expected_xmls(cls) -> Optional[Path]:
+    def file_dir_expected_files(cls) -> Path:
         raise NotImplementedError
 
     @classmethod
     def get_expected_jsons(cls) -> Dict:
-        dir_path = cls.file_dir_expected_jsons()
+        dir_path = cls.file_dir_expected_files()
         assert dir_path.is_dir()
 
         file_paths = [x for x in dir_path.iterdir() if x.is_file() and x.suffix == ".json"]
@@ -59,7 +30,7 @@ class MultiBase:
 
     @classmethod
     def get_expected_xmls(cls) -> Dict:
-        dir_path = cls.file_dir_expected_xmls()
+        dir_path = cls.file_dir_expected_files()
         assert dir_path.is_dir()
 
         file_paths = [x for x in dir_path.iterdir() if x.is_file() and x.suffix == ".xml"]
@@ -67,14 +38,26 @@ class MultiBase:
 
         response_xmls = dict()
         for file_path in file_paths:
-            with open(file_path.as_posix()) as src:
-                raise NotImplementedError
-                response_xml = json.load(src)
+            response_xml = parse(file_path.as_posix())
             response_xmls[file_path.stem] = response_xml
         return response_xmls
 
+    @classmethod
+    def get_expected_dfs_from_csvs(cls) -> Dict:
+        dir_path = cls.file_dir_expected_files()
+        assert dir_path.is_dir()
 
-class RequestTimeSeriesSingle1(SingleBase):
+        file_paths = [x for x in dir_path.iterdir() if x.is_file() and x.suffix == ".csv"]
+        assert file_paths
+
+        csv_paths = dict()
+        for file_path in file_paths:
+            df = pd.read_csv(filepath_or_buffer=file_path.as_posix(), sep=",")
+            csv_paths[file_path.stem] = df
+        return csv_paths
+
+
+class RequestTimeSeriesSingle1(RequestTimeSeriesBase):
     """Single as we use 1 location_ids and 1 parameter_ids."""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
@@ -84,34 +67,40 @@ class RequestTimeSeriesSingle1(SingleBase):
     end_time = datetime(2012, 1, 2)
 
     @classmethod
-    def file_path_expected_json(cls):
-        return TEST_INPUT_DIR / "RequestTimeSeriesSingle1.json"
+    def file_dir_expected_files(cls) -> Path:
+        return TEST_INPUT_DIR / "RequestTimeSeriesSingle1"
+
+
+class RequestTimeSeriesSingle2(RequestTimeSeriesBase):
+    """Single as we use 1 location_ids and 1 parameter_ids."""
+
+    # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
+    location_ids = "OW433001"
+    parameter_ids = "H.G.0"
+    start_time = datetime(2012, 1, 1)
+    end_time = datetime(2012, 6, 1)  # get many timestamp
 
     @classmethod
-    def file_path_expected_xml(cls):
-        raise NotImplementedError
+    def file_dir_expected_files(cls) -> Path:
+        return Path("not used in test")
 
 
-class RequestTimeSeriesMulti1(MultiBase):
+class RequestTimeSeriesMulti1(RequestTimeSeriesBase):
     """Multi since we use 2 location_ids."""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
-    # TODO
+
     location_ids = ["OW433001", "OW433002"]
     parameter_ids = ["H.G.0"]
     start_time = datetime(2012, 1, 1)
     end_time = datetime(2012, 1, 2)
 
     @classmethod
-    def file_dir_expected_jsons(cls) -> Optional[Path]:
+    def file_dir_expected_files(cls) -> Path:
         return TEST_INPUT_DIR / "RequestTimeSeriesMulti1"
 
-    @classmethod
-    def file_dir_expected_xmls(cls):
-        raise NotImplementedError
 
-
-class RequestTimeSeriesMulti2(MultiBase):
+class RequestTimeSeriesMulti2(RequestTimeSeriesBase):
     """Multi since we use 2 location_ids and 2 parameter_ids."""
 
     #     KW215710 (hoofdlocatie met gemaal)
@@ -126,12 +115,8 @@ class RequestTimeSeriesMulti2(MultiBase):
     location_ids = ["KW215712", "KW322613"]
     parameter_ids = ["Q.B.y", "DD.y"]
     start_time = datetime(2005, 1, 1)
-    end_time = datetime(2023, 1, 1)
+    end_time = datetime(2005, 1, 2)
 
     @classmethod
-    def file_dir_expected_jsons(cls) -> Optional[Path]:
-        pass
-
-    @classmethod
-    def file_dir_expected_xmls(cls):
-        raise NotImplementedError
+    def file_dir_expected_files(cls) -> Path:
+        return TEST_INPUT_DIR / "RequestTimeSeriesMulti2"

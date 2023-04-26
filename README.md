@@ -8,15 +8,123 @@
 [MIT]: https://github.com/hdsr-mid/hdsr_fewspy/blob/main/LICENSE.txt
 [Deltares FEWS PI]: https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
 [issues page]: https://github.com/hdsr-mid/hdsr_fewspy/issues
+[github personal token]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+
 
 ### Description
 A python project to request data (locations, timeseries, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
-Note that this project only works on HDSR's internal network, so within the VDI. 
-The project combines the best from two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds 
-"authentication" and "throttling" to minimize request load on HDSR's internal FEWS instances.
+Note that this project only works on HDSR's internal network, so within the VDI. The project combines the best from 
+two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds authentication, authorisation, and 
+throttling. The latter is to minimize request load on HDSR's internal FEWS instances. 
 
-### Usage 
-TODO
+Hdsr_fewspy API support 9 different API calls:
+1. get_parameters:
+2. get_filters:
+3. get_locations:
+4. get_qualifiers: 
+5. get_timezone_id: 
+6. get_samples: 
+7. get_time_series_single: 
+8. get_time_series_multi:
+9: get_time_series_statistics:
+
+An API call can return 6 different output formats:   
+1. xml_file_in_download_dir: The xml response is written to a .xml file in your download_dir
+2. json_file_in_download_dir: The json response is written to a .json file in your download_dir
+3. csv_file_in_download_dir: The json response is converted to csv and written to a .csv file in your download_dir
+4. xml_response_in_memory: the xml response is returned memory meaning you get a list with one or more responses 
+5. json_response_in_memory: the json response is returned memory meaning you get a list with one or more responses        
+6. pandas_dataframe_in_memory: the json response is converted to a pandas dataframe meaning you get one dataframe 
+
+Each API call supports a subset of output formats:
+
+API call| Supported outputs | Notes 
+--------|-------------------|--------
+1       | 4, 5, 6           | Not implemented yet
+2       | 4, 5              | Not implemented yet  
+3       | 4, 5              | Not implemented yet              
+4       | 4, 5              | Not implemented yet
+5       | 4, 5              | Not implemented yet
+6       | 1, 2              | Not implemented yet
+7       | 4, 5, 6           | One large call can results in multiple small calls. Output 4 and 5 return a list with >=1 responses. Output 6 aggregates all responses and returns one dataframe.    
+8       | 1, 2, 3           | One unique location_parameter_qualifier combination results in >=1 API calls = >=1 responses. For output 1 and 2 each response results in 1 file. Output 3 creates 1 csv per unique combination.
+9       | 4, 5              | Not implemented yet 
+
+### Usage
+
+###### Preparation
+1. Only once needed: ensure you have a file G:/secrets.env. This file must contain at least these 3 lines:
+```
+GITHUB_PERSONAL_ACCESS_TOKEN=<see topic 'GITHUB_PERSONAL_ACCESS_TOKEN' below>
+HDSR_FEWSPY_EMAIL=<your_hdsr_email>
+HDSR_FEWSPY_TOKEN=<contact renier.kramer.hdsr.nl to get HDSR_FEWSPY_TOKEN>
+```
+2. Only once per project: install hdsr_fewspy dependency
+```
+pip install hdsr_fewspy 
+or 
+conda install hdsr_fewspy -c hdsr-mid
+```
+3. Run imports and instantiate hdsr_fewspy API 
+```
+# instantiate API using default settings:
+api = Api()
+
+# or instantiate API using custom settings:
+custom_
+api 
+```
+
+
+###### Examples different API calls
+1. Example get_time_series_single
+```
+api = Api()
+
+responses = api.get_time_series_single(
+    location_id = "OW433001",
+    parameter_id = "H.G.0",
+    start_time = datetime(year=2012, month=1, day=1),
+    end_time = datetime(year=2012, month=1, day=2),
+    output_choice = OutputChoices.xml_response_in_memory,
+)
+```
+2. Example get_time_series_multi
+```
+# we need a download dir for this!
+output_directory_root='xxx'
+api = Api(output_directory_root=output_directory_root)
+list_of_donwloaded_file_paths = api.get_time_series_multi(
+    location_ids = ["OW433001", "OW433002"]
+    parameter_ids = ["H.G.0", "H.G.d"],
+    start_time = datetime(year=2012, month=1, day=1),
+    end_time = datetime(year=2012, month=1, day=2),
+    output_choice = OutputChoices.csv_file_in_download_dir,
+)
+
+# all these donwloaded_file_path are in a sub directory the root dir you used:
+print(api.output_dir)
+# results in "xxx/hdsr_fewspy_20230419_143834"
+```
+
+
+######  GITHUB_PERSONAL_ACCESS_TOKEN
+A github personal token (a long hash) has to be created once and updated when it expires. You can have maximum 1 token.
+This token is related to your github user account, so you don't need a token per repo/organisation/etc. 
+You can [create a token yourself][[github personal token]]. In short:
+1. Login github.com with your account (user + password)
+2. Ensure you have at least read-permission for the hdsr-mid repo(s) you want to interact with. To verify, browse to 
+   the specific repo. If you can open it, then you have at least read-permission. If not, please contact 
+   renier.kramer@hdsr.nl to get access.
+3. Create a token:
+   1. On github.com, go to your profile settings (click your icon right upper corner and 'settings' in the dropdown).
+   2. Click 'developer settings' (left lower corner).
+   3. Click 'Personal access tokens' and then 'Tokens (classic)'.
+   4. Click 'Generate new token' and then 'Generate new token (classic)'.
+4. We recommend setting an expiry date of max 1 year (for safety reasons).
+5. Create a file (Do not share this file with others!) on your personal HDSR drive 'G:/secrets.env' and add a line: 
+   GITHUB_PERSONAL_ACCESS_TOKEN=<your_token>
+   
 
 ### License 
 [MIT]
@@ -27,42 +135,44 @@ TODO
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (18 april 2023)
+### Test Coverage (25 april 2023)
 ```
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
-Name                                                     Stmts   Miss  Cover
-----------------------------------------------------------------------------
-fewspy\api.py                                              123     28    77%
-fewspy\api_calls\__init__.py                                16      0   100%
-fewspy\api_calls\base.py                                    73      9    88%
-fewspy\api_calls\get_filters.py                             21     10    52%
-fewspy\api_calls\get_locations.py                           33     17    48%
-fewspy\api_calls\get_parameters.py                          28     14    50%
-fewspy\api_calls\get_qualifiers.py                          34     17    50%
-fewspy\api_calls\get_samples.py                             19      7    63%
-fewspy\api_calls\get_timezone_id.py                         19      1    95%
-fewspy\api_calls\time_series\base.py                        68     11    84%
-fewspy\api_calls\time_series\get_time_series_multi.py       56      3    95%
-fewspy\api_calls\time_series\get_time_series_single.py      16      0   100%
-fewspy\constants\choices.py                                 57      2    96%
-fewspy\constants\github.py                                   7      0   100%
-fewspy\constants\paths.py                                   21      0   100%
-fewspy\constants\pi_settings.py                             50      4    92%
-fewspy\constants\request_settings.py                        11      0   100%
-fewspy\exceptions.py                                        36      2    94%
-fewspy\permissions.py                                       75      9    88%
-fewspy\response_converters\base.py                          95     15    84%
-fewspy\retry_session.py                                     68     12    82%
-fewspy\secrets.py                                           64     20    69%
-fewspy\time_series.py                                       96     96     0%
-fewspy\utils\bug_report.py                                  60     38    37%
-fewspy\utils\conversions.py                                 50     31    38%
-fewspy\utils\date_frequency.py                              46      8    83%
-fewspy\version.py                                            2      2     0%
-main.py                                                     27     27     0%
-setup.py                                                    16     16     0%
-----------------------------------------------------------------------------
-TOTAL                                                     1287    399    69%
+Name                                                         Stmts   Miss  Cover
+--------------------------------------------------------------------------------
+fewspy\__init__.py                                               4      0   100%
+fewspy\api.py                                                   98     13    87%
+fewspy\api_calls\__init__.py                                    18      0   100%
+fewspy\api_calls\base.py                                       100     12    88%
+fewspy\api_calls\get_filters.py                                 25      0   100%
+fewspy\api_calls\get_locations.py                               44      2    95%
+fewspy\api_calls\get_parameters.py                              40      1    98%
+fewspy\api_calls\get_qualifiers.py                              36     12    67%
+fewspy\api_calls\get_samples.py                                 26      8    69%
+fewspy\api_calls\get_timezone_id.py                             26      1    96%
+fewspy\api_calls\time_series\base.py                            91      6    93%
+fewspy\api_calls\time_series\get_time_series_multi.py           67      5    93%
+fewspy\api_calls\time_series\get_time_series_single.py          28      1    96%
+fewspy\api_calls\time_series\get_time_series_statistics.py      12      0   100%
+fewspy\constants\choices.py                                     89      3    97%
+fewspy\constants\custom_types.py                                 2      0   100%
+fewspy\constants\github.py                                       7      0   100%
+fewspy\constants\paths.py                                       12      0   100%
+fewspy\constants\pi_settings.py                                 50      4    92%
+fewspy\constants\request_settings.py                            11      0   100%
+fewspy\converters\download.py                                   93      4    96%
+fewspy\converters\json_to_df_timeseries.py                     112      8    93%
+fewspy\converters\manager.py                                    27      0   100%
+fewspy\converters\xml_to_python_obj.py                         105     26    75%
+fewspy\exceptions.py                                            12      0   100%
+fewspy\permissions.py                                           67      5    93%
+fewspy\retry_session.py                                         68     12    82%
+fewspy\secrets.py                                               64     20    69%
+fewspy\utils\conversions.py                                     45     17    62%
+fewspy\utils\date_frequency.py                                  46      5    89%
+setup.py                                                        10     10     0%
+--------------------------------------------------------------------------------
+TOTAL                                                         1435    175    88%
 ```
 
 ### Conda general tips
@@ -77,7 +187,7 @@ Note2: env_directory can be anywhere, it does not have to be in your code projec
 #### Start the application from any directory:
 ```
 > conda activate <env_name>
-At any location:
+# At any location:
 > (<env_name>) python <path_to_project>/main.py
 ```
 #### Test the application:

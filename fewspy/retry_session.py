@@ -53,18 +53,16 @@ class RetryBackoffSession:
     backoff_factor: float = 0.3
     status_force_list: Tuple = (500, 502, 504)
     allowed_methods: List[str] = ["HEAD", "GET", "OPTIONS"]  # we do not PUT/PATCH to PiWebService
-    timeout_seconds: int = 2
+    timeout_seconds: int = 6  # /parameters and /filters respond within 5 seconds..
 
     def __init__(
         self,
         _request_settings: RequestSettings,
         pi_settings: PiSettings,
-        output_choice: str,
         output_dir: Optional[Path],
     ):
         self.request_settings = _request_settings
         self.pi_settings = pi_settings
-        self.output_choice = output_choice
         self.output_dir = output_dir
         self.datetime_previous_request = pd.Timestamp.now()  # this immutable object is updated during runtime
         self.__retry_session = None
@@ -88,13 +86,14 @@ class RetryBackoffSession:
         try:
             response = self._retry_session.get(url=url, timeout=timeout_seconds, **kwargs)
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as err:
-            logger.error(f"request failed for url: {url}, err: {err}")
+            msg = f"request failed for url: {url}, err: {err}"
+            logger.error(msg)
             if self.pi_settings.domain == "localhost":
-                msg = (
-                    f"Please make sure fews SA webservice is running (D:/Tomcat/bin/Tomcat9w.exe). Verify with "
-                    f"in browser url={self.pi_settings.test_url}"
+                msg += (
+                    f"Please make sure fews SA webservice is running (D:/Tomcat/bin/Tomcat9w.exe). Verify in "
+                    f"browser it is running: {self.pi_settings.test_url}"
                 )
-                raise exceptions.StandAloneFewsWebServiceNotRunningError(message=msg, errors=err)
+                raise exceptions.StandAloneFewsWebServiceNotRunningError(msg)
             assert isinstance(self.pi_settings, PiSettings)
             raise
         except Exception as err:

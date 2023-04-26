@@ -2,51 +2,32 @@ from abc import abstractmethod
 from datetime import datetime
 from fewspy.api_calls.base import GetRequest
 from fewspy.constants.choices import ApiParameters
+from fewspy.constants.choices import PiRestDocumentFormatChoices
+from fewspy.constants.custom_types import ResponseType
+from fewspy.converters.xml_to_python_obj import parse
 from fewspy.utils.conversions import datetime_to_fews_str
 from fewspy.utils.date_frequency import DateFrequencyBuilder
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import logging
 import pandas as pd
-import requests
 
 
 logger = logging.getLogger(__name__)
 
 
 class GetTimeSeriesBase(GetRequest):
-
-    url_post_fix = "timeseries"
-    whitelist_request_args = [
-        ApiParameters.attributes,
-        ApiParameters.document_format,
-        ApiParameters.document_version,
-        ApiParameters.end_time,
-        ApiParameters.filter_id,
-        ApiParameters.include_location_relations,
-        ApiParameters.location_ids,
-        ApiParameters.module_instance_ids,
-        ApiParameters.omit_empty_timeseries,
-        ApiParameters.only_headers,
-        ApiParameters.parameter_ids,
-        ApiParameters.qualifier_ids,
-        ApiParameters.show_statistics,
-        ApiParameters.start_time,
-        ApiParameters.thinning,
-    ]
-
     def __init__(
         self,
         start_time: datetime,
         end_time: datetime,
-        location_ids: str,
-        parameter_ids: str,
-        qualifier_ids: str = None,
+        location_ids: Union[List[str], str],
+        parameter_ids: Union[List[str], str],
+        qualifier_ids: Union[List[str], str] = None,
         thinning: int = None,
-        only_headers: bool = False,
-        show_statistics: bool = False,
         omit_empty_timeseries: bool = True,
         #
         drop_missing_values: bool = False,
@@ -54,45 +35,70 @@ class GetTimeSeriesBase(GetRequest):
         *args,
         **kwargs,
     ):
-        """
-        Args:
-            - start_time (datetime.datetime): datetime-object with start datetime to use in request.
-            - end_time (datetime.datetime): datetime-object with end datetime to use in request.
-            - location_ids (str): a FEWS location id to extract timeseries from.
-            - parameter_ids (str): a FEWS parameter id to extract timeseries from.
-            - qualifier_ids (str): a FEWS qualifier id to extract timeseries from. Defaults to None.
-            - thinning (int): integer value for thinning parameter to use in request. Defaults to None.
-            - only_headers (bool): if True, only headers will be returned. Defaults to False.
-            - show_statistics (bool): if True, time series statistics will be included in header. Defaults to False.
-            - omit_empty_timeseries (bool): if True, missing values (-999) are left out in response. Defaults to True.
-            - drop_missing_values (bool): Defaults to False.
-            - flag_threshold (int): Exclude unreliable values. Default to 6 (only values with flag<6 will be included).
-        """
-        super().__init__(*args, **kwargs)
+
         self.start_time = start_time
         self.end_time = end_time
         self.location_ids = location_ids
         self.parameter_ids = parameter_ids
         self.qualifier_ids = qualifier_ids
         self.thinning = thinning
-        self.only_headers = only_headers
-        self.show_statistics = show_statistics
         self.omit_empty_timeseries = omit_empty_timeseries
         self.drop_missing_values = drop_missing_values
         self.flag_threshold = flag_threshold
+        #
+        self.__validate_constructor_base()
+        super().__init__(*args, **kwargs)
+
+    def __validate_constructor_base(self):
+        assert self.start_time < self.end_time, f"start_time {self.start_time} must be before end_time {self.end_time}"
+
+    @property
+    def url_post_fix(self):
+        return "timeseries"
+
+    @property
+    def allowed_request_args(self) -> List[str]:
+        return [
+            ApiParameters.document_format,
+            ApiParameters.document_version,
+            ApiParameters.end_time,
+            ApiParameters.filter_id,
+            ApiParameters.include_location_relations,
+            ApiParameters.location_ids,
+            ApiParameters.module_instance_ids,
+            ApiParameters.omit_empty_timeseries,
+            ApiParameters.only_headers,
+            ApiParameters.parameter_ids,
+            ApiParameters.qualifier_ids,
+            ApiParameters.show_attributes,
+            ApiParameters.show_statistics,
+            ApiParameters.start_time,
+            ApiParameters.thinning,
+        ]
+
+    @property
+    def required_request_args(self) -> List[str]:
+        return [
+            ApiParameters.document_format,
+            ApiParameters.document_version,
+            ApiParameters.end_time,
+            ApiParameters.filter_id,
+            ApiParameters.location_ids,
+            ApiParameters.module_instance_ids,
+            ApiParameters.parameter_ids,
+            ApiParameters.start_time,
+        ]
 
     def _download_timeseries(
         self,
         date_ranges: List[Tuple[pd.Timestamp, pd.Timestamp]],
         date_range_freq: pd.Timedelta,
         request_params: Dict,
-        drop_missing_values: bool,
-        flag_threshold: int,
-    ) -> List[requests.models.Response]:
+    ) -> List[ResponseType]:
         """Download timeseries in little chunks by updating parameters 'startTime' and 'endTime' every loop.
 
         Before each download of actual timeseries we first check nr_timestamps_in_response (a small request with
-        showStatistics=True, and showStatistics=True). If that number if outside a certain bandwith, then we update
+        showHeaders=True, and showStatistics=True). If that number if outside a certain bandwith, then we update
         (smaller or larger windows) parameters 'startTime' and 'endTime' again.
         """
         responses = []
@@ -100,7 +106,7 @@ class GetTimeSeriesBase(GetRequest):
             # update start and end in request params
             request_params["startTime"] = datetime_to_fews_str(data_range_start)
             request_params["endTime"] = datetime_to_fews_str(data_range_end)
-            nr_timestamps_in_response = self._get_nr_timestamps(params=request_params)
+            nr_timestamps_in_response = self._get_nr_timestamps(request_params=request_params)
             logger.debug(f"nr_timestamps_in_response={nr_timestamps_in_response}")
             new_date_range_freq = DateFrequencyBuilder.optional_change_date_range_freq(
                 nr_timestamps=nr_timestamps_in_response,
@@ -122,8 +128,6 @@ class GetTimeSeriesBase(GetRequest):
                     date_ranges=new_date_ranges,
                     date_range_freq=new_date_range_freq,
                     request_params=request_params,
-                    drop_missing_values=drop_missing_values,
-                    flag_threshold=flag_threshold,
                 )
             else:
                 DateFrequencyBuilder.log_progress_download_ts(
@@ -142,27 +146,39 @@ class GetTimeSeriesBase(GetRequest):
                 responses.append(response)
         return responses
 
-    def _get_nr_timestamps(self, params: Dict) -> int:
-        params["onlyHeaders"] = True
-        params["showStatistics"] = True
-        response = self.retry_backoff_session.get(url=self.url, params=params, verify=self.pi_settings.ssl_verify)
+    def _get_statistics(self, request_params: Dict) -> ResponseType:
+        request_params["onlyHeaders"] = True
+        request_params["showStatistics"] = True
+        response = self.retry_backoff_session.get(
+            url=self.url, params=request_params, verify=self.pi_settings.ssl_verify
+        )
+        return response
+
+    def _get_nr_timestamps(self, request_params: Dict) -> int:
+        assert "moduleInstanceIds" in request_params, "code error"
+        response = self._get_statistics(request_params=request_params)
         if not response.ok:
+            if response.text == "No timeSeries found":
+                return 0
             raise AssertionError(f"response not okay, status_code={response.status_code}, err={response.text}")
-        timeseries = response.json().get("timeSeries", None)
-        if not timeseries:
-            return 0
-        if len(timeseries) == 1:
-            nr_timestamps = int(timeseries[0]["header"]["valueCount"])
-            return nr_timestamps
-
-        # error since too many timeseries
-        msg = "Found multiple timeseries in _get_nr_timestamps"
-        if "moduleInstanceIds" not in params:
-            msg += (
-                f"Please specify 1 moduleInstanceIds in pi_settings instead of '{self.pi_settings.module_instance_ids}'"
-            )
-
-        raise AssertionError(msg)
+        if self.pi_settings.document_format == PiRestDocumentFormatChoices.json:
+            timeseries = response.json().get("timeSeries", None)
+            if not timeseries:
+                return 0
+            nr_timeseries = len(timeseries)
+            if nr_timeseries == 1:
+                nr_timestamps = int(timeseries[0]["header"]["valueCount"])
+                return nr_timestamps
+            raise AssertionError(f"code error: found {nr_timeseries} timeseries in _get_nr_timestamps. Expected 0 or 1")
+        elif self.pi_settings.document_format == PiRestDocumentFormatChoices.xml:
+            xml_python_obj = parse(response.text)
+            try:
+                nr_timestamps = int(xml_python_obj.TimeSeries.series.header.valueCount.cdata)
+                return nr_timestamps
+            except Exception as err:
+                raise AssertionError(f"could not get nr_timestamps from xml_python_obj, err={err}")
+        else:
+            raise NotImplementedError("only xml and json are available")
 
     @abstractmethod
     def run(self, *args, **kwargs):

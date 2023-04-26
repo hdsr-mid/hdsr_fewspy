@@ -1,5 +1,4 @@
 from fewspy.constants import github
-from fewspy.constants.paths import MAINTAINER_EMAIL
 from fewspy.exceptions import NoPermissionInHdsrFewspyAuthError
 from fewspy.exceptions import UserInvalidTokenHdsrFewspyAuthError
 from fewspy.exceptions import UserNotFoundInHdsrFewspyAuthError
@@ -37,7 +36,7 @@ class Permissions:
 
     def ensure_any_permissions(self) -> None:
         if self.permissions_row.empty:
-            raise NoPermissionInHdsrFewspyAuthError(message=f"user {self.hdsr_fewspy_email} has no permissions at all")
+            raise NoPermissionInHdsrFewspyAuthError(f"user {self.hdsr_fewspy_email} has no permissions at all")
 
     @property
     def permissions_row(self) -> pd.Series:
@@ -65,13 +64,13 @@ class Permissions:
         # check user exists
         if permissions_row.empty:
             raise UserNotFoundInHdsrFewspyAuthError(
-                f"email {self.hdsr_fewspy_email} not in permission file. Please contact {MAINTAINER_EMAIL}"
+                f"email {self.hdsr_fewspy_email} not in permission file. Please contact maintainer of this package"
             )
 
         # check user has valid token
         if permissions_row["hdsr_fewspy_token"] != self.hdsr_fewspy_token:
             raise UserInvalidTokenHdsrFewspyAuthError(
-                f"email found in permission file, but token does not match. Please contact {MAINTAINER_EMAIL}"
+                "email found in permission file, but token does not match. Please contact maintainer of this package"
             )
 
         # hide token
