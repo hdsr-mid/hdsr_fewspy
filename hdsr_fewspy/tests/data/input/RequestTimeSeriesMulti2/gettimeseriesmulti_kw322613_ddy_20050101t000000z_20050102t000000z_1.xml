@@ -6,7 +6,7 @@
             <type>instantaneous</type>
             <moduleInstanceId>WerkFilter</moduleInstanceId>
             <locationId>KW215712</locationId>
-            <parameterId>Q.B.y</parameterId>
+            <parameterId>DD.y</parameterId>
             <timeStep unit="nonequidistant"/>
             <startDate date="2004-12-31" time="23:00:00"/>
             <endDate date="2005-12-31" time="23:00:00"/>
@@ -16,9 +16,9 @@
             <lon>4.980657829604588</lon>
             <x>127137.0</x>
             <y>455670.0</y>
-            <units>m3/s</units>
+            <units>s</units>
         </header>
         <event date="2004-12-31" time="23:00:00" value="-999.0" flag="8"/>
-        <event date="2005-12-31" time="23:00:00" value="-999.0" flag="8"/>
+        <event date="2005-12-31" time="23:00:00" value="789345" flag="0" flagSource="d0u1"/>
     </series>
 </TimeSeries>

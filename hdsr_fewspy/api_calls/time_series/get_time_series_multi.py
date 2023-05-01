@@ -48,6 +48,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
 
     def run(self) -> List[Path]:
         all_file_paths = []
+        responses = []
         cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
         for index, request_params in enumerate(cartesian_parameters_list):
             date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
@@ -59,6 +60,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 date_ranges=date_ranges,
                 date_range_freq=date_range_freq,
                 request_params=request_params,
+                responses=responses,
             )
             file_name_keys = ["locationIds", "parameterIds", "qualifierIds", "startTime", "endTime"]
             file_name_values = [request_params.get(param, None) for param in file_name_keys]

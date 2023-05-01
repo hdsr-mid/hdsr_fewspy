@@ -1,1 +1,24 @@
-<root><doc><response_http_status name="response_http_status">400</response_http_status><response_text name="response_text">No timeSeries found</response_text></doc></root>
+<?xml version="1.0" encoding="UTF-8"?>
+<TimeSeries xmlns="http://www.wldelft.nl/fews/PI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wldelft.nl/fews/PI http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd" version="1.25" xmlns:fs="http://www.wldelft.nl/fews/fs">
+    <timeZone>0.0</timeZone>
+    <series>
+        <header>
+            <type>instantaneous</type>
+            <moduleInstanceId>WerkFilter</moduleInstanceId>
+            <locationId>KW215712</locationId>
+            <parameterId>Q.B.y</parameterId>
+            <timeStep unit="nonequidistant"/>
+            <startDate date="2004-12-31" time="23:00:00"/>
+            <endDate date="2005-12-31" time="23:00:00"/>
+            <missVal>-999.0</missVal>
+            <stationName>HARMELERWAARD_2157-K_HARMELERWAARD-pompvijzel1_afvoer</stationName>
+            <lat>52.088590381584716</lat>
+            <lon>4.980657829604588</lon>
+            <x>127137.0</x>
+            <y>455670.0</y>
+            <units>m3/s</units>
+        </header>
+        <event date="2004-12-31" time="23:00:00" value="-999.0" flag="8"/>
+        <event date="2005-12-31" time="23:00:00" value="-999.0" flag="8"/>
+    </series>
+</TimeSeries>

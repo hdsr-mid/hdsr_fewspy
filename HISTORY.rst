@@ -1,5 +1,9 @@
-1.3 (Unreleased)
+1.4 (Unreleased)
 ----------------
+
+1.3 (2023-05-01)
+----------------
+- keep responses in case of recursive _download_timeseries()
 
 1.2 (2023-04-26)
 ----------------

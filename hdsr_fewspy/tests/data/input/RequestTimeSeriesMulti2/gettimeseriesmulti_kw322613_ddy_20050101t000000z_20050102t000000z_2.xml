@@ -5,20 +5,20 @@
         <header>
             <type>instantaneous</type>
             <moduleInstanceId>WerkFilter</moduleInstanceId>
-            <locationId>KW215712</locationId>
+            <locationId>KW322613</locationId>
             <parameterId>Q.B.y</parameterId>
             <timeStep unit="nonequidistant"/>
             <startDate date="2004-12-31" time="23:00:00"/>
             <endDate date="2005-12-31" time="23:00:00"/>
             <missVal>-999.0</missVal>
-            <stationName>HARMELERWAARD_2157-K_HARMELERWAARD-pompvijzel1_afvoer</stationName>
-            <lat>52.088590381584716</lat>
-            <lon>4.980657829604588</lon>
-            <x>127137.0</x>
-            <y>455670.0</y>
+            <stationName>HAZEPAD_3226-K_HAZEPAD-totaal_afvoer</stationName>
+            <lat>51.99579122241161</lat>
+            <lon>4.905477458374005</lon>
+            <x>121916.0</x>
+            <y>445377.0</y>
             <units>m3/s</units>
         </header>
-        <event date="2004-12-31" time="23:00:00" value="-999.0" flag="8"/>
-        <event date="2005-12-31" time="23:00:00" value="-999.0" flag="8"/>
+        <event date="2004-12-31" time="23:00:00" value="-0.1496" flag="0" flagSource="d1u0"/>
+        <event date="2005-12-31" time="23:00:00" value="0.0107" flag="0" flagSource="d0u1"/>
     </series>
 </TimeSeries>
