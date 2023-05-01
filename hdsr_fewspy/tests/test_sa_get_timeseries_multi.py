@@ -60,7 +60,11 @@ def test_sa_multi_timeseries_wrong(fixture_api_sa_with_download_dir):
             output_choice=OutputChoices.json_response_in_memory,
         )
     except Exception as err:
-        msg = "invalid output_choice 'json_response_in_memory'. GetTimeSeriesMulti has valid_output_choices ['xml_file_in_download_dir', 'json_file_in_download_dir', 'csv_file_in_download_dir']. See earlier logging why we use GetTimeSeriesMulti."
+        msg = (
+            "invalid output_choice 'json_response_in_memory'. GetTimeSeriesMulti has valid_output_choices "
+            "['xml_file_in_download_dir', 'json_file_in_download_dir', 'csv_file_in_download_dir']. See earlier "
+            "logging why we use GetTimeSeriesMulti."
+        )
         assert err.args[0] == msg
 
 
@@ -76,9 +80,10 @@ def test_sa_multi_timeseries_1_ok_json_download(fixture_api_sa_with_download_dir
         end_time=request_data.end_time,
         output_choice=OutputChoices.json_file_in_download_dir,
     )
-    assert len(all_file_paths) == 2
+    assert len(all_file_paths) == 3
     assert all_file_paths[0].name == "gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z_0.json"
     assert all_file_paths[1].name == "gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_0.json"
+    assert all_file_paths[2].name == "gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_1.json"
 
     mapper_expected_jsons = request_data.get_expected_jsons()
     for downloaded_file in all_file_paths:
@@ -100,9 +105,10 @@ def test_sa_multi_timeseries_1_ok_xml_download(fixture_api_sa_with_download_dir)
         end_time=request_data.end_time,
         output_choice=OutputChoices.xml_file_in_download_dir,
     )
-    assert len(all_file_paths) == 2
+    assert len(all_file_paths) == 3
     assert all_file_paths[0].name == "gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z_0.xml"
     assert all_file_paths[1].name == "gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_0.xml"
+    assert all_file_paths[2].name == "gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_1.xml"
 
     mapper_expected_xmls = request_data.get_expected_xmls()
     for downloaded_file in all_file_paths:
@@ -155,11 +161,17 @@ def test_sa_multi_timeseries_2_ok_json_download(fixture_api_sa_with_download_dir
         end_time=request_data.end_time,
         output_choice=OutputChoices.json_file_in_download_dir,
     )
-    assert len(all_file_paths) == 4
+    assert len(all_file_paths) == 10
     assert all_file_paths[0].name == "gettimeseriesmulti_kw215712_qby_20050101t000000z_20050102t000000z_0.json"
     assert all_file_paths[1].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z_0.json"
-    assert all_file_paths[2].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_0.json"
-    assert all_file_paths[3].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_0.json"
+    assert all_file_paths[2].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z_1.json"
+    assert all_file_paths[3].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_0.json"
+    assert all_file_paths[4].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_1.json"
+    assert all_file_paths[5].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_2.json"
+    assert all_file_paths[6].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_0.json"
+    assert all_file_paths[7].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_1.json"
+    assert all_file_paths[8].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_2.json"
+    assert all_file_paths[9].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_3.json"
 
     mapper_expected_jsons = request_data.get_expected_jsons()
     for downloaded_file in all_file_paths:
@@ -181,11 +193,17 @@ def test_sa_multi_timeseries_2_ok_xml_download(fixture_api_sa_with_download_dir)
         end_time=request_data.end_time,
         output_choice=OutputChoices.xml_file_in_download_dir,
     )
-    assert len(all_file_paths) == 4
+    assert len(all_file_paths) == 10
     assert all_file_paths[0].name == "gettimeseriesmulti_kw215712_qby_20050101t000000z_20050102t000000z_0.xml"
     assert all_file_paths[1].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z_0.xml"
-    assert all_file_paths[2].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_0.xml"
-    assert all_file_paths[3].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_0.xml"
+    assert all_file_paths[2].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z_1.xml"
+    assert all_file_paths[3].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_0.xml"
+    assert all_file_paths[4].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_1.xml"
+    assert all_file_paths[5].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_2.xml"
+    assert all_file_paths[6].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_0.xml"
+    assert all_file_paths[7].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_1.xml"
+    assert all_file_paths[8].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_2.xml"
+    assert all_file_paths[9].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_3.xml"
 
     mapper_expected_xmls = request_data.get_expected_xmls()
     for downloaded_file in all_file_paths:
@@ -203,7 +221,7 @@ def test_sa_multi_timeseries_2_ok_xml_download(fixture_api_sa_with_download_dir)
             assert found_events[0]._attributes["date"] == expected_events[0]._attributes["date"]
             assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"]
         except AttributeError:
-            assert downloaded_file.name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_0.xml"
+            assert downloaded_file.name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_3.xml"
             found = parse(downloaded_file.as_posix())
             expected = mapper_expected_xmls[downloaded_file.stem]
             for x in (found, expected):
@@ -223,9 +241,10 @@ def test_sa_multi_timeseries_2_ok_csv_download(fixture_api_sa_with_download_dir)
         end_time=request_data.end_time,
         output_choice=OutputChoices.csv_file_in_download_dir,
     )
-    assert len(all_file_paths) == 2
+    assert len(all_file_paths) == 3
     assert all_file_paths[0].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z.csv"
     assert all_file_paths[1].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z.csv"
+    assert all_file_paths[2].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z.csv"
 
     mapper_csv_expected = request_data.get_expected_dfs_from_csvs()
     for downloaded_file in all_file_paths:

@@ -126,7 +126,7 @@ def test_sa_single_timeseries_2_ok_json_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.json_response_in_memory,
     )
-    assert len(responses) == 2
+    assert len(responses) == 11
 
 
 def test_sa_single_timeseries_2_ok_xml_memory(fixture_api_sa_no_download_dir):
@@ -140,7 +140,7 @@ def test_sa_single_timeseries_2_ok_xml_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.xml_response_in_memory,
     )
-    assert len(responses) == 2
+    assert len(responses) == 11
 
 
 def test_sa_single_timeseries_2_ok_df_memory(fixture_api_sa_no_download_dir):
@@ -154,4 +154,4 @@ def test_sa_single_timeseries_2_ok_df_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.pandas_dataframe_in_memory,
     )
-    assert len(df_found) == 11227
+    assert len(df_found) == 199251

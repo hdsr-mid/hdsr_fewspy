@@ -9,6 +9,7 @@ from hdsr_fewspy.converters.xml_to_python_obj import parse
 from hdsr_fewspy.date_frequency import DateFrequencyBuilder
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Union
 
@@ -94,6 +95,7 @@ class GetTimeSeriesBase(GetRequest):
         date_ranges: List[Tuple[pd.Timestamp, pd.Timestamp]],
         date_range_freq: pd.Timedelta,
         request_params: Dict,
+        responses: Optional[List[ResponseType]] = None,
     ) -> List[ResponseType]:
         """Download timeseries in little chunks by updating parameters 'startTime' and 'endTime' every loop.
 
@@ -101,7 +103,7 @@ class GetTimeSeriesBase(GetRequest):
         showHeaders=True, and showStatistics=True). If that number if outside a certain bandwith, then we update
         (smaller or larger windows) parameters 'startTime' and 'endTime' again.
         """
-        responses = []
+        responses = responses if responses else []
         for request_index, (data_range_start, data_range_end) in enumerate(date_ranges):
             # update start and end in request params
             request_params["startTime"] = datetime_to_fews_str(data_range_start)
@@ -128,6 +130,7 @@ class GetTimeSeriesBase(GetRequest):
                     date_ranges=new_date_ranges,
                     date_range_freq=new_date_range_freq,
                     request_params=request_params,
+                    responses=responses,
                 )
             else:
                 DateFrequencyBuilder.log_progress_download_ts(

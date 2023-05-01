@@ -292,7 +292,7 @@ class Api:
 
 # DONE: test other get requests than get_timeseries
 
-# TODO: improve documentation
+# DONE: improve documentation
 
 # DONE: enable users to override Api.pi_settings
 
@@ -304,8 +304,7 @@ class Api:
 
 # DONE: besides allowed_request_args use a required_request_args (get_locations zonder filter duurt tering lang!!)
 
-# TODO: create pypi package
-
+# DONE: create pypi package
 
 # TODO: Ciska wel interesse wel in:
 #  --------------------------------
@@ -319,7 +318,6 @@ class Api:
 #  - heel soms qualifier_id
 #  get_parameters (middlegrote request = 400 parameters)
 #  get_locations (kleine request = 300 locaties)
-#
 
 # TODO: Ciska geen interesse in:
 #  --------------------------------
@@ -337,11 +335,3 @@ class Api:
 #  Voorstel Ciska: alleen func get_timeseries + get_samples via PiWebService. De andere request disabelen:
 #  logger.info('Stuur ciska.overbeek@hdsr.nl een mailtje of dat lijstje mag, dan krijg je er ook nog meer info bij)
 #  die lijstjes worden 2 a 3 per jaar script + handmatig ge-update.
-
-# TODO: add usage examples to readme.md
-#  pip install hdsr_fewspy
-#  user + token
-#  request naar repo met bovenstaande csv (check)
-#  api = Api(user=rob, token=adsfads;flkj, output_folder=..., convert_output_to_csv=False)
-#  response = api.get_time_series(parameter_ids=['H.G.0'])
-#  # TODO: voor Ciska belangrijk dat er een xml uitkomt

@@ -7,17 +7,6 @@ import pytest
 # silence flake8
 fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
 
-a = {
-    "version": "1.25",
-    "filters": [
-        {
-            "id": "INTERNAL-API",
-            "name": "INTERNAL-API",
-            "child": [{"id": "INTERNAL-API.RUWMET", "name": "Ruwe metingen (punt)"}],
-        }
-    ],
-}
-
 
 def test_sa_filters_json(fixture_api_sa_no_download_dir):
     response = fixture_api_sa_no_download_dir.get_filters(output_choice=OutputChoices.json_response_in_memory)

@@ -128,6 +128,7 @@ df = fixture_api_sa_no_download_dir.get_qualifiers(output_choice=OutputChoices.p
 # krap    krap (max 30%)     None
 # normaal normaal (max 50%)  None
 # ruim    ruim (max 70%)     None
+# ...etc...
 ```
 
 5. get_timezone_id
@@ -158,6 +159,7 @@ responses = api.get_time_series_single(
     output_choice = OutputChoices.xml_response_in_memory,
 )
 
+print(responses[0].text)
 # <?xml version="1.0" encoding="UTF-8"?>
 # <TimeSeries xmlns="http://www.wldelft.nl/fews/PI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wldelft.nl/fews/PI http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd" version="1.25" xmlns:fs="http://www.wldelft.nl/fews/fs">
 #     <timeZone>0.0</timeZone>
@@ -186,7 +188,7 @@ responses = api.get_time_series_single(
 #         <event date="2012-01-01" time="03:15:00" value="-0.39" flag="0" fs:PRIMAIR="OK" fs:VISUEEL="OK"/>
 #         ...etc..
 
-# If your output_choice is dataframe, then all responses are aggregated into one dataframe. 
+# If your output_choice is dataframe, then all responses are collected in one dataframe. 
 # Arguments 'flag_threshold' and 'drop_missing_values' do have effect.
 
 df = api.get_time_series_single(
@@ -219,6 +221,7 @@ list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
 print(list_with_donwloaded_csv_filepaths)
 # <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z_0.json
 # <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_0.json
+# <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_1.json
 
 
 # If output_choice is csv to file, then all responses per unique combi are grouped in one csv file. 
@@ -304,8 +307,10 @@ TODO
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (26 april 2023)
+### Test Coverage (May 1st 2023)
 ```
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
@@ -319,8 +324,8 @@ hdsr_fewspy\api_calls\get_parameters.py                              40      1  
 hdsr_fewspy\api_calls\get_qualifiers.py                              50     16    68%
 hdsr_fewspy\api_calls\get_samples.py                                 24      8    67%
 hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
-hdsr_fewspy\api_calls\time_series\base.py                            91      6    93%
-hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           71      6    92%
+hdsr_fewspy\api_calls\time_series\base.py                            92      6    93%
+hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           72      6    92%
 hdsr_fewspy\api_calls\time_series\get_time_series_single.py          34      2    94%
 hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      23      2    91%
 hdsr_fewspy\constants\choices.py                                     89      3    97%
@@ -341,7 +346,7 @@ hdsr_fewspy\retry_session.py                                         68     12  
 hdsr_fewspy\secrets.py                                               64     20    69%
 setup.py                                                             10     10     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1495    183    88%
+TOTAL                                                              1497    183    88%
 ```
 
 ### Conda general tips
