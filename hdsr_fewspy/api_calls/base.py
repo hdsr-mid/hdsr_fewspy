@@ -5,7 +5,7 @@ from hdsr_fewspy.constants.custom_types import ResponseType
 from hdsr_fewspy.constants.pi_settings import PiSettings
 from hdsr_fewspy.constants.request_settings import RequestSettings
 from hdsr_fewspy.converters.manager import ResponseManager
-from hdsr_fewspy.converters.utils import datetime_to_fews_str
+from hdsr_fewspy.converters.utils import datetime_to_fews_date_str
 from hdsr_fewspy.converters.utils import snake_to_camel_case
 from hdsr_fewspy.retry_session import RetryBackoffSession
 from pathlib import Path
@@ -144,7 +144,7 @@ class GetRequest:
 
         def _convert_kv(k: str, v) -> Tuple[str, Any]:
             if k in ApiParameters.non_pi_settings_keys_datetime():
-                v = datetime_to_fews_str(v)
+                v = datetime_to_fews_date_str(v)
             k = snake_to_camel_case(k)
             return k, v
 

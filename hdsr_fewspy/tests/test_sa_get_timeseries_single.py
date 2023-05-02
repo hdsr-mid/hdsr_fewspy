@@ -13,7 +13,7 @@ fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
 fixture_api_sa_with_download_dir = fixture_api_sa_with_download_dir
 
 
-def test_sa_single_timeseries_1_wrong(fixture_api_sa_no_download_dir):
+def test_sa_single_ts_wrong(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
 
     request_data = fixtures_requests.RequestTimeSeriesMulti1
@@ -27,7 +27,7 @@ def test_sa_single_timeseries_1_wrong(fixture_api_sa_no_download_dir):
             output_choice=OutputChoices.json_response_in_memory,
         )
 
-    request_data = fixtures_requests.RequestTimeSeriesSingle1
+    request_data = fixtures_requests.RequestTimeSeriesSingleShort
     # output_choice xml_file_in_download_dir is not possible
     with pytest.raises(AssertionError):
         api.get_time_series_single(
@@ -39,9 +39,23 @@ def test_sa_single_timeseries_1_wrong(fixture_api_sa_no_download_dir):
         )
 
 
-def test_sa_single_timeseries_1_ok_json_memory(fixture_api_sa_no_download_dir):
+def test_sa_single_ts_nan(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingle1
+    request_data = fixtures_requests.RequestTimeSeriesSingleLong
+
+    responses = api.get_time_series_single(
+        location_id="OW123456789",  # location does not exist
+        parameter_id=request_data.parameter_ids,
+        start_time=request_data.start_time,
+        end_time=request_data.end_time,
+        output_choice=OutputChoices.xml_response_in_memory,
+    )
+    assert not responses
+
+
+def test_sa_single_ts_short_ok_json_memory(fixture_api_sa_no_download_dir):
+    api = fixture_api_sa_no_download_dir
+    request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     responses = api.get_time_series_single(
         location_id=request_data.location_ids,
@@ -60,9 +74,9 @@ def test_sa_single_timeseries_1_ok_json_memory(fixture_api_sa_no_download_dir):
         assert json_found == json_expected
 
 
-def test_sa_single_timeseries_1_ok_xml_memory(fixture_api_sa_no_download_dir):
+def test_sa_single_ts_short_ok_xml_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingle1
+    request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     responses = api.get_time_series_single(
         location_id=request_data.location_ids,
@@ -93,9 +107,9 @@ def test_sa_single_timeseries_1_ok_xml_memory(fixture_api_sa_no_download_dir):
         assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"] == "2012-01-02"
 
 
-def test_sa_single_timeseries_1_ok_df_memory(fixture_api_sa_no_download_dir):
+def test_sa_single_ts_short_ok_df_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingle1
+    request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     df_found = api.get_time_series_single(
         location_id=request_data.location_ids,
@@ -115,9 +129,9 @@ def test_sa_single_timeseries_1_ok_df_memory(fixture_api_sa_no_download_dir):
     pd.testing.assert_frame_equal(left=df_found, right=df_expected, check_index_type=False)
 
 
-def test_sa_single_timeseries_2_ok_json_memory(fixture_api_sa_no_download_dir):
+def test_sa_single_ts_long_ok_json_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingle2
+    request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     responses = api.get_time_series_single(
         location_id=request_data.location_ids,
@@ -129,9 +143,9 @@ def test_sa_single_timeseries_2_ok_json_memory(fixture_api_sa_no_download_dir):
     assert len(responses) == 11
 
 
-def test_sa_single_timeseries_2_ok_xml_memory(fixture_api_sa_no_download_dir):
+def test_sa_single_ts_long_ok_xml_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingle2
+    request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     responses = api.get_time_series_single(
         location_id=request_data.location_ids,
@@ -143,9 +157,9 @@ def test_sa_single_timeseries_2_ok_xml_memory(fixture_api_sa_no_download_dir):
     assert len(responses) == 11
 
 
-def test_sa_single_timeseries_2_ok_df_memory(fixture_api_sa_no_download_dir):
+def test_sa_single_ts_long_ok_df_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingle2
+    request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     df_found = api.get_time_series_single(
         location_id=request_data.location_ids,

@@ -57,7 +57,7 @@ class RequestTimeSeriesBase:
         return csv_paths
 
 
-class RequestTimeSeriesSingle1(RequestTimeSeriesBase):
+class RequestTimeSeriesSingleShort(RequestTimeSeriesBase):
     """Single as we use 1 location_ids and 1 parameter_ids."""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
@@ -71,15 +71,27 @@ class RequestTimeSeriesSingle1(RequestTimeSeriesBase):
         return TEST_INPUT_DIR / "RequestTimeSeriesSingle1"
 
 
-class RequestTimeSeriesSingle2(RequestTimeSeriesBase):
-    """Single as we use 1 location_ids and 1 parameter_ids."""
+class RequestTimeSeriesSingleLong(RequestTimeSeriesBase):
+    """Long timeseries"""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
     location_ids = "OW433001"
     parameter_ids = "H.G.0"
     start_time = datetime(2012, 1, 1)
-    # end_time = datetime(2012, 6, 1)  # 11227 df rows?? get many timestamp
-    end_time = datetime(2016, 1, 1)  # 9157 df rows ??
+    end_time = datetime(2016, 1, 1)
+
+    @classmethod
+    def file_dir_expected_files(cls) -> Path:
+        return Path("not used in test")
+
+
+class RequestTimeSeriesSingleNaN(RequestTimeSeriesBase):
+    """Location does not exists"""
+
+    location_ids = "OW1234"
+    parameter_ids = "H.G.O"
+    start_time = datetime(year=2022, month=11, day=1)
+    end_time = datetime(year=2022, month=11, day=3)
 
     @classmethod
     def file_dir_expected_files(cls) -> Path:

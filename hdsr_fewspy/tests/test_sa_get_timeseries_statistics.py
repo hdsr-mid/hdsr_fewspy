@@ -23,7 +23,7 @@ def test_sa_timeseries_stats_wrong(fixture_api_sa_no_download_dir):
             output_choice=OutputChoices.json_response_in_memory,
         )
 
-    request_data = fixtures_requests.RequestTimeSeriesSingle1
+    request_data = fixtures_requests.RequestTimeSeriesSingleShort
     # output_choice xml_file_in_download_dir is not possible
     with pytest.raises(AssertionError):
         api.get_time_series_statistics(
@@ -37,7 +37,7 @@ def test_sa_timeseries_stats_wrong(fixture_api_sa_no_download_dir):
 
 def test_sa_timeseries_stats_2_ok_xml_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingle2
+    request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     response = api.get_time_series_statistics(
         location_id=request_data.location_ids,
@@ -52,7 +52,7 @@ def test_sa_timeseries_stats_2_ok_xml_memory(fixture_api_sa_no_download_dir):
 
 def test_sa_timeseries_stats_1_ok_json_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingle1
+    request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     response = api.get_time_series_statistics(
         location_id=request_data.location_ids,

@@ -30,7 +30,7 @@ class ResponseManager:
         elif self.output_choice == OutputChoices.csv_file_in_download_dir:
             return CsvDownloadDir(request_class=self.request_class, output_dir=self.output_dir)
         else:
-            logger.info(f"memory choice {self.output_choice} must be handled in GetRequest.run() itself")
+            logger.debug(f"memory choice {self.output_choice} must be handled in GetRequest.run() itself")
             return None
 
     def run(self, responses: List[ResponseType], **kwargs):

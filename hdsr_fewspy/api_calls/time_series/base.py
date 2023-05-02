@@ -1,10 +1,11 @@
 from abc import abstractmethod
 from datetime import datetime
+from hdsr_fewspy import exceptions
 from hdsr_fewspy.api_calls.base import GetRequest
 from hdsr_fewspy.constants.choices import ApiParameters
 from hdsr_fewspy.constants.choices import PiRestDocumentFormatChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
-from hdsr_fewspy.converters.utils import datetime_to_fews_str
+from hdsr_fewspy.converters.utils import datetime_to_fews_date_str
 from hdsr_fewspy.converters.xml_to_python_obj import parse
 from hdsr_fewspy.date_frequency import DateFrequencyBuilder
 from typing import Dict
@@ -21,6 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 class GetTimeSeriesBase(GetRequest):
+
+    response_text_no_ts_found = "No timeSeries found"
+    response_text_location_not_found = "Some of the location ids do not exist"
+    response_text_parameter_not_found = "Some of the parameters do not exists"
+
     def __init__(
         self,
         start_time: datetime,
@@ -106,9 +112,13 @@ class GetTimeSeriesBase(GetRequest):
         responses = responses if responses else []
         for request_index, (data_range_start, data_range_end) in enumerate(date_ranges):
             # update start and end in request params
-            request_params["startTime"] = datetime_to_fews_str(data_range_start)
-            request_params["endTime"] = datetime_to_fews_str(data_range_end)
-            nr_timestamps_in_response = self._get_nr_timestamps(request_params=request_params)
+            request_params["startTime"] = datetime_to_fews_date_str(data_range_start)
+            request_params["endTime"] = datetime_to_fews_date_str(data_range_end)
+            try:
+                nr_timestamps_in_response = self._get_nr_timestamps(request_params=request_params)
+            except (exceptions.LocationIdsDoesNotExistErr, exceptions.ParameterIdsDoesNotExistErr) as err:
+                logger.warning(err)
+                return []
             logger.debug(f"nr_timestamps_in_response={nr_timestamps_in_response}")
             new_date_range_freq = DateFrequencyBuilder.optional_change_date_range_freq(
                 nr_timestamps=nr_timestamps_in_response,
@@ -146,7 +156,8 @@ class GetTimeSeriesBase(GetRequest):
                 )
                 if response.status_code != 200:
                     logger.error(f"FEWS Server responds {response.text}")
-                responses.append(response)
+                else:
+                    responses.append(response)
         return responses
 
     def _get_statistics(self, request_params: Dict) -> ResponseType:
@@ -160,10 +171,9 @@ class GetTimeSeriesBase(GetRequest):
     def _get_nr_timestamps(self, request_params: Dict) -> int:
         assert "moduleInstanceIds" in request_params, "code error"
         response = self._get_statistics(request_params=request_params)
+        msg = f"status_code={response.status_code}, err={response.text}, request_params={request_params}"
         if not response.ok:
-            if response.text == "No timeSeries found":
-                return 0
-            raise AssertionError(f"response not okay, status_code={response.status_code}, err={response.text}")
+            return self.__get_nr_timestamps_invalid_response(response=response, msg=msg)
         if self.pi_settings.document_format == PiRestDocumentFormatChoices.json:
             timeseries = response.json().get("timeSeries", None)
             if not timeseries:
@@ -172,16 +182,26 @@ class GetTimeSeriesBase(GetRequest):
             if nr_timeseries == 1:
                 nr_timestamps = int(timeseries[0]["header"]["valueCount"])
                 return nr_timestamps
-            raise AssertionError(f"code error: found {nr_timeseries} timeseries in _get_nr_timestamps. Expected 0 or 1")
+            msg = f"code error: found {nr_timeseries} timeseries in _get_nr_timestamps. Expected 0 or 1, {msg}"
+            raise AssertionError(msg)
         elif self.pi_settings.document_format == PiRestDocumentFormatChoices.xml:
             xml_python_obj = parse(response.text)
             try:
                 nr_timestamps = int(xml_python_obj.TimeSeries.series.header.valueCount.cdata)
                 return nr_timestamps
             except Exception as err:
-                raise AssertionError(f"could not get nr_timestamps from xml_python_obj, err={err}")
+                raise AssertionError(f"could not get nr_timestamps from xml_python_obj, err={err}, {msg}")
         else:
-            raise NotImplementedError("only xml and json are available")
+            raise NotImplementedError(f"invalid document_format {self.pi_settings.document_format}")
+
+    def __get_nr_timestamps_invalid_response(self, response: ResponseType, msg: str):
+        if self.response_text_no_ts_found in response.text:
+            return 0
+        if self.response_text_location_not_found in response.text:
+            raise exceptions.LocationIdsDoesNotExistErr(msg)
+        elif self.response_text_parameter_not_found in response.text:
+            raise exceptions.ParameterIdsDoesNotExistErr(msg)
+        raise AssertionError(f"(unknown non-200 response, {msg}")
 
     @abstractmethod
     def run(self, *args, **kwargs):

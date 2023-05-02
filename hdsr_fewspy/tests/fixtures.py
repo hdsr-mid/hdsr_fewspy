@@ -11,9 +11,12 @@ def fixture_api_sa_no_download_dir():
     assert api.pi_settings.base_url == pi_settings_sa.base_url
     assert api.pi_settings.ssl_verify == True  # noqa
     assert api.pi_settings.settings_name == "standalone"
+    assert api.pi_settings.domain == "locathost"
     assert api.pi_settings.filter_id == "INTERNAL-API"
     assert api.pi_settings.service == "FewsWebServices"
     assert api.pi_settings.module_instance_ids == "WerkFilter"
+    assert api.pi_settings.document_version == 1.25
+    assert api.pi_settings.port == 8080
     return api
 
 
@@ -27,7 +30,10 @@ def fixture_api_sa_with_download_dir(tmpdir_factory):
     assert api.pi_settings.base_url == pi_settings_sa.base_url
     assert api.pi_settings.ssl_verify == True  # noqa
     assert api.pi_settings.settings_name == "standalone"
+    assert api.pi_settings.domain == "locathost"
     assert api.pi_settings.filter_id == "INTERNAL-API"
     assert api.pi_settings.service == "FewsWebServices"
     assert api.pi_settings.module_instance_ids == "WerkFilter"
+    assert api.pi_settings.document_version == 1.25
+    assert api.pi_settings.port == 8080
     return api

@@ -48,7 +48,7 @@ def dict_to_datetime(data: dict) -> datetime:
     return date_time
 
 
-def datetime_to_fews_str(date_time: datetime) -> str:
+def datetime_to_fews_date_str(date_time: datetime) -> str:
     """Convert a FEWS PI datetime to datetime str e.g. 2022-05-01T00:00:00Z."""
     try:
         fews_str = date_time.strftime(TimeZoneChoices.date_string_format())
@@ -85,5 +85,5 @@ def geo_datum_to_crs(geo_datum: str) -> str:
     elif geo_datum in GEODATUM_MAPPING.keys():
         crs = GEODATUM_MAPPING[geo_datum]
     else:
-        crs = None
+        crs = ""
     return crs

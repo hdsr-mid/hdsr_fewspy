@@ -1,5 +1,9 @@
-1.4 (Unreleased)
+1.5 (Unreleased)
 ----------------
+
+1.4 (2023-05-02)
+----------------
+- skip responses != 200 (so no custom created xml/json responses)
 
 1.3 (2023-05-01)
 ----------------

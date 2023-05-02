@@ -1,6 +1,7 @@
 from datetime import datetime
 from hdsr_fewspy import api_calls
 from hdsr_fewspy import exceptions
+from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.constants.choices import TimeZoneChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
 from hdsr_fewspy.constants.pi_settings import pi_settings_production
@@ -18,7 +19,6 @@ import geopandas as gpd
 import logging
 import os
 import pandas as pd
-import requests
 import urllib3  # noqa
 
 
@@ -67,7 +67,7 @@ class Api:
 
     def _ensure_service_is_running(self) -> None:
         # check endpoint with smallest response (=timezonid)
-        response = requests.get(url=f"{self.pi_settings.base_url}timezoneid/", verify=self.pi_settings.ssl_verify)
+        response = self.get_timezone_id(output_choice=OutputChoices.json_response_in_memory)
         if response.ok:
             logger.info("PiWebService is running")
             return
@@ -92,11 +92,12 @@ class Api:
             "service": (pi_settings.service, self.permissions.allowed_service),
         }
         for setting, value in mapper.items():
-            used, allowed = value
-            assert isinstance(allowed, list), f"code error, {allowed} must be a list"
-            if used in allowed:
+            used_value, allowed_values = value
+            assert isinstance(allowed_values, list), f"code error, allowed_values {allowed_values} must be a list"
+            if used_value in allowed_values:
                 continue
-            raise exceptions.PiSettingsError(f"{setting} has {used} which is not in allowed {allowed}")
+            msg = f"setting='{setting}' used_value='{used_value}' is not in allowed_values='{allowed_values}'"
+            raise exceptions.PiSettingsError(msg)
 
         return pi_settings
 
