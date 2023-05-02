@@ -97,7 +97,7 @@ class PiSettings:
         return asdict(self)
 
 
-class GithubPiSettings:
+class GithubPiSettingDefaults:
 
     expected_columns = [
         "settings_name",
@@ -157,6 +157,4 @@ class GithubPiSettings:
         return pi_settings
 
 
-github_pi_settings = GithubPiSettings()
-pi_settings_sa = github_pi_settings.get_pi_settings(settings_name="standalone")
-pi_settings_production = github_pi_settings.get_pi_settings(settings_name="production")
+github_pi_setting_defaults = GithubPiSettingDefaults()

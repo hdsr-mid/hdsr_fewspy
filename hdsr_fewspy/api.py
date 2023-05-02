@@ -4,7 +4,7 @@ from hdsr_fewspy import exceptions
 from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.constants.choices import TimeZoneChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
-from hdsr_fewspy.constants.pi_settings import pi_settings_production
+from hdsr_fewspy.constants.pi_settings import github_pi_setting_defaults
 from hdsr_fewspy.constants.pi_settings import PiSettings
 from hdsr_fewspy.constants.request_settings import get_default_request_settings
 from hdsr_fewspy.constants.request_settings import RequestSettings
@@ -37,7 +37,7 @@ class Api:
 
     def __init__(
         self,
-        pi_settings: PiSettings = pi_settings_production,
+        pi_settings: PiSettings = None,
         output_directory_root: Union[str, Path] = None,
     ):
         self.permissions = Permissions()
@@ -80,7 +80,9 @@ class Api:
             raise exceptions.StandAloneFewsWebServiceNotRunningError(msg)
         raise exceptions.FewsWebServiceNotRunningError(msg)
 
-    def _validate_pi_settings(self, pi_settings: PiSettings) -> PiSettings:
+    def _validate_pi_settings(self, pi_settings: PiSettings = None) -> PiSettings:
+        if not pi_settings:
+            pi_settings = github_pi_setting_defaults.get_pi_settings(settings_name="production")
         if not isinstance(pi_settings, PiSettings):
             raise AssertionError("pi_settings must be a PiSettings, see README.ml example how to create one")
         mapper = {

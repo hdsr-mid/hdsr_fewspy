@@ -1,5 +1,9 @@
-1.6 (Unreleased)
+1.7 (Unreleased)
 ----------------
+
+1.6 (2023-05-02)
+----------------
+- add lazy evaluation of github_pi_setting_defaults
 
 1.5 (2023-05-02)
 ----------------
