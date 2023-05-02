@@ -9,6 +9,7 @@
 [Deltares FEWS PI]: https://publicwiki.deltares.nl/display/FEWSDOC/FEWS+PI+REST+Web+Service
 [issues page]: https://github.com/hdsr-mid/hdsr_fewspy/issues
 [github personal token]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+[releases]: https://pypi.org/project/hdsr-fewspy/#history
 
 ### Description
 A python project to request data (locations, timeseries, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
@@ -302,15 +303,13 @@ You can [create a token yourself][[github personal token]]. In short:
 [MIT]
 
 ### Releases
-TODO
+[Release history][releases]
 
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
 ### Test Coverage (May 2nd 2023)
 ```
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
@@ -324,16 +323,16 @@ hdsr_fewspy\api_calls\get_parameters.py                              40      1  
 hdsr_fewspy\api_calls\get_qualifiers.py                              50     16    68%
 hdsr_fewspy\api_calls\get_samples.py                                 24      8    67%
 hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
-hdsr_fewspy\api_calls\time_series\base.py                           108      9    92%
-hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           72      6    92%
-hdsr_fewspy\api_calls\time_series\get_time_series_single.py          34      2    94%
+hdsr_fewspy\api_calls\time_series\base.py                           109      9    92%
+hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           73      6    92%
+hdsr_fewspy\api_calls\time_series\get_time_series_single.py          35      2    94%
 hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      23      2    91%
 hdsr_fewspy\constants\choices.py                                     89      3    97%
 hdsr_fewspy\constants\custom_types.py                                 2      0   100%
 hdsr_fewspy\constants\github.py                                       8      0   100%
 hdsr_fewspy\constants\paths.py                                       11      0   100%
-hdsr_fewspy\constants\pi_settings.py                                 73      7    90%
-hdsr_fewspy\constants\request_settings.py                            11      0   100%
+hdsr_fewspy\constants\pi_settings.py                                 80      7    91%
+hdsr_fewspy\constants\request_settings.py                            12      0   100%
 hdsr_fewspy\converters\download.py                                   82      4    95%
 hdsr_fewspy\converters\json_to_df_timeseries.py                     112      8    93%
 hdsr_fewspy\converters\manager.py                                    27      0   100%
@@ -346,7 +345,7 @@ hdsr_fewspy\retry_session.py                                         68     12  
 hdsr_fewspy\secrets.py                                               64     20    69%
 setup.py                                                             10     10     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1507    188    88%
+TOTAL                                                              1518    188    88%
 ```
 
 ### Conda general tips

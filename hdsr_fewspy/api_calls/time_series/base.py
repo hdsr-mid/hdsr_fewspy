@@ -129,12 +129,13 @@ class GetTimeSeriesBase(GetRequest):
             )
             create_new_date_ranges = new_date_range_freq != date_range_freq
             if create_new_date_ranges:
+                self.request_settings.updated_request_period = new_date_range_freq
                 new_date_ranges, new_date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
                     startdate_obj=data_range_start,
                     enddate_obj=pd.Timestamp(self.end_time),
                     frequency=new_date_range_freq,
                 )
-                logger.info(f"Updated request time-window from {date_range_freq} to {new_date_range_freq}")
+                logger.debug(f"Updated request time-window from {date_range_freq} to {new_date_range_freq}")
                 # continue with recursive call with updated (smaller or larger) time-window
                 return self._download_timeseries(
                     date_ranges=new_date_ranges,

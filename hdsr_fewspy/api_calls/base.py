@@ -91,7 +91,6 @@ class GetRequest:
                  'filter_id': 'INTERNAL-API',
                  'max_request_nr_timestamps': 100000,
                  'max_request_period': Timedelta('728 days 00:00:00'),
-                 'max_request_size_kb': 3000,
                  'max_response_time': Timedelta('0 days 00:00:20'),
                  'min_request_nr_timestamps': 10000,
                  'min_time_between_requests': Timedelta('0 days 00:00:01'),

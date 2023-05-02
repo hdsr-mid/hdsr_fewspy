@@ -1,5 +1,10 @@
-1.5 (Unreleased)
+1.6 (Unreleased)
 ----------------
+
+1.5 (2023-05-02)
+----------------
+- use DateFrequencyBuilder frequency of previous request avoid all window update iterations
+- improve logging (less logging due to info to debug)
 
 1.4 (2023-05-02)
 ----------------

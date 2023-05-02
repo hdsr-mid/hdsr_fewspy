@@ -111,9 +111,13 @@ class GithubPiSettings:
         "time_zone",
     ]
 
-    @classmethod
-    def _read_github(cls, settings_name: str) -> pd.Series:
-        logger.info(f"get_on_the_fly_pi_settings for setttings_name {settings_name}")
+    def __init__(self):
+        self._df_github_settings = None
+
+    @property
+    def df_github_settings(self) -> pd.DataFrame:
+        if self._df_github_settings is not None:
+            return self._df_github_settings
         github_downloader = GithubFileDownloader(
             target_file=github.GITHUB_HDSR_FEWSPY_AUTH_SETTINGS_TARGET_FILE,
             allowed_period_no_updates=github.GITHUB_HDSR_FEWSPY_AUTH_ALLOWED_PERIOD_NO_UPDATES,
@@ -122,19 +126,23 @@ class GithubPiSettings:
             repo_organisation=github.GITHUB_ORGANISATION,
         )
         df = pd.read_csv(filepath_or_buffer=github_downloader.get_download_url(), sep=";")
-        df_slice = df[df["settings_name"] == settings_name]
+        assert sorted(df.columns) == sorted(self.expected_columns), "code_error"
+        self._df_github_settings = df
+        return self._df_github_settings
+
+    def _read_github(self, settings_name: str) -> pd.Series:
+        logger.info(f"get_on_the_fly_pi_settings for setttings_name '{settings_name}'")
+        df_slice = self.df_github_settings[self.df_github_settings["settings_name"] == settings_name]
         if df_slice.empty:
-            available_setting_names = df["settings_name"].tolist()
-            msg = f"pi settings_name {settings_name} is not in available setting_names {available_setting_names}"
+            available_setting_names = self.df_github_settings["settings_name"].tolist()
+            msg = f"pi settings_name '{settings_name}' is not in available setting_names '{available_setting_names}'"
             raise AssertionError(msg)
         assert len(df_slice) == 1, "code error"
-        assert sorted(df.columns) == sorted(cls.expected_columns), "code_error"
         pd_series = df_slice.iloc[0]
         return pd_series
 
-    @classmethod
-    def get_pi_settings(cls, settings_name: str) -> PiSettings:
-        pd_series = cls._read_github(settings_name=settings_name)
+    def get_pi_settings(self, settings_name: str) -> PiSettings:
+        pd_series = self._read_github(settings_name=settings_name)
         pi_settings = PiSettings(
             settings_name=pd_series["settings_name"],
             document_version=pd_series["document_version"],
@@ -149,5 +157,6 @@ class GithubPiSettings:
         return pi_settings
 
 
-pi_settings_sa = GithubPiSettings.get_pi_settings(settings_name="standalone")
-pi_settings_production = GithubPiSettings.get_pi_settings(settings_name="production")
+github_pi_settings = GithubPiSettings()
+pi_settings_sa = github_pi_settings.get_pi_settings(settings_name="standalone")
+pi_settings_production = github_pi_settings.get_pi_settings(settings_name="production")

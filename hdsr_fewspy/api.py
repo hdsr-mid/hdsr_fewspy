@@ -6,7 +6,7 @@ from hdsr_fewspy.constants.choices import TimeZoneChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
 from hdsr_fewspy.constants.pi_settings import pi_settings_production
 from hdsr_fewspy.constants.pi_settings import PiSettings
-from hdsr_fewspy.constants.request_settings import default_request_settings
+from hdsr_fewspy.constants.request_settings import get_default_request_settings
 from hdsr_fewspy.constants.request_settings import RequestSettings
 from hdsr_fewspy.permissions import Permissions
 from hdsr_fewspy.retry_session import RetryBackoffSession
@@ -43,7 +43,7 @@ class Api:
         self.permissions = Permissions()
         self.output_dir = self._get_output_dir(output_directory_root=output_directory_root)
         self.pi_settings = self._validate_pi_settings(pi_settings=pi_settings)
-        self.request_settings: RequestSettings = default_request_settings
+        self.request_settings: RequestSettings = get_default_request_settings()
         self.retry_backoff_session = RetryBackoffSession(
             _request_settings=self.request_settings,
             pi_settings=self.pi_settings,

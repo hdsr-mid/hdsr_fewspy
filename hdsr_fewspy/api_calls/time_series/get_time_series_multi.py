@@ -51,10 +51,16 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
         responses = []
         cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
         for index, request_params in enumerate(cartesian_parameters_list):
+            # eventually continue with request_period of last request (avoiding all freq update iterations)
+            frequency = (
+                self.request_settings.updated_request_period
+                if self.request_settings.updated_request_period
+                else self.request_settings.default_request_period
+            )
             date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
                 startdate_obj=pd.Timestamp(self.start_time),
                 enddate_obj=pd.Timestamp(self.end_time),
-                frequency=self.request_settings.default_request_period,
+                frequency=frequency,
             )
             responses = self._download_timeseries(
                 date_ranges=date_ranges,

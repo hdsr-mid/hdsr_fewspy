@@ -197,26 +197,18 @@ def test_sa_multi_timeseries_2_ok_xml_download(fixture_api_sa_with_download_dir)
 
     mapper_expected_xmls = request_data.get_expected_xmls()
     for downloaded_file in all_file_paths:
-        try:
-            found = parse(downloaded_file.as_posix())
-            found_header = found.TimeSeries.series.header
-            found_events = found.TimeSeries.series.event
+        found = parse(downloaded_file.as_posix())
+        found_header = found.TimeSeries.series.header
+        found_events = found.TimeSeries.series.event
 
-            expected = mapper_expected_xmls[downloaded_file.stem]
-            expected_header = expected.TimeSeries.series.header
-            expected_events = expected.TimeSeries.series.event
+        expected = mapper_expected_xmls[downloaded_file.stem]
+        expected_header = expected.TimeSeries.series.header
+        expected_events = expected.TimeSeries.series.event
 
-            assert found_header.timeStep._attributes["unit"] == expected_header.timeStep._attributes["unit"]
-            assert len(found_events) == len(expected_events)
-            assert found_events[0]._attributes["date"] == expected_events[0]._attributes["date"]
-            assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"]
-        except AttributeError:
-            assert downloaded_file.name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_3.xml"
-            found = parse(downloaded_file.as_posix())
-            expected = mapper_expected_xmls[downloaded_file.stem]
-            for x in (found, expected):
-                assert x.root.doc.response_http_status.cdata == "400"
-                assert x.root.doc.response_text.cdata == "No timeSeries found"
+        assert found_header.timeStep._attributes["unit"] == expected_header.timeStep._attributes["unit"]
+        assert len(found_events) == len(expected_events)
+        assert found_events[0]._attributes["date"] == expected_events[0]._attributes["date"]
+        assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"]
 
 
 def test_sa_multi_timeseries_2_ok_csv_download(fixture_api_sa_with_download_dir):
