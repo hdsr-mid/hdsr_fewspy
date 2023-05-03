@@ -41,18 +41,18 @@ class Api:
         output_directory_root: Union[str, Path] = None,
     ):
         self.permissions = Permissions()
-        self.output_dir = self._get_output_dir(output_directory_root=output_directory_root)
-        self.pi_settings = self._validate_pi_settings(pi_settings=pi_settings)
+        self.output_dir = self.__get_output_dir(output_directory_root=output_directory_root)
+        self.pi_settings = self.__validate_pi_settings(pi_settings=pi_settings)
         self.request_settings: RequestSettings = get_default_request_settings()
         self.retry_backoff_session = RetryBackoffSession(
             _request_settings=self.request_settings,
             pi_settings=self.pi_settings,
             output_dir=self.output_dir,
         )
-        self._ensure_service_is_running()
+        self.__ensure_service_is_running()
 
     @staticmethod
-    def _get_output_dir(output_directory_root: Union[str, Path] = None) -> Optional[Path]:
+    def __get_output_dir(output_directory_root: Union[str, Path] = None) -> Optional[Path]:
         if output_directory_root is None:
             return None
         # check 1
@@ -65,22 +65,29 @@ class Api:
         output_dir = output_directory_root / f"hdsr_fewspy_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         return output_dir
 
-    def _ensure_service_is_running(self) -> None:
-        # check endpoint with smallest response (=timezonid)
-        response = self.get_timezone_id(output_choice=OutputChoices.json_response_in_memory)
-        if response.ok:
-            logger.info("PiWebService is running")
-            return
+    def __log_not_running_service(self, err: Exception = None, response: ResponseType = None) -> None:
+        error = f"{response.text}, {err}" if response else str(err)
         msg = (
-            f"Piwebservice is not running, err={response.text}. Ensure that you can visit the test page "
-            f"{self.pi_settings.test_url}"
+            f"Piwebservice is not running, Ensure that you can visit the test page '{self.pi_settings.test_url}', "
+            f"err={error}"
         )
         if self.pi_settings.domain == "localhost":
             msg += ". Please make sure FEWS SA webservice is running and start embedded tomcat server via F12 key."
             raise exceptions.StandAloneFewsWebServiceNotRunningError(msg)
         raise exceptions.FewsWebServiceNotRunningError(msg)
 
-    def _validate_pi_settings(self, pi_settings: PiSettings = None) -> PiSettings:
+    def __ensure_service_is_running(self) -> None:
+        """Just request endpoint with smallest response (=timezonid)."""
+        try:
+            response = self.get_timezone_id(output_choice=OutputChoices.json_response_in_memory)
+            if response.ok:
+                logger.info("PiWebService is running")
+                return
+            self.__log_not_running_service(err=None, response=response)
+        except Exception as err:
+            self.__log_not_running_service(err=err, response=None)
+
+    def __validate_pi_settings(self, pi_settings: PiSettings = None) -> PiSettings:
         if not pi_settings:
             pi_settings = github_pi_setting_defaults.get_pi_settings(settings_name="production")
         if not isinstance(pi_settings, PiSettings):
@@ -329,12 +336,11 @@ class Api:
 # TODO: check of properties goed meekomen in get_timeseries in PI_JSON (in PI_XML gaat het goed) -> Ciska:" bij
 #  EFICS werkt niet helemaal lekker. bij get_samples gaat het helemaal fout"
 
-# TODO: potentieel van grote naar kleine belasting (retry-backoff nodig): get_samples, get_timeseries,
+# TODO: van potentieel grote naar kleine request belasting: get_samples, get_timeseries,
 #  get_qualifiers (25 groepen * 100k regels per groep), get_parameters (4000), get_locations (300)
 
 # TODO: use onlyHeader=True kan voor get_timeseries en get_samples (beide hebben ook start + eind).
 #  Echter, get_qualifiers heeft dat niet. FEWS-WIS response is snel (<1sec). FEWS-EFICS duurt lang (8 sec)
-#  get_lcoations duurt 7 sec.
-#  Voorstel Ciska: alleen func get_timeseries + get_samples via PiWebService. De andere request disabelen:
-#  logger.info('Stuur ciska.overbeek@hdsr.nl een mailtje of dat lijstje mag, dan krijg je er ook nog meer info bij)
-#  die lijstjes worden 2 a 3 per jaar script + handmatig ge-update.
+#  get_lcoations duurt 7 sec. Voorstel Ciska: alleen func get_timeseries + get_samples via PiWebService. De andere
+#  request disabelen: logger.info('Stuur ciska.overbeek@hdsr.nl een mailtje of dat lijstje mag, dan krijg je er ook
+#  nog meer info bij) die lijstjes worden 2 a 3 per jaar script + handmatig ge-update...

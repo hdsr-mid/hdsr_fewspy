@@ -1,5 +1,11 @@
-1.7 (Unreleased)
+1.8 (Unreleased)
 ----------------
+
+1.7 (2023-05-03)
+----------------
+- improve logging _ensure_service_is_running
+- add github_pi_setting_defaults to hdsr_fewspy.__init__
+- update readme usage examples
 
 1.6 (2023-05-02)
 ----------------

@@ -53,17 +53,14 @@ pip install hdsr-fewspy (or 'conda install hdsr-fewspy -channel hdsr-mid')
 3. Run imports and instantiate a hdsr_fewspy API: 
 ```
 from datetime import datetime
-from hdsr_fewspy import Api, PiSettings, OutputChoices
-import geopandas as gpd  # comes with hdsr_fewspy
-import pandas as pd  # comes with hdsr_fewspy
+import hdsr_fewspy
+from hdsr_fewspy import Api, PiSettings, OutputChoices, github_pi_setting_defaults, TimeZoneChoices
 
-# option 1: 
-# Instantiate API using default settings:
-api = Api()  
+# option 1 Instantiate API using default settings:
+api = hdsr_fewspy.Api()  
 
-# option 2
-# Instantiate API using custom settings:
-custom_settings = PiSettings(
+# option 2 Instantiate API using custom settings:
+custom_settings = hdsr_fewspy.PiSettings(
    settings_name="does not matter blabla",            
    document_version=1.25",
    ssl_verify=True,
@@ -72,20 +69,23 @@ custom_settings = PiSettings(
    service="FewsWebServices",
    filter_id="INTERNAL-API",
    module_instance_ids="WerkFilter",
-   time_zone=0.0,
+   time_zone=hdsr_fewspy.TimeZoneChoices.eu_amsterdam,  # = 1.0 (only affects get_time_series dataframe and csv)
 )
-api = Api(pi_settings=custom_settings)
+api = hdsr_fewspy.Api(pi_settings=custom_settings)
+# or use a default custom setting:
+sa_default_pi_settings = hdsr_fewspy.github_pi_setting_defaults.get_pi_settings(settings_name="standalone")
+api = hdsr_fewspy.Api(pi_settings=sa_default_pi_settings)
 
-# option 3.
-# If you want to download responses to file, then you need to specify a output_directory_root.
-# Note: the files will be downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/
-api = Api(output_directory_root=<path_to_a_dir>)
+# option 3: Instantiate API with download directory
+# If you want to download responses to file, then you need to specify an output_directory_root. The files will be 
+downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/<here_your_files_will_be_downloaded>
+api = hdsr_fewspy.Api(output_directory_root=<path_to_a_dir>)
 ```
 
 ###### Examples 9 different API calls (using api option 3 from above)
 1. get_parameters
 ```
-df = api.get_parameters(output_choice=OutputChoices.pandas_dataframe_in_memory)
+df = api.get_parameters(output_choice=hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory)
 
 # id       name                                parameter_type unit display_unit uses_datum parameter_group  
 # ---------------------------------------------------------------------------------------------------------                                                                                                                                 
@@ -96,7 +96,7 @@ df = api.get_parameters(output_choice=OutputChoices.pandas_dataframe_in_memory)
 ```
 2. get_filters
 ```
-response = api.get_filters(output_choice=OutputChoices.json_response_in_memory)
+response = api.get_filters(output_choice=hdsr_fewspy.OutputChoices.json_response_in_memory)
 response.json() 
 
 # {
@@ -110,7 +110,7 @@ response.json()
 ```
 3. get_locations
 ```
-gdf = get_locations(output_choice=OutputChoices.pandas_dataframe_in_memory, show_attributes=True)
+gdf = get_locations(output_choice=hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory, show_attributes=True)
 
 # location_id description          short_name          lat               lon                x        y        z   parent_location_id geometry                      attributes
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                                  
@@ -121,7 +121,7 @@ gdf = get_locations(output_choice=OutputChoices.pandas_dataframe_in_memory, show
 ```
 4. get_qualifiers
 ```
-df = fixture_api_sa_no_download_dir.get_qualifiers(output_choice=OutputChoices.pandas_dataframe_in_memory)
+df = fixture_api_sa_no_download_dir.get_qualifiers(output_choice=hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory)
     
 # id      name               group_id
 # -----------------------------------
@@ -134,7 +134,7 @@ df = fixture_api_sa_no_download_dir.get_qualifiers(output_choice=OutputChoices.p
 
 5. get_timezone_id
 ```
-response = api.get_timezone_id(output_choice=OutputChoices.json_response_in_memory)
+response = api.get_timezone_id(output_choice=hdsr_fewspy.OutputChoices.json_response_in_memory)
 
 # verify response
 assert response.text == "GMT"
@@ -146,11 +146,9 @@ assert TimeZoneChoices.get_tz_float(value=response.text) == TimeZoneChoices.gmt 
 ```
 7. get_time_series_single
 ```
-# Single means: use max 1 location_id and/or parameter_id and/or qualifier_id.
-# One large call can result in multiple small calls and therefore multiple responses.
-
-# If your output_choice is json/xml in memory, then you get a list with >=1 responses. 
-# Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
+# Single means: use max 1 location_id and/or parameter_id and/or qualifier_id. One large call can result in multiple 
+# small calls and therefore multiple responses. If your output_choice is json/xml in memory, then you get a list with 
+# >=1 responses. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
 
 responses = api.get_time_series_single(
     location_id = "OW433001",
@@ -189,8 +187,8 @@ print(responses[0].text)
 #         <event date="2012-01-01" time="03:15:00" value="-0.39" flag="0" fs:PRIMAIR="OK" fs:VISUEEL="OK"/>
 #         ...etc..
 
-# If your output_choice is dataframe, then all responses are collected in one dataframe. 
-# Arguments 'flag_threshold' and 'drop_missing_values' do have effect.
+# If your output_choice is dataframe, then all responses are collected in one dataframe. Arguments 'flag_threshold' 
+# and 'drop_missing_values' do have effect.
 
 df = api.get_time_series_single(
     location_id = "OW433001",
@@ -204,12 +202,10 @@ df = api.get_time_series_single(
 ```
 8. get_time_series_multi 
 ```
-# Multi means: use >=1 location_id and/or parameter_id and/or qualifier_id.
-# The api call below results in 4 unique location_parameter_qualifier comibinations: OW433001_hg0, OW433001_hgd, OW433002_hg0, OW433002_hgd
-# Per unique combination we do >=1 requests which therefore results in >=1 responses.
-
-# If output_choice is xml/json to file, then each response results in a file. 
-# Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
+# Multi means: use >=1 location_id and/or parameter_id and/or qualifier_id. The api call below results in 4 unique 
+# location_parameter_qualifier comibinations: OW433001_hg0, OW433001_hgd, OW433002_hg0, OW433002_hgd. Per unique 
+# combination we do >=1 requests which therefore result in >=1 responses. If output_choice is xml/json to file, then 
+# each response results in a file. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
 
 list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
     location_ids = ["OW433001", "OW433002"]
@@ -225,8 +221,8 @@ print(list_with_donwloaded_csv_filepaths)
 # <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_1.json
 
 
-# If output_choice is csv to file, then all responses per unique combi are grouped in one csv file. 
-# Arguments 'flag_threshold' and 'drop_missing_values' do have effect.
+# If output_choice is csv to file, then all responses per unique combi are grouped in one csv file. Arguments 
+# 'flag_threshold' and 'drop_missing_values' do have effect.
   
 list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
     location_ids = ["OW433001", "OW433002"]
@@ -308,13 +304,13 @@ You can [create a token yourself][[github personal token]]. In short:
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (May 2nd 2023)
+### Test Coverage (May 3rd 2023)
 ```
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
-hdsr_fewspy\__init__.py                                               8      0   100%
-hdsr_fewspy\api.py                                                   99     11    89%
+hdsr_fewspy\__init__.py                                              10      0   100%
+hdsr_fewspy\api.py                                                  107     16    85%
 hdsr_fewspy\api_calls\__init__.py                                    18      0   100%
 hdsr_fewspy\api_calls\base.py                                       100     12    88%
 hdsr_fewspy\api_calls\get_filters.py                                 25      0   100%
@@ -331,7 +327,7 @@ hdsr_fewspy\constants\choices.py                                     89      3  
 hdsr_fewspy\constants\custom_types.py                                 2      0   100%
 hdsr_fewspy\constants\github.py                                       8      0   100%
 hdsr_fewspy\constants\paths.py                                       11      0   100%
-hdsr_fewspy\constants\pi_settings.py                                 80      7    91%
+hdsr_fewspy\constants\pi_settings.py                                 78      7    91%
 hdsr_fewspy\constants\request_settings.py                            12      0   100%
 hdsr_fewspy\converters\download.py                                   82      4    95%
 hdsr_fewspy\converters\json_to_df_timeseries.py                     112      8    93%
@@ -345,7 +341,7 @@ hdsr_fewspy\retry_session.py                                         68     12  
 hdsr_fewspy\secrets.py                                               64     20    69%
 setup.py                                                             10     10     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1518    188    88%
+TOTAL                                                              1526    193    87%
 ```
 
 ### Conda general tips
