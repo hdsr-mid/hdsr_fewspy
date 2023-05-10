@@ -40,26 +40,41 @@ get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json 
 ### Usage
 
 ###### Preparation
-1. Only once needed: ensure you have a file G:/secrets.env. This file must contain at least these 3 lines:
+1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read topic 
+   'GITHUB_PERSONAL_ACCESS_TOKEN' below.
+2. You can create a hdsr_fewspy API in two ways (the first way dominates the second): 
+   a. or with API arguments 'github_email' and/or token 'github_personal_access_token'
+   b. or put these arguments in a .env file and use API argument 'secrets_env_path' (defaults to 'G:/secrets.env')
+      The .env file must have these 2 rows:
 ```
 GITHUB_PERSONAL_ACCESS_TOKEN=<see topic 'GITHUB_PERSONAL_ACCESS_TOKEN' below>
-HDSR_FEWSPY_EMAIL=<your_hdsr_email>
-HDSR_FEWSPY_TOKEN=<contact renier.kramer.hdsr.nl to get HDSR_FEWSPY_TOKEN>
+GITHUB_EMAIL=<your_github_email>
 ```
 2. Only once per project: install hdsr_fewspy dependency:
 ```
 pip install hdsr-fewspy (or 'conda install hdsr-fewspy -channel hdsr-mid')
 ```
-3. Run imports and instantiate a hdsr_fewspy API: 
+3. Example simple:
 ```
 from datetime import datetime
 import hdsr_fewspy
-from hdsr_fewspy import Api, PiSettings, OutputChoices, github_pi_setting_defaults, TimeZoneChoices
 
-# option 1 Instantiate API using default settings:
-api = hdsr_fewspy.Api()  
+api = hdsr_fewspy.Api()
+```
+4. Example sophisticated:
+```
+# Optionally, you can specify several API arguments:
+# github_email: str, 
+# github_personal_access_token: str
+# secrets_env_path: str or pathlib.Path
+# pi_settings: hdsr_fewspy.PiSettings 
+# output_directory_root: str or pathlib.path
 
-# option 2 Instantiate API using custom settings:
+# For example in case of pi_settings, you can use predefined settings ('standalone', 'production', etc):
+sa_pi_settings = hdsr_fewspy.github_pi_setting_defaults.get_pi_settings(settings_name="standalone")
+api = hdsr_fewspy.Api(pi_settings=sa_pi_settings)
+
+# Or create your own pi_settings:
 custom_settings = hdsr_fewspy.PiSettings(
    settings_name="does not matter blabla",            
    document_version=1.25",
@@ -72,13 +87,9 @@ custom_settings = hdsr_fewspy.PiSettings(
    time_zone=hdsr_fewspy.TimeZoneChoices.eu_amsterdam,  # = 1.0 (only affects get_time_series dataframe and csv)
 )
 api = hdsr_fewspy.Api(pi_settings=custom_settings)
-# or use a default custom setting:
-sa_default_pi_settings = hdsr_fewspy.github_pi_setting_defaults.get_pi_settings(settings_name="standalone")
-api = hdsr_fewspy.Api(pi_settings=sa_default_pi_settings)
 
-# option 3: Instantiate API with download directory
-# If you want to download responses to file, then you need to specify an output_directory_root. The files will be 
-downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/<here_your_files_will_be_downloaded>
+# In case you want to download responses to file, then you need to specify an output_directory_root 
+# The files will be downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/<files_will_be_downloaded_here>
 api = hdsr_fewspy.Api(output_directory_root=<path_to_a_dir>)
 ```
 
@@ -304,13 +315,13 @@ You can [create a token yourself][[github personal token]]. In short:
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (May 3rd 2023)
+### Test Coverage (May 10th 2023)
 ```
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
 hdsr_fewspy\__init__.py                                              10      0   100%
-hdsr_fewspy\api.py                                                  107     16    85%
+hdsr_fewspy\api.py                                                  110     16    85%
 hdsr_fewspy\api_calls\__init__.py                                    18      0   100%
 hdsr_fewspy\api_calls\base.py                                       100     12    88%
 hdsr_fewspy\api_calls\get_filters.py                                 25      0   100%
@@ -326,7 +337,7 @@ hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      23      2  
 hdsr_fewspy\constants\choices.py                                     89      3    97%
 hdsr_fewspy\constants\custom_types.py                                 2      0   100%
 hdsr_fewspy\constants\github.py                                       8      0   100%
-hdsr_fewspy\constants\paths.py                                       11      0   100%
+hdsr_fewspy\constants\paths.py                                       10      0   100%
 hdsr_fewspy\constants\pi_settings.py                                 78      7    91%
 hdsr_fewspy\constants\request_settings.py                            12      0   100%
 hdsr_fewspy\converters\download.py                                   82      4    95%
@@ -335,13 +346,13 @@ hdsr_fewspy\converters\manager.py                                    27      0  
 hdsr_fewspy\converters\utils.py                                      45     17    62%
 hdsr_fewspy\converters\xml_to_python_obj.py                         105     27    74%
 hdsr_fewspy\date_frequency.py                                        46      5    89%
-hdsr_fewspy\exceptions.py                                            16      0   100%
-hdsr_fewspy\permissions.py                                           67      5    93%
+hdsr_fewspy\exceptions.py                                            14      0   100%
+hdsr_fewspy\permissions.py                                           47      1    98%
 hdsr_fewspy\retry_session.py                                         68     12    82%
-hdsr_fewspy\secrets.py                                               64     20    69%
+hdsr_fewspy\secrets.py                                               71     19    73%
 setup.py                                                             10     10     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1526    193    87%
+TOTAL                                                              1513    188    88%
 ```
 
 ### Conda general tips

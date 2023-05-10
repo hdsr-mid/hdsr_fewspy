@@ -10,10 +10,6 @@ class UserNotFoundInHdsrFewspyAuthError(Exception):
     pass
 
 
-class UserInvalidTokenHdsrFewspyAuthError(Exception):
-    pass
-
-
 class NoPermissionInHdsrFewspyAuthError(Exception):
     pass
 

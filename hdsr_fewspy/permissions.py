@@ -1,42 +1,21 @@
 from hdsr_fewspy.constants import github
 from hdsr_fewspy.exceptions import NoPermissionInHdsrFewspyAuthError
-from hdsr_fewspy.exceptions import UserInvalidTokenHdsrFewspyAuthError
 from hdsr_fewspy.exceptions import UserNotFoundInHdsrFewspyAuthError
 from hdsr_fewspy.secrets import Secrets
 from hdsr_pygithub import GithubFileDownloader
-from typing import Dict
 from typing import List
 
 import logging
 import pandas as pd
-import validators
 
 
 logger = logging.getLogger(__name__)
 
 
 class Permissions:
-    def __init__(self):
-        self.secrets = Secrets()
-        logger.info(
-            "using hdsr_fewspy_email and hdsr_fewspy_token from os environmental variables (loaded from G:/secrets.env)"
-        )
-        self.hdsr_fewspy_email = self.validate_email(email=self.secrets.hdsr_fewspy_email)
-        self.hdsr_fewspy_token = self.secrets.hdsr_fewspy_token.strip()
+    def __init__(self, secrets: Secrets):
+        self.secrets = secrets
         self._permission_row = None
-        self.ensure_any_permissions()
-
-    @classmethod
-    def validate_email(cls, email: str) -> str:
-        logger.info("validatng email")
-        assert isinstance(email, str) and email
-        if not validators.email(value=email) == True:  # noqa
-            raise AssertionError(f"email '{email}' is invalid")
-        return email.strip()
-
-    def ensure_any_permissions(self) -> None:
-        if self.permissions_row.empty:
-            raise NoPermissionInHdsrFewspyAuthError(f"user {self.hdsr_fewspy_email} has no permissions at all")
 
     @property
     def permissions_row(self) -> pd.Series:
@@ -57,24 +36,17 @@ class Permissions:
         df[df_obj.columns] = df_obj.apply(lambda x: x.str.strip())
 
         # get row with matching email
-        permissions_row = df[df["email"] == self.hdsr_fewspy_email]
-        assert len(permissions_row) == 1, "code error"
+        permissions_row = df[df["email"] == self.secrets.github_email]
+        nr_rows = len(permissions_row)
+        if nr_rows != 1:
+            msg = f"github_email {self.secrets.github_email} is registered {nr_rows} times in hdsr_fewspy_auth"
+            raise UserNotFoundInHdsrFewspyAuthError(msg)
         permissions_row = permissions_row.loc[0]
 
-        # check user exists
+        # check github_email exists
         if permissions_row.empty:
-            raise UserNotFoundInHdsrFewspyAuthError(
-                f"email {self.hdsr_fewspy_email} not in permission file. Please contact maintainer of this package"
-            )
+            raise NoPermissionInHdsrFewspyAuthError(f"github_email {self.secrets.github_email} has no permissions")
 
-        # check user has valid token
-        if permissions_row["hdsr_fewspy_token"] != self.hdsr_fewspy_token:
-            raise UserInvalidTokenHdsrFewspyAuthError(
-                "email found in permission file, but token does not match. Please contact maintainer of this package"
-            )
-
-        # hide token
-        permissions_row["hdsr_fewspy_token"] = "..."
         self._permission_row = permissions_row
         return self._permission_row
 
@@ -97,12 +69,3 @@ class Permissions:
     @property
     def allowed_filter_id(self) -> List[str]:
         return self.split_string_in_list(value=self.permissions_row["allowed_filter_id"])
-
-    @property
-    def all_fields(self) -> Dict:
-        return {
-            "allowed_domain": self.allowed_domain,
-            "allowed_service": self.allowed_service,
-            "allowed_module_instance_id": self.allowed_module_instance_id,
-            "allowed_filter_id": self.allowed_filter_id,
-        }

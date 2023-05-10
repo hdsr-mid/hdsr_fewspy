@@ -170,7 +170,7 @@ class GetTimeSeriesBase(GetRequest):
         return response
 
     def _get_nr_timestamps(self, request_params: Dict) -> int:
-        assert "moduleInstanceIds" in request_params, "code error"
+        assert "moduleInstanceIds" in request_params, "code error GetTimeSeriesBase"
         response = self._get_statistics(request_params=request_params)
         msg = f"status_code={response.status_code}, err={response.text}, request_params={request_params}"
         if not response.ok:

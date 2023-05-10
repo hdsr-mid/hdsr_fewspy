@@ -45,7 +45,7 @@ class GetQualifiers(GetRequest):
         if self.output_choice == OutputChoices.xml_response_in_memory:
             return response
 
-        assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error"
+        assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error GetQualifiers"
         # parse the response to dataframe
         if response.status_code == 200:
             tree = ElementTree.fromstring(response.content)

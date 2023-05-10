@@ -137,7 +137,7 @@ class GithubPiSettingDefaults:
             available_setting_names = self.df_github_settings["settings_name"].tolist()
             msg = f"pi settings_name '{settings_name}' is not in available setting_names '{available_setting_names}'"
             raise AssertionError(msg)
-        assert len(df_slice) == 1, "code error"
+        assert len(df_slice) == 1, "code error _read_github"
         pd_series = df_slice.iloc[0]
         return pd_series
 

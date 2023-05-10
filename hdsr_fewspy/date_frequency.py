@@ -69,14 +69,14 @@ class DateFrequencyBuilder:
             date_range_freq = 0.7 * date_range_freq
         elif nr_timestamps < request_settings.min_request_nr_timestamps:
             if date_range_freq > request_settings.max_request_period:
-                logger.info(
+                logger.debug(
                     f"date_range_freq={date_range_freq} exceeds max_request_period="
                     f"(={request_settings.max_request_period}). Continue with date_range_freq={date_range_freq}"
                 )
                 return date_range_freq
             period_required = enddate_request - startdate_request
             if date_range_freq > period_required:
-                logger.info(
+                logger.debug(
                     f"date_range_freq={date_range_freq} exceeds period available (={period_required}). Continue with "
                     f"date_range_freq={date_range_freq}"
                 )
@@ -85,7 +85,7 @@ class DateFrequencyBuilder:
             try:
                 date_range_freq = 1.3 * date_range_freq
             except (OverflowError, pd.errors.OutOfBoundsDatetime) as err:
-                logger.info(
+                logger.debug(
                     f"could not increase date_range_freq (err={err}). Continue with date_range_freq={date_range_freq}"
                 )
         return date_range_freq
