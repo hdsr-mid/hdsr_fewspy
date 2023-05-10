@@ -1,5 +1,10 @@
-1.8 (Unreleased)
+1.9 (Unreleased)
 ----------------
+
+1.8 (2023-05-10)
+----------------
+- remove hdsr_fewspy_token (only use github personal email and token)
+- improve logging "code error"
 
 1.7 (2023-05-03)
 ----------------

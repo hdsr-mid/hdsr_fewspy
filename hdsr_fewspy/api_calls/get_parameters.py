@@ -63,7 +63,7 @@ class GetParameters(GetRequest):
         if self.output_choice in {OutputChoices.json_response_in_memory, OutputChoices.xml_response_in_memory}:
             return response
 
-        assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error"
+        assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error GetParameters"
         # parse the response to dataframe
         df = pd.DataFrame(columns=COLUMNS)
         if response.status_code == 200:

@@ -70,7 +70,7 @@ class XmlDownloadDir(DownloadBase):
         file_name_base = self._get_base_file_name(request_class=self.request_class, file_name_values=file_name_values)
         file_paths_created = []
         for index, response in enumerate(responses):
-            assert response.status_code == 200, "code error"
+            assert response.status_code == 200, "code error XmlDownloadDir"
             file_path = self.output_dir / f"{file_name_base}_{index}.xml"
             logger.info(f"writing response to new file {file_path}")
             self._ensure_output_dir_exists(file_path=file_path)
@@ -87,7 +87,7 @@ class JsonDownloadDir(DownloadBase):
         file_name_base = self._get_base_file_name(request_class=self.request_class, file_name_values=file_name_values)
         file_paths_created = []
         for index, response in enumerate(responses):
-            assert response.status_code == 200, "code error"
+            assert response.status_code == 200, "code error JsonDownloadDir"
             file_path = self.output_dir / f"{file_name_base}_{index}.json"
             logger.info(f"writing response to new file {file_path}")
             self._ensure_output_dir_exists(file_path=file_path)

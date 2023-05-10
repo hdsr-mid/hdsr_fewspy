@@ -4,12 +4,14 @@ from hdsr_fewspy import exceptions
 from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.constants.choices import TimeZoneChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
+from hdsr_fewspy.constants.paths import SECRETS_ENV_PATH
 from hdsr_fewspy.constants.pi_settings import github_pi_setting_defaults
 from hdsr_fewspy.constants.pi_settings import PiSettings
 from hdsr_fewspy.constants.request_settings import get_default_request_settings
 from hdsr_fewspy.constants.request_settings import RequestSettings
 from hdsr_fewspy.permissions import Permissions
 from hdsr_fewspy.retry_session import RetryBackoffSession
+from hdsr_fewspy.secrets import Secrets
 from pathlib import Path
 from typing import List
 from typing import Optional
@@ -37,10 +39,18 @@ class Api:
 
     def __init__(
         self,
+        github_email: str = None,
+        github_personal_access_token: str = None,
+        secrets_env_path: Union[str, Path] = SECRETS_ENV_PATH,
         pi_settings: PiSettings = None,
         output_directory_root: Union[str, Path] = None,
     ):
-        self.permissions = Permissions()
+        self.secrets = Secrets(
+            github_email=github_email,
+            github_personal_access_token=github_personal_access_token,
+            secrets_env_path=secrets_env_path,
+        )
+        self.permissions = Permissions(secrets=self.secrets)
         self.output_dir = self.__get_output_dir(output_directory_root=output_directory_root)
         self.pi_settings = self.__validate_pi_settings(pi_settings=pi_settings)
         self.request_settings: RequestSettings = get_default_request_settings()
@@ -292,29 +302,7 @@ class Api:
         return all_file_paths
 
 
-# DONE: Use BackoffRetry strategy
-
-# DONE: add rate_limiting to requests (freq and size)
-
 # TODO: don't use strings as urls...
-
-# Done: authenticate by GET request a hdsr-mid repo (yet to build) that holds email_token items per user
-
-# DONE: test other get requests than get_timeseries
-
-# DONE: improve documentation
-
-# DONE: enable users to override Api.pi_settings
-
-# DONE: conversion client - server timezone
-
-# DONE: fix moduleInstanceIds and filterId
-
-# DONE: wat als iemand alleen maar statistieken wil van tijdseries?
-
-# DONE: besides allowed_request_args use a required_request_args (get_locations zonder filter duurt tering lang!!)
-
-# DONE: create pypi package
 
 # TODO: Ciska wel interesse wel in:
 #  --------------------------------
@@ -329,9 +317,7 @@ class Api:
 #  get_parameters (middlegrote request = 400 parameters)
 #  get_locations (kleine request = 300 locaties)
 
-# TODO: Ciska geen interesse in:
-#  --------------------------------
-#  get_qualifiers
+# TODO: Ciska geen interesse in: get_qualifiers
 
 # TODO: check of properties goed meekomen in get_timeseries in PI_JSON (in PI_XML gaat het goed) -> Ciska:" bij
 #  EFICS werkt niet helemaal lekker. bij get_samples gaat het helemaal fout"
