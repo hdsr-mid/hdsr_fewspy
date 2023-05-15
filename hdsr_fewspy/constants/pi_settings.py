@@ -57,15 +57,15 @@ class PiSettings:
     @property
     def test_url(self) -> str:
         """For example:
-        - http://localhost:8081/FewsWebServices/test/fewspiservicerest/index.jsp
-        - http://webwis-prd01.ad.hdsr.nl:8081/OwdPiService/test/fewspiservicerest/index.jsp
+        - http://localhost:8081/FewsWebServices/test/fewspiservicerest/test.html
+        - http://webwis-prd01.ad.hdsr.nl:8081/OwdPiService/test/fewspiservicerest/test.html
         """
-        return f"http://{self.domain}:{self.port}/{self.service}/test/fewspiservicerest/index.jsp"
+        return f"http://{self.domain}:{self.port}/{self.service}/test/fewspiservicerest/test.html"
 
     def __post_init__(self) -> None:
         """Validate dtypes and ensure that str objects not being empty."""
-        for field_name, field_def in self.__dataclass_fields__.items():
-            if isinstance(field_def.type, typing._SpecialForm):
+        for field_name, field_def in self.__dataclass_fields__.items():  # noqa
+            if isinstance(field_def.type, typing._SpecialForm):  # noqa
                 # No check for typing.Any, typing.Union, typing.ClassVar (without parameters)
                 continue
             try:
@@ -73,7 +73,7 @@ class PiSettings:
             except AttributeError:
                 # In case of non-typing types (such as <class 'int'>, for instance)
                 expected_dtype = field_def.type
-            if isinstance(expected_dtype, typing._SpecialForm):
+            if isinstance(expected_dtype, typing._SpecialForm):  # noqa
                 # case of typing.Union[…] or typing.ClassVar[…]
                 expected_dtype = field_def.type.__args__
 
@@ -111,7 +111,8 @@ class GithubPiSettingDefaults:
         "time_zone",
     ]
 
-    def __init__(self):
+    def __init__(self, github_personal_access_token: str):
+        self.github_personal_access_token = github_personal_access_token
         self._df_github_settings = None
 
     @property
@@ -124,6 +125,7 @@ class GithubPiSettingDefaults:
             repo_name=github.GITHUB_HDSR_FEWSPY_AUTH_REPO_NAME,
             branch_name=github.GITHUB_HDSR_FEWSPY_AUTH_BRANCH_NAME,
             repo_organisation=github.GITHUB_ORGANISATION,
+            personal_access_token=self.github_personal_access_token,
         )
         df = pd.read_csv(filepath_or_buffer=github_downloader.get_download_url(), sep=";")
         assert sorted(df.columns) == sorted(self.expected_columns), "code_error"
@@ -155,6 +157,3 @@ class GithubPiSettingDefaults:
             time_zone=float(pd_series["time_zone"]),
         )
         return pi_settings
-
-
-github_pi_setting_defaults = GithubPiSettingDefaults()

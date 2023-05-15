@@ -1,5 +1,6 @@
 1.9 (Unreleased)
 ----------------
+- no github_pi_setting_defaults anymore outside Api
 
 1.8 (2023-05-10)
 ----------------

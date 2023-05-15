@@ -1,11 +1,12 @@
 from datetime import datetime
 from hdsr_fewspy import api_calls
 from hdsr_fewspy import exceptions
+from hdsr_fewspy.constants.choices import DefaultPiSettingsChoices
 from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.constants.choices import TimeZoneChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
 from hdsr_fewspy.constants.paths import SECRETS_ENV_PATH
-from hdsr_fewspy.constants.pi_settings import github_pi_setting_defaults
+from hdsr_fewspy.constants.pi_settings import GithubPiSettingDefaults
 from hdsr_fewspy.constants.pi_settings import PiSettings
 from hdsr_fewspy.constants.request_settings import get_default_request_settings
 from hdsr_fewspy.constants.request_settings import RequestSettings
@@ -42,7 +43,7 @@ class Api:
         github_email: str = None,
         github_personal_access_token: str = None,
         secrets_env_path: Union[str, Path] = SECRETS_ENV_PATH,
-        pi_settings: PiSettings = None,
+        pi_settings: Union[PiSettings, DefaultPiSettingsChoices] = None,
         output_directory_root: Union[str, Path] = None,
     ):
         self.secrets = Secrets(
@@ -97,27 +98,39 @@ class Api:
         except Exception as err:
             self.__log_not_running_service(err=err, response=None)
 
-    def __validate_pi_settings(self, pi_settings: PiSettings = None) -> PiSettings:
-        if not pi_settings:
-            pi_settings = github_pi_setting_defaults.get_pi_settings(settings_name="production")
-        if not isinstance(pi_settings, PiSettings):
-            raise AssertionError("pi_settings must be a PiSettings, see README.ml example how to create one")
-        mapper = {
-            # setting: (used, allowed)
-            "domain": (pi_settings.domain, self.permissions.allowed_domain),
-            "module_instance_id": (pi_settings.module_instance_ids, self.permissions.allowed_module_instance_id),
-            "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all()),
-            "filter_id": (pi_settings.filter_id, self.permissions.allowed_filter_id),
-            "service": (pi_settings.service, self.permissions.allowed_service),
-        }
-        for setting, value in mapper.items():
-            used_value, allowed_values = value
-            assert isinstance(allowed_values, list), f"code error, allowed_values {allowed_values} must be a list"
-            if used_value in allowed_values:
-                continue
-            msg = f"setting='{setting}' used_value='{used_value}' is not in allowed_values='{allowed_values}'"
-            raise exceptions.PiSettingsError(msg)
+    def __validate_pi_settings(self, pi_settings: Union[PiSettings, DefaultPiSettingsChoices] = None) -> PiSettings:
+        github_pi_setting_defaults = GithubPiSettingDefaults(self.secrets.github_personal_access_token)
+        is_none = pi_settings is None
+        is_default = isinstance(pi_settings, str) and pi_settings in DefaultPiSettingsChoices.get_all()
+        is_custom = isinstance(pi_settings, PiSettings)
 
+        if is_none:
+            pi_settings = github_pi_setting_defaults.get_pi_settings(DefaultPiSettingsChoices.wis_production)
+        elif is_default:
+            pi_settings = github_pi_setting_defaults.get_pi_settings(settings_name=pi_settings)
+        elif is_custom:
+            mapper = {
+                # setting: (used, allowed)
+                "domain": (pi_settings.domain, self.permissions.allowed_domain),
+                "module_instance_id": (pi_settings.module_instance_ids, self.permissions.allowed_module_instance_id),
+                "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all()),
+                "filter_id": (pi_settings.filter_id, self.permissions.allowed_filter_id),
+                "service": (pi_settings.service, self.permissions.allowed_service),
+            }
+            for setting, value in mapper.items():
+                used_value, allowed_values = value
+                assert isinstance(allowed_values, list), f"code error, allowed_values {allowed_values} must be a list"
+                if used_value in allowed_values:
+                    continue
+                msg = f"setting='{setting}' used_value='{used_value}' is not in allowed_values='{allowed_values}'"
+                raise exceptions.PiSettingsError(msg)
+        else:
+            default_options = DefaultPiSettingsChoices.get_all()
+            msg = (
+                f"pi_settings {pi_settings} must be a either None, or a str (choose from {default_options}), or a "
+                f"custom PiSettings (see README.ml example how to create one)"
+            )
+            raise NotImplementedError(msg)
         return pi_settings
 
     def get_parameters(self, output_choice: str) -> Union[ResponseType, pd.DataFrame]:

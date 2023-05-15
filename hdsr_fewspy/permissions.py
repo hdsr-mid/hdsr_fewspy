@@ -16,6 +16,10 @@ class Permissions:
     def __init__(self, secrets: Secrets):
         self.secrets = secrets
         self._permission_row = None
+        self._ensure_has_permission()
+
+    def _ensure_has_permission(self):
+        assert isinstance(self.permissions_row, pd.Series) and not self.permissions_row.empty
 
     @property
     def permissions_row(self) -> pd.Series:
@@ -28,6 +32,7 @@ class Permissions:
             repo_name=github.GITHUB_HDSR_FEWSPY_AUTH_REPO_NAME,
             branch_name=github.GITHUB_HDSR_FEWSPY_AUTH_BRANCH_NAME,
             repo_organisation=github.GITHUB_ORGANISATION,
+            personal_access_token=self.secrets.github_personal_access_token,
         )
         df = pd.read_csv(filepath_or_buffer=github_downloader.get_download_url(), sep=";")
 
@@ -41,7 +46,7 @@ class Permissions:
         if nr_rows != 1:
             msg = f"github_email {self.secrets.github_email} is registered {nr_rows} times in hdsr_fewspy_auth"
             raise UserNotFoundInHdsrFewspyAuthError(msg)
-        permissions_row = permissions_row.loc[0]
+        permissions_row = permissions_row.iloc[0]
 
         # check github_email exists
         if permissions_row.empty:
