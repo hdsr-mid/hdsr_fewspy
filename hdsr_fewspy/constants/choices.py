@@ -3,6 +3,7 @@ from typing import Union
 
 
 class PiRestDocumentFormatChoices:
+    # TODO: make this a enum.Enum class to improve type hints trough codebase
     xml = "PI_XML"
     json = "PI_JSON"
 
@@ -12,6 +13,7 @@ class PiRestDocumentFormatChoices:
 
 
 class DefaultPiSettingsChoices:
+    # TODO: make this a enum.Enum class to improve type hints trough codebase
     wis_production = "wis_production"
     wis_stand_alone = "wis_stand_alone"
     # TODO: efcis_production = "efcis_production"
@@ -23,6 +25,7 @@ class DefaultPiSettingsChoices:
 
 
 class OutputChoices:
+    # TODO: make this a enum.Enum class to improve type hints trough codebase
     xml_file_in_download_dir = "xml_file_in_download_dir"
     json_file_in_download_dir = "json_file_in_download_dir"
     csv_file_in_download_dir = "csv_file_in_download_dir"
@@ -64,6 +67,7 @@ class OutputChoices:
 
 
 class TimeZoneChoices:
+    # TODO: make this a enum.Enum class to improve type hints trough codebase
     gmt = 0.0  # ["GMT"= "Etc/GMT" = "Etc/GMT-0"]
     eu_amsterdam = 1.0  # ["Europe/Amsterdam"]
 

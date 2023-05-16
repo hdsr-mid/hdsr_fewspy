@@ -42,7 +42,7 @@ class Api:
         self,
         github_personal_access_token: str = None,
         secrets_env_path: Union[str, Path] = SECRETS_ENV_PATH,
-        pi_settings: Union[PiSettings, DefaultPiSettingsChoices] = None,
+        pi_settings: Union[PiSettings, str] = None,  # str must be a DefaultPiSettingsChoices
         output_directory_root: Union[str, Path] = None,
     ):
         self.secrets = Secrets(
@@ -96,7 +96,7 @@ class Api:
         except Exception as err:
             self.__log_not_running_service(err=err, response=None)
 
-    def __validate_pi_settings(self, pi_settings: Union[PiSettings, DefaultPiSettingsChoices] = None) -> PiSettings:
+    def __validate_pi_settings(self, pi_settings: Union[PiSettings, str] = None) -> PiSettings:
         github_pi_setting_defaults = GithubPiSettingDefaults(self.secrets.github_personal_access_token)
         is_none = pi_settings is None
         is_default = isinstance(pi_settings, str) and pi_settings in DefaultPiSettingsChoices.get_all()
@@ -125,7 +125,7 @@ class Api:
         else:
             default_options = DefaultPiSettingsChoices.get_all()
             msg = (
-                f"pi_settings {pi_settings} must be a either None, or a str (choose from {default_options}), or a "
+                f"pi_settings {pi_settings} must be a either None, or a str (choose from '{default_options}'), or a "
                 f"custom PiSettings (see README.ml example how to create one)"
             )
             raise NotImplementedError(msg)

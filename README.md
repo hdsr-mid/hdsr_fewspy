@@ -42,27 +42,30 @@ get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json 
 ###### Preparation
 1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read topic 
    'GITHUB_PERSONAL_ACCESS_TOKEN' below.
-2. You can create a hdsr_fewspy API in two ways (the first way dominates the second): 
-   a. or with API arguments 'github_email' and/or token 'github_personal_access_token'
-   b. or put these arguments in a .env file and use API argument 'secrets_env_path' (defaults to 'G:/secrets.env')
-      The .env file must have these 2 rows:
+2. You can create a hdsr_fewspy API in two ways (the first dominates the second): 
+   a. or with API argument 'github_personal_access_token'
+   b. or with API argument 'secrets_env_path' (defaults to 'G:/secrets.env'). The .env file must have a row:
 ```
 GITHUB_PERSONAL_ACCESS_TOKEN=<see topic 'GITHUB_PERSONAL_ACCESS_TOKEN' below>
-GITHUB_EMAIL=<your_github_email>
 ```
-2. Only once per project: install hdsr_fewspy dependency:
+3. Only once per project: install hdsr_fewspy dependency:
 ```
-pip install hdsr-fewspy (or 'conda install hdsr-fewspy -channel hdsr-mid')
+pip install hdsr-fewspy 
+# or 
+conda install hdsr-fewspy -channel hdsr-mid
 ```
-3. Example simple:
+4. Example simple:
 ```
 from datetime import datetime
 import hdsr_fewspy
 
 api = hdsr_fewspy.Api()
 ```
-4. Example sophisticated:
+5. Example sophisticated:
 ```
+from datetime import datetime
+import hdsr_fewspy
+
 # Optionally, you can specify several API arguments:
 # github_email: str, 
 # github_personal_access_token: str
@@ -70,9 +73,8 @@ api = hdsr_fewspy.Api()
 # pi_settings: hdsr_fewspy.PiSettings 
 # output_directory_root: str or pathlib.path
 
-# For example in case of pi_settings, you can use predefined settings ('standalone', 'production', etc):
-sa_pi_settings = hdsr_fewspy.github_pi_setting_defaults.get_pi_settings(settings_name="standalone")
-api = hdsr_fewspy.Api(pi_settings=sa_pi_settings)
+# For example in case of pi_settings, you can use predefined settings ('wis_stand_alone', 'wis_production', etc):
+api = hdsr_fewspy.Api(pi_settings=DefaultPiSettingsChoices.wis_stand_alone)
 
 # Or create your own pi_settings:
 custom_settings = hdsr_fewspy.PiSettings(
