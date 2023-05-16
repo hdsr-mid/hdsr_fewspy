@@ -40,14 +40,12 @@ class Api:
 
     def __init__(
         self,
-        github_email: str = None,
         github_personal_access_token: str = None,
         secrets_env_path: Union[str, Path] = SECRETS_ENV_PATH,
         pi_settings: Union[PiSettings, DefaultPiSettingsChoices] = None,
         output_directory_root: Union[str, Path] = None,
     ):
         self.secrets = Secrets(
-            github_email=github_email,
             github_personal_access_token=github_personal_access_token,
             secrets_env_path=secrets_env_path,
         )

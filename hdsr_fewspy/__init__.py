@@ -1,7 +1,7 @@
 from hdsr_fewspy.api import Api
+from hdsr_fewspy.constants.choices import DefaultPiSettingsChoices
 from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.constants.choices import TimeZoneChoices
-from hdsr_fewspy.constants.choices import DefaultPiSettingsChoices
 from hdsr_fewspy.constants.pi_settings import PiSettings
 
 
