@@ -11,6 +11,17 @@ class PiRestDocumentFormatChoices:
         return [cls.xml, cls.json]
 
 
+class DefaultPiSettingsChoices:
+    wis_production = "wis_production"
+    wis_stand_alone = "wis_stand_alone"
+    # TODO: efcis_production = "efcis_production"
+    # TODO: efcis_stand_alone = "efcis_stand_alone"
+
+    @classmethod
+    def get_all(cls) -> List[str]:
+        return [cls.wis_production, cls.wis_stand_alone]
+
+
 class OutputChoices:
     xml_file_in_download_dir = "xml_file_in_download_dir"
     json_file_in_download_dir = "json_file_in_download_dir"

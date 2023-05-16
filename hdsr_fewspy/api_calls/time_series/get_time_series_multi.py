@@ -50,6 +50,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
         all_file_paths = []
         responses = []
         cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
+        nr_total = len(cartesian_parameters_list)
         for index, request_params in enumerate(cartesian_parameters_list):
             # eventually continue with request_period of last request (avoiding all freq update iterations)
             frequency = (
@@ -77,6 +78,8 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 flag_threshold=self.flag_threshold,
             )
             all_file_paths.extend(file_paths_created)
+            progress_percentage = int((index + 1) / nr_total * 100)
+            logger.info(f"get_time_series_multi progress = {progress_percentage}%")
         logger.info(f"finished download and writing to {len(all_file_paths)} file(s)")
         return all_file_paths
 

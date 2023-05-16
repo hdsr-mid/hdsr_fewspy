@@ -1,5 +1,10 @@
-1.9 (Unreleased)
+1.10 (Unreleased)
 ----------------
+
+1.9 (2023-05-16)
+----------------
+- no github_pi_setting_defaults anymore outside Api
+- add progress logging to get_time_series_multi()
 
 1.8 (2023-05-10)
 ----------------
