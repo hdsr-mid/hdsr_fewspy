@@ -46,7 +46,7 @@ get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json 
    a. or with API argument 'github_personal_access_token'
    b. or with API argument 'secrets_env_path' (defaults to 'G:/secrets.env'). The .env file must have a row:
 ```
-GITHUB_PERSONAL_ACCESS_TOKEN=<see topic 'GITHUB_PERSONAL_ACCESS_TOKEN' below>
+GITHUB_PERSONAL_ACCESS_TOKEN=<your_github_token>
 ```
 3. Only once per project: install hdsr_fewspy dependency:
 ```
@@ -76,11 +76,11 @@ api = hdsr_fewspy.Api(pi_settings=DefaultPiSettingsChoices.wis_stand_alone)
 
 # Or create your own pi_settings:
 custom_settings = hdsr_fewspy.PiSettings(
-   settings_name="does not matter blabla",            
-   document_version=1.25",
+   settings_name="does not matter blabla",         
+   document_version=1.25,
    ssl_verify=True,
    domain="localhost",
-   port="8080",
+   port=8080,
    service="FewsWebServices",
    filter_id="INTERNAL-API",
    module_instance_ids="WerkFilter",
