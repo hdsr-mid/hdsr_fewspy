@@ -71,7 +71,7 @@ import hdsr_fewspy
 # pi_settings: hdsr_fewspy.PiSettings 
 # output_directory_root: str or pathlib.path
 
-# For example in case of pi_settings, you can use predefined settings ('wis_stand_alone', 'wis_production', etc):
+# For example in case of pi_settings, you can use predefined settings ('wis_production', 'efcis_production', etc.):
 api = hdsr_fewspy.Api(pi_settings=DefaultPiSettingsChoices.wis_stand_alone)
 
 # Or create your own pi_settings:
