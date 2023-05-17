@@ -52,18 +52,16 @@ GITHUB_PERSONAL_ACCESS_TOKEN=<see topic 'GITHUB_PERSONAL_ACCESS_TOKEN' below>
 ```
 pip install hdsr-fewspy 
 # or 
-conda install hdsr-fewspy -channel hdsr-mid
+conda install hdsr-fewspy --channel hdsr-mid
 ```
 4. Example simple:
 ```
-from datetime import datetime
 import hdsr_fewspy
 
 api = hdsr_fewspy.Api()
 ```
 5. Example sophisticated:
 ```
-from datetime import datetime
 import hdsr_fewspy
 
 # Optionally, you can specify several API arguments:
@@ -163,6 +161,7 @@ assert TimeZoneChoices.get_tz_float(value=response.text) == TimeZoneChoices.gmt 
 # small calls and therefore multiple responses. If your output_choice is json/xml in memory, then you get a list with 
 # >=1 responses. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
 
+from datetime import datetime
 responses = api.get_time_series_single(
     location_id = "OW433001",
     parameter_id = "H.G.0",
@@ -220,6 +219,7 @@ df = api.get_time_series_single(
 # combination we do >=1 requests which therefore result in >=1 responses. If output_choice is xml/json to file, then 
 # each response results in a file. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
 
+from datetime import datetime
 list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
     location_ids = ["OW433001", "OW433002"]
     parameter_ids = ["H.G.0", "H.G.d"],
@@ -251,6 +251,7 @@ print(list_with_donwloaded_csv_filepaths)
 ```
 9. get_time_series_statistics
 ```
+from datetime import datetime
 response = api.get_time_series_statistics(
     location_id = "OW433001",
     parameter_id = "H.G.0",
@@ -317,7 +318,7 @@ You can [create a token yourself][[github personal token]]. In short:
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (May 10th 2023)
+### Test Coverage (May 16th 2023)
 ```
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                              Stmts   Miss  Cover
