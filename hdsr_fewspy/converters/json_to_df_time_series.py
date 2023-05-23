@@ -161,8 +161,8 @@ class TimeSeriesSet:
             )
             for i in time_series
         ]
-        dc_timeseriesset = cls(**kwargs)
-        return dc_timeseriesset
+        dc_time_series_set = cls(**kwargs)
+        return dc_time_series_set
 
     @property
     def is_empty(self) -> bool:

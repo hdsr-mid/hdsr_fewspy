@@ -8,7 +8,7 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-version = "1.9"
+version = "1.10"
 
 install_requires = [
     "requests",
@@ -27,7 +27,7 @@ setup(
     packages=find_packages(include=["hdsr_fewspy", "hdsr_fewspy.*"]),
     version=version,
     license="MIT",
-    description="A python project to request data (locations, timeseries, etc.) from a HDSR FEWS PiWebService",
+    description="A python project to request data (locations, time-series, etc.) from a HDSR FEWS PiWebService",
     long_description_content_type="text/markdown",
     long_description=long_description,
     author="Renier Kramer",

@@ -201,7 +201,7 @@ class Api:
         parameter_id: str,
         qualifier_id: str = None,
         thinning: int = None,
-        omit_empty_timeseries: bool = True,
+        omit_empty_time_series: bool = True,
     ) -> ResponseType:
         """
         Example response PI_JSON = {
@@ -240,7 +240,7 @@ class Api:
             parameter_ids=parameter_id,
             qualifier_ids=qualifier_id,
             thinning=thinning,
-            omit_empty_timeseries=omit_empty_timeseries,
+            omit_empty_time_series=omit_empty_time_series,
             #
             output_choice=output_choice,
             retry_backoff_session=self.retry_backoff_session,
@@ -252,17 +252,28 @@ class Api:
         self,
         output_choice: str,
         #
-        start_time: datetime,
-        end_time: datetime,
+        start_time: Union[datetime, str],
+        end_time: Union[datetime, str],
         location_id: str,
         parameter_id: str,
         qualifier_id: str = None,
         thinning: int = None,
-        omit_empty_timeseries: bool = True,
+        omit_empty_time_series: bool = True,
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
     ) -> Union[List[ResponseType], pd.DataFrame]:
+        """Single means: use max 1 location_id and/or parameter_id and/or qualifier_id.
+
+        One large call can result in multiple small calls and therefore multiple responses. If your output_choice is
+        json/xml in memory, then you get a list with >=1 responses and arguments 'flag_threshold' and
+        'drop_missing_values' have no effect.
+        For more info on flags see: https://publicwiki.deltares.nl/display/FEWSDOC/D+Time+Series+Flag.
+
+        start_time and end_time can be of type:
+            - datetime: a python datetime.datetime
+            - str: a string with format "%Y-%m-%dT%H:%M:%SZ" e.g. "2012-01-01T00:00:00Z
+        """
         api_call = api_calls.GetTimeSeriesSingle(
             start_time=start_time,
             end_time=end_time,
@@ -270,7 +281,7 @@ class Api:
             parameter_ids=parameter_id,
             qualifier_ids=qualifier_id,
             thinning=thinning,
-            omit_empty_timeseries=omit_empty_timeseries,
+            omit_empty_time_series=omit_empty_time_series,
             drop_missing_values=drop_missing_values,
             flag_threshold=flag_threshold,
             #
@@ -284,17 +295,29 @@ class Api:
         self,
         output_choice: str,
         #
-        start_time: datetime,
-        end_time: datetime,
+        start_time: Union[datetime, str],
+        end_time: Union[datetime, str],
         location_ids: List[str] = None,
         parameter_ids: List[str] = None,
         qualifier_ids: List[str] = None,
         thinning: int = None,
-        omit_empty_timeseries: bool = True,
+        omit_empty_time_series: bool = True,
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
     ) -> List[Path]:
+        """Multi means: use >=1 location_id and/or parameter_id and/or qualifier_id.
+
+        The api call below results in 4 unique location_parameter_qualifier combinations: OW433001_hg0, OW433001_hgd,
+        OW433002_hg0, OW433002_hgd. Per unique combination we do >=1 requests which therefore result in >=1 responses.
+        If output_choice is xml/json to file, then each response results in a file and arguments 'flag_threshold' and
+        'drop_missing_values' have no effect.
+        For more info on flags see: https://publicwiki.deltares.nl/display/FEWSDOC/D+Time+Series+Flag.
+
+        start_time and end_time can be of type:
+            - datetime: a python datetime.datetime
+            - str: a string with format "%Y-%m-%dT%H:%M:%SZ" e.g. "2012-01-01T00:00:00Z
+        """
         api_call = api_calls.GetTimeSeriesMulti(
             start_time=start_time,
             end_time=end_time,
@@ -302,7 +325,7 @@ class Api:
             parameter_ids=parameter_ids,
             qualifier_ids=qualifier_ids,
             thinning=thinning,
-            omit_empty_timeseries=omit_empty_timeseries,
+            omit_empty_time_series=omit_empty_time_series,
             drop_missing_values=drop_missing_values,
             flag_threshold=flag_threshold,
             #

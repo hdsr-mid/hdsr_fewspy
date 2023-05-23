@@ -1,5 +1,5 @@
 from hdsr_fewspy.constants.custom_types import ResponseType
-from hdsr_fewspy.converters.json_to_df_timeseries import response_jsons_to_one_df
+from hdsr_fewspy.converters.json_to_df_time_series import response_jsons_to_one_df
 from pathlib import Path
 from typing import List
 
@@ -34,7 +34,6 @@ class DownloadBase:
             returns 'gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z'
         """
         file_name_values = [x for x in file_name_values if x]
-        # TODO: add example base_file_name to docstring
         nr_values = len(file_name_values)
         if not (2 < nr_values < 6):
             msg = f"nr file_name_values {file_name_values} must be between 2 and 6, otherwise filename to short or long"
@@ -100,7 +99,7 @@ class JsonDownloadDir(DownloadBase):
 
 class CsvDownloadDir(DownloadBase):
     def run(self, responses: List[ResponseType], file_name_values: List[str], **kwargs) -> List[Path]:
-        """Only for timeseries: Aggregate all responses into 1 .csv file as all responses are for a unique
+        """Only for time-series: Aggregate all responses into 1 .csv file as all responses are for a unique
         location_parameter_qualifier combi in get_time_series_multi."""
         drop_missing_values: bool = kwargs["drop_missing_values"]
         flag_threshold: int = kwargs["flag_threshold"]

@@ -48,10 +48,11 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
 
     def run(self) -> List[Path]:
         all_file_paths = []
-        responses = []
         cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
         nr_total = len(cartesian_parameters_list)
         for index, request_params in enumerate(cartesian_parameters_list):
+            responses = []
+
             # eventually continue with request_period of last request (avoiding all freq update iterations)
             frequency = (
                 self.request_settings.updated_request_period
@@ -63,7 +64,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 enddate_obj=pd.Timestamp(self.end_time),
                 frequency=frequency,
             )
-            responses = self._download_timeseries(
+            responses = self._download_time_series(
                 date_ranges=date_ranges,
                 date_range_freq=date_range_freq,
                 request_params=request_params,

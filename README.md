@@ -12,7 +12,7 @@
 [releases]: https://pypi.org/project/hdsr-fewspy/#history
 
 ### Description
-A python project to request data (locations, timeseries, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
+A python project to request data (locations, time-series, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
 Note that this project only works on HDSR's internal network, so within the VDI. The project combines the best from 
 two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds client-side authentication, 
 authorisation, and throttling. The latter is to minimize request load on HDSR's internal FEWS instances. 
@@ -161,12 +161,11 @@ assert TimeZoneChoices.get_tz_float(value=response.text) == TimeZoneChoices.gmt 
 # small calls and therefore multiple responses. If your output_choice is json/xml in memory, then you get a list with 
 # >=1 responses. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
 
-from datetime import datetime
 responses = api.get_time_series_single(
     location_id = "OW433001",
     parameter_id = "H.G.0",
-    start_time = datetime(year=2012, month=1, day=1),
-    end_time = datetime(year=2012, month=1, day=2),
+    start_time = "2012-01-01T00:00:00Z",                          # or as datetime.datetime(year=2012, month=1, day=1)
+    end_time = datetime(year=2012, month=1, day=2),               # or as datetime.datetime(year=2012, month=1, day=2)
     output_choice = OutputChoices.xml_response_in_memory,
 )
 
@@ -205,8 +204,8 @@ print(responses[0].text)
 df = api.get_time_series_single(
     location_id = "OW433001",
     parameter_id = "H.G.0",
-    start_time = datetime(year=2012, month=1, day=1),
-    end_time = datetime(year=2012, month=1, day=2),
+    start_time = datetime(year=2012, month=1, day=1),             # or as a string "2012-01-01T00:00:00Z"
+    end_time = datetime(year=2012, month=1, day=2),               # or as a string "2012-01-02T00:00:00Z"
     drop_missing_values = True,
     flag_threshold = 6,  # all flags 6 and higher are removed from dataframe
     output_choice = OutputChoices.pandas_dataframe_in_memory,
@@ -215,7 +214,7 @@ df = api.get_time_series_single(
 8. get_time_series_multi 
 ```
 # Multi means: use >=1 location_id and/or parameter_id and/or qualifier_id. The api call below results in 4 unique 
-# location_parameter_qualifier comibinations: OW433001_hg0, OW433001_hgd, OW433002_hg0, OW433002_hgd. Per unique 
+# location_parameter_qualifier combinations: OW433001_hg0, OW433001_hgd, OW433002_hg0, OW433002_hgd. Per unique 
 # combination we do >=1 requests which therefore result in >=1 responses. If output_choice is xml/json to file, then 
 # each response results in a file. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
 
@@ -223,8 +222,8 @@ from datetime import datetime
 list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
     location_ids = ["OW433001", "OW433002"]
     parameter_ids = ["H.G.0", "H.G.d"],
-    start_time = datetime(year=2012, month=1, day=1),
-    end_time = datetime(year=2012, month=1, day=2),
+    start_time = datetime(year=2012, month=1, day=1),             # or as a string "2012-01-01T00:00:00Z"
+    end_time = datetime(year=2012, month=1, day=2),               # or as a string "2012-01-02T00:00:00Z"
     output_choice = OutputChoices.xml_file_in_download_dir,
 )
 
@@ -240,8 +239,8 @@ print(list_with_donwloaded_csv_filepaths)
 list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
     location_ids = ["OW433001", "OW433002"]
     parameter_ids = ["H.G.0", "H.G.d"],
-    start_time = datetime(year=2012, month=1, day=1),
-    end_time = datetime(year=2012, month=1, day=2),
+    start_time = datetime(year=2012, month=1, day=1),             # or as a string "2012-01-01T00:00:00Z"
+    end_time = datetime(year=2012, month=1, day=2),               # or as a string "2012-01-02T00:00:00Z"
     output_choice = OutputChoices.csv_file_in_download_dir,
 )
 
@@ -255,8 +254,8 @@ from datetime import datetime
 response = api.get_time_series_statistics(
     location_id = "OW433001",
     parameter_id = "H.G.0",
-    start_time = datetime(year=2012, month=1, day=1),
-    end_time = datetime(year=2012, month=1, day=2),
+    start_time = datetime(year=2012, month=1, day=1),             # or as a string "2012-01-01T00:00:00Z"
+    end_time = datetime(year=2012, month=1, day=2),               # or as a string "2012-01-02T00:00:00Z"
     output_choice = OutputChoices.json_response_in_memory
 )
 
@@ -318,44 +317,42 @@ You can [create a token yourself][[github personal token]]. In short:
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (May 16th 2023)
+### Test Coverage (release 1.10)
 ```
----------- coverage: platform win32, python 3.7.12-final-0 -----------
+---------- coverage: platform win32, python 3.8.16-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
-hdsr_fewspy\__init__.py                                              10      0   100%
-hdsr_fewspy\api.py                                                  110     16    85%
-hdsr_fewspy\api_calls\__init__.py                                    18      0   100%
-hdsr_fewspy\api_calls\base.py                                       100     12    88%
+hdsr_fewspy\api.py                                                  119     25    79%
+hdsr_fewspy\api_calls\base.py                                       101     12    88%
 hdsr_fewspy\api_calls\get_filters.py                                 25      0   100%
 hdsr_fewspy\api_calls\get_locations.py                               44      2    95%
 hdsr_fewspy\api_calls\get_parameters.py                              40      1    98%
 hdsr_fewspy\api_calls\get_qualifiers.py                              50     16    68%
 hdsr_fewspy\api_calls\get_samples.py                                 24      8    67%
 hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
-hdsr_fewspy\api_calls\time_series\base.py                           109      9    92%
-hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           73      6    92%
+hdsr_fewspy\api_calls\time_series\base.py                           116      9    92%
+hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           76      6    92%
 hdsr_fewspy\api_calls\time_series\get_time_series_single.py          35      2    94%
 hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      23      2    91%
-hdsr_fewspy\constants\choices.py                                     89      3    97%
+hdsr_fewspy\constants\choices.py                                     95      3    97%
 hdsr_fewspy\constants\custom_types.py                                 2      0   100%
 hdsr_fewspy\constants\github.py                                       8      0   100%
-hdsr_fewspy\constants\paths.py                                       10      0   100%
-hdsr_fewspy\constants\pi_settings.py                                 78      7    91%
-hdsr_fewspy\constants\request_settings.py                            12      0   100%
+hdsr_fewspy\constants\paths.py                                        9      0   100%
+hdsr_fewspy\constants\pi_settings.py                                 79      7    91%
+hdsr_fewspy\constants\request_settings.py                            13      0   100%
 hdsr_fewspy\converters\download.py                                   82      4    95%
-hdsr_fewspy\converters\json_to_df_timeseries.py                     112      8    93%
+hdsr_fewspy\converters\json_to_df_time_series.py                    121      8    93%
 hdsr_fewspy\converters\manager.py                                    27      0   100%
-hdsr_fewspy\converters\utils.py                                      45     17    62%
+hdsr_fewspy\converters\utils.py                                      45     11    76%
 hdsr_fewspy\converters\xml_to_python_obj.py                         105     27    74%
 hdsr_fewspy\date_frequency.py                                        46      5    89%
 hdsr_fewspy\exceptions.py                                            14      0   100%
-hdsr_fewspy\permissions.py                                           47      1    98%
+hdsr_fewspy\permissions.py                                           69     10    86%
 hdsr_fewspy\retry_session.py                                         68     12    82%
-hdsr_fewspy\secrets.py                                               71     19    73%
+hdsr_fewspy\secrets.py                                               40      5    88%
 setup.py                                                             10     10     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1513    188    88%
+TOTAL                                                              1512    186    88%
 ```
 
 ### Conda general tips

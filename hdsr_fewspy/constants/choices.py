@@ -105,7 +105,6 @@ class TimeZoneChoices:
 
 
 class ApiParameters:
-
     document_format = "document_format"
     document_version = "document_version"
     end_creation_time = "end_creation_time"
@@ -115,7 +114,7 @@ class ApiParameters:
     location_ids = "location_ids"
     module_instance_ids = "module_instance_ids"
     omit_missing = "omit_missing"
-    omit_empty_timeseries = "omit_empty_timeSeries"
+    omit_empty_time_series = "omit_empty_timeSeries"
     only_headers = "only_headers"
     parameter_ids = "parameter_ids"
     qualifier_ids = "qualifier_ids"
@@ -144,7 +143,7 @@ class ApiParameters:
             cls.include_location_relations,
             cls.location_ids,
             cls.omit_missing,
-            cls.omit_empty_timeseries,
+            cls.omit_empty_time_series,
             cls.only_headers,
             cls.parameter_ids,
             cls.qualifier_ids,
