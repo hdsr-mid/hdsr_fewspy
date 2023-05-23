@@ -48,10 +48,11 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
 
     def run(self) -> List[Path]:
         all_file_paths = []
-        responses = []
         cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
         nr_total = len(cartesian_parameters_list)
         for index, request_params in enumerate(cartesian_parameters_list):
+            responses = []
+
             # eventually continue with request_period of last request (avoiding all freq update iterations)
             frequency = (
                 self.request_settings.updated_request_period

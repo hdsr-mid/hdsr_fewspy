@@ -215,7 +215,7 @@ df = api.get_time_series_single(
 8. get_time_series_multi 
 ```
 # Multi means: use >=1 location_id and/or parameter_id and/or qualifier_id. The api call below results in 4 unique 
-# location_parameter_qualifier comibinations: OW433001_hg0, OW433001_hgd, OW433002_hg0, OW433002_hgd. Per unique 
+# location_parameter_qualifier combinations: OW433001_hg0, OW433001_hgd, OW433002_hg0, OW433002_hgd. Per unique 
 # combination we do >=1 requests which therefore result in >=1 responses. If output_choice is xml/json to file, then 
 # each response results in a file. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
 

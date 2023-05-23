@@ -34,7 +34,6 @@ class DownloadBase:
             returns 'gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z'
         """
         file_name_values = [x for x in file_name_values if x]
-        # TODO: add example base_file_name to docstring
         nr_values = len(file_name_values)
         if not (2 < nr_values < 6):
             msg = f"nr file_name_values {file_name_values} must be between 2 and 6, otherwise filename to short or long"

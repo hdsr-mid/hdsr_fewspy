@@ -105,7 +105,6 @@ class TimeZoneChoices:
 
 
 class ApiParameters:
-
     document_format = "document_format"
     document_version = "document_version"
     end_creation_time = "end_creation_time"

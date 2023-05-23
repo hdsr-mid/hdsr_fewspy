@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class Permissions:
-
     col_github_user = "github_user"
     col_allowed_domain = "allowed_domain"
     col_allowed_service = "allowed_service"

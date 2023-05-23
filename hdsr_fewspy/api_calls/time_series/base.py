@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 
 class GetTimeSeriesBase(GetRequest):
-
     response_text_no_ts_found = "No timeSeries found"
     response_text_location_not_found = "Some of the location ids do not exist"
     response_text_parameter_not_found = "Some of the parameters do not exists"
@@ -42,7 +41,6 @@ class GetTimeSeriesBase(GetRequest):
         *args,
         **kwargs,
     ):
-
         self.start_time = start_time
         self.end_time = end_time
         self.location_ids = location_ids

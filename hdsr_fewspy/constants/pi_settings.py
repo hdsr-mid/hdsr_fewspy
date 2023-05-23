@@ -98,7 +98,6 @@ class PiSettings:
 
 
 class GithubPiSettingDefaults:
-
     expected_columns = [
         "settings_name",
         "document_version",

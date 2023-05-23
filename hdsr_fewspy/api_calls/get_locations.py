@@ -60,7 +60,6 @@ class GetLocations(GetRequest):
         assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error GetLocations"
         # parse the response to dataframe
         if response.status_code == 200:
-
             # convert to gdf and snake_case
             df = pd.json_normalize(data=response.json()["locations"])
             df.columns = [camel_to_snake_case(i) for i in df.columns]

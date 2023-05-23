@@ -1,5 +1,10 @@
-1.10 (Unreleased)
+1.11 (Unreleased)
 ----------------
+
+1.10 (2023-5-23)
+----------------
+- bug fix: empty get_time_series response previous request
+- enable start_time and end_time as strings
 
 1.9 (2023-05-16)
 ----------------
