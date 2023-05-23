@@ -27,7 +27,7 @@ setup(
     packages=find_packages(include=["hdsr_fewspy", "hdsr_fewspy.*"]),
     version=version,
     license="MIT",
-    description="A python project to request data (locations, timeseries, etc.) from a HDSR FEWS PiWebService",
+    description="A python project to request data (locations, time-series, etc.) from a HDSR FEWS PiWebService",
     long_description_content_type="text/markdown",
     long_description=long_description,
     author="Renier Kramer",

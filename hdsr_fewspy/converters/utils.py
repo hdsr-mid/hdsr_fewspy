@@ -54,7 +54,7 @@ def datetime_to_fews_date_str(date_time: datetime) -> str:
         fews_str = date_time.strftime(TimeZoneChoices.date_string_format())
         return fews_str
     except Exception:
-        msg = f"Could not convert datetime {date_time} to str using format {TimeZoneChoices.date_string_format()}"
+        msg = f"Could not convert datetime {date_time} to str using format '{TimeZoneChoices.date_string_format()}'"
         raise AssertionError(msg)
 
 
@@ -64,7 +64,7 @@ def fews_date_str_to_datetime(fews_date_str: str) -> datetime:
         date_time = datetime.strptime(fews_date_str, TimeZoneChoices.date_string_format())
         return date_time
     except Exception:
-        msg = f"Could not convert str {fews_date_str} to datetime using format {TimeZoneChoices.date_string_format()}"
+        msg = f"Could not convert str {fews_date_str} to datetime using format '{TimeZoneChoices.date_string_format()}'"
         raise AssertionError(msg)
 
 

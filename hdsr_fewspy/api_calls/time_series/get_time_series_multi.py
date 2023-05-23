@@ -64,7 +64,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 enddate_obj=pd.Timestamp(self.end_time),
                 frequency=frequency,
             )
-            responses = self._download_timeseries(
+            responses = self._download_time_series(
                 date_ranges=date_ranges,
                 date_range_freq=date_range_freq,
                 request_params=request_params,

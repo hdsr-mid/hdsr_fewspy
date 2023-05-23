@@ -72,7 +72,7 @@ class RequestTimeSeriesSingleShort(RequestTimeSeriesBase):
 
 
 class RequestTimeSeriesSingleLong(RequestTimeSeriesBase):
-    """Long timeseries"""
+    """Long time-series"""
 
     # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
     location_ids = "OW433001"

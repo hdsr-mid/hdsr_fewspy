@@ -49,7 +49,7 @@ class DateFrequencyBuilder:
     def log_progress_download_ts(
         data_range_start: pd.Timestamp, data_range_end: pd.Timestamp, ts_end: pd.Timestamp
     ) -> None:
-        """Compare request_enddate (which chances over time) with timeseries start end (no change over time)."""
+        """Compare request_enddate (which chances over time) with time-series start end (no change over time)."""
         _end_max_today = min(pd.Timestamp.now(tz=data_range_end.tz), data_range_end)
         timedelta_total_ts = _end_max_today - data_range_start
         timedelta_so_far = ts_end - data_range_start

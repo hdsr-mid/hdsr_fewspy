@@ -1,4 +1,6 @@
 from hdsr_fewspy.constants.choices import OutputChoices
+from hdsr_fewspy.constants.choices import TimeZoneChoices
+from hdsr_fewspy.converters.utils import fews_date_str_to_datetime
 from hdsr_fewspy.converters.xml_to_python_obj import parse
 from hdsr_fewspy.tests import fixtures_requests
 from hdsr_fewspy.tests.fixtures import fixture_api_sa_no_download_dir
@@ -38,6 +40,19 @@ def test_sa_single_ts_wrong(fixture_api_sa_no_download_dir):
             output_choice=OutputChoices.xml_file_in_download_dir,
         )
 
+    request_data = fixtures_requests.RequestTimeSeriesSingleShort
+    # wrong format start-time string '2012-Jan-01'
+    try:
+        api.get_time_series_single(
+            location_id=request_data.location_ids,
+            parameter_id=request_data.parameter_ids,
+            start_time=request_data.start_time.strftime("%Y-%h-%d"),
+            end_time=request_data.end_time,
+            output_choice=OutputChoices.xml_file_in_download_dir,
+        )
+    except Exception as err:
+        assert err.args[0] == "Could not convert str 2012-Jan-01 to datetime using format '%Y-%m-%dT%H:%M:%SZ'"
+
 
 def test_sa_single_ts_nan(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
@@ -72,6 +87,24 @@ def test_sa_single_ts_short_ok_json_memory(fixture_api_sa_no_download_dir):
         json_found = response_found.json()
         json_expected = mapper_jsons_expected[expected_json_key]
         assert json_found == json_expected
+
+
+def test_sa_single_ts_short_time_as_strings(fixture_api_sa_no_download_dir):
+    api = fixture_api_sa_no_download_dir
+    request_data = fixtures_requests.RequestTimeSeriesSingleShort
+
+    start_time_string = request_data.start_time.strftime(TimeZoneChoices.date_string_format())
+    assert start_time_string == "2012-01-01T00:00:00Z"
+    assert fews_date_str_to_datetime(fews_date_str=start_time_string) == request_data.start_time
+
+    responses = api.get_time_series_single(
+        location_id=request_data.location_ids,
+        parameter_id=request_data.parameter_ids,
+        start_time=start_time_string,
+        end_time=request_data.end_time,
+        output_choice=OutputChoices.json_response_in_memory,
+    )
+    assert len(responses) == 1
 
 
 def test_sa_single_ts_short_ok_xml_memory(fixture_api_sa_no_download_dir):

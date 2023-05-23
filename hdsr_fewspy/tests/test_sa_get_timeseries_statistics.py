@@ -9,7 +9,7 @@ import pytest
 fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
 
 
-def test_sa_timeseries_stats_wrong(fixture_api_sa_no_download_dir):
+def test_sa_time_series_stats_wrong(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
 
     request_data = fixtures_requests.RequestTimeSeriesMulti1
@@ -35,7 +35,7 @@ def test_sa_timeseries_stats_wrong(fixture_api_sa_no_download_dir):
         )
 
 
-def test_sa_timeseries_stats_2_ok_xml_memory(fixture_api_sa_no_download_dir):
+def test_sa_time_series_stats_2_ok_xml_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
@@ -50,7 +50,7 @@ def test_sa_timeseries_stats_2_ok_xml_memory(fixture_api_sa_no_download_dir):
     assert response.status_code == 200
 
 
-def test_sa_timeseries_stats_1_ok_json_memory(fixture_api_sa_no_download_dir):
+def test_sa_time_series_stats_1_ok_json_memory(fixture_api_sa_no_download_dir):
     api = fixture_api_sa_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleShort
 

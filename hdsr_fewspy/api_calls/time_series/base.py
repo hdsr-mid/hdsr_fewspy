@@ -6,6 +6,7 @@ from hdsr_fewspy.constants.choices import ApiParameters
 from hdsr_fewspy.constants.choices import PiRestDocumentFormatChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
 from hdsr_fewspy.converters.utils import datetime_to_fews_date_str
+from hdsr_fewspy.converters.utils import fews_date_str_to_datetime
 from hdsr_fewspy.converters.xml_to_python_obj import parse
 from hdsr_fewspy.date_frequency import DateFrequencyBuilder
 from typing import Dict
@@ -28,26 +29,26 @@ class GetTimeSeriesBase(GetRequest):
 
     def __init__(
         self,
-        start_time: datetime,
-        end_time: datetime,
+        start_time: Union[datetime, str],
+        end_time: Union[datetime, str],
         location_ids: Union[List[str], str],
         parameter_ids: Union[List[str], str],
         qualifier_ids: Union[List[str], str] = None,
         thinning: int = None,
-        omit_empty_timeseries: bool = True,
+        omit_empty_time_series: bool = True,
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
         *args,
         **kwargs,
     ):
-        self.start_time = start_time
-        self.end_time = end_time
+        self.start_time: datetime = self.__validate_time(time=start_time)
+        self.end_time: datetime = self.__validate_time(time=end_time)
         self.location_ids = location_ids
         self.parameter_ids = parameter_ids
         self.qualifier_ids = qualifier_ids
         self.thinning = thinning
-        self.omit_empty_timeseries = omit_empty_timeseries
+        self.omit_empty_time_series = omit_empty_time_series
         self.drop_missing_values = drop_missing_values
         self.flag_threshold = flag_threshold
         #
@@ -56,6 +57,11 @@ class GetTimeSeriesBase(GetRequest):
 
     def __validate_constructor_base(self):
         assert self.start_time < self.end_time, f"start_time {self.start_time} must be before end_time {self.end_time}"
+
+    @staticmethod
+    def __validate_time(time: Union[datetime, str]) -> datetime:
+        datetime_obj = fews_date_str_to_datetime(fews_date_str=time) if isinstance(time, str) else time
+        return datetime_obj
 
     @property
     def url_post_fix(self):
@@ -71,7 +77,7 @@ class GetTimeSeriesBase(GetRequest):
             ApiParameters.include_location_relations,
             ApiParameters.location_ids,
             ApiParameters.module_instance_ids,
-            ApiParameters.omit_empty_timeseries,
+            ApiParameters.omit_empty_time_series,
             ApiParameters.only_headers,
             ApiParameters.parameter_ids,
             ApiParameters.qualifier_ids,
@@ -94,17 +100,17 @@ class GetTimeSeriesBase(GetRequest):
             ApiParameters.start_time,
         ]
 
-    def _download_timeseries(
+    def _download_time_series(
         self,
         date_ranges: List[Tuple[pd.Timestamp, pd.Timestamp]],
         date_range_freq: pd.Timedelta,
         request_params: Dict,
         responses: Optional[List[ResponseType]] = None,
     ) -> List[ResponseType]:
-        """Download timeseries in little chunks by updating parameters 'startTime' and 'endTime' every loop.
+        """Download time-series in little chunks by updating parameters 'startTime' and 'endTime' every loop.
 
-        Before each download of actual timeseries we first check nr_timestamps_in_response (a small request with
-        showHeaders=True, and showStatistics=True). If that number if outside a certain bandwith, then we update
+        Before each download of actual time-series we first check nr_timestamps_in_response (a small request with
+        showHeaders=True, and showStatistics=True). If that number if outside a certain bandwidth, then we update
         (smaller or larger windows) parameters 'startTime' and 'endTime' again.
         """
         responses = responses if responses else []
@@ -135,7 +141,7 @@ class GetTimeSeriesBase(GetRequest):
                 )
                 logger.debug(f"Updated request time-window from {date_range_freq} to {new_date_range_freq}")
                 # continue with recursive call with updated (smaller or larger) time-window
-                return self._download_timeseries(
+                return self._download_time_series(
                     date_ranges=new_date_ranges,
                     date_range_freq=new_date_range_freq,
                     request_params=request_params,
@@ -174,14 +180,14 @@ class GetTimeSeriesBase(GetRequest):
         if not response.ok:
             return self.__get_nr_timestamps_invalid_response(response=response, msg=msg)
         if self.pi_settings.document_format == PiRestDocumentFormatChoices.json:
-            timeseries = response.json().get("timeSeries", None)
-            if not timeseries:
+            time_series = response.json().get("timeSeries", None)
+            if not time_series:
                 return 0
-            nr_timeseries = len(timeseries)
-            if nr_timeseries == 1:
-                nr_timestamps = int(timeseries[0]["header"]["valueCount"])
+            nr_time_series = len(time_series)
+            if nr_time_series == 1:
+                nr_timestamps = int(time_series[0]["header"]["valueCount"])
                 return nr_timestamps
-            msg = f"code error: found {nr_timeseries} timeseries in _get_nr_timestamps. Expected 0 or 1, {msg}"
+            msg = f"code error: found {nr_time_series} time_series in _get_nr_timestamps. Expected 0 or 1, {msg}"
             raise AssertionError(msg)
         elif self.pi_settings.document_format == PiRestDocumentFormatChoices.xml:
             xml_python_obj = parse(response.text)

@@ -173,7 +173,7 @@ def test_sa_multi_timeseries_2_ok_json_download(fixture_api_sa_with_download_dir
         assert found_json == expected_json
 
 
-def test_sa_multi_timeseries_2_ok_xml_download(fixture_api_sa_with_download_dir):
+def test_sa_multi_time_series_2_ok_xml_download(fixture_api_sa_with_download_dir):
     """OutputChoices.xml_file_in_download_dir."""
     api = fixture_api_sa_with_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti2

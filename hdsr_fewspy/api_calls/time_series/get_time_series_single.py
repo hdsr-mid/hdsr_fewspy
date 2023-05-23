@@ -1,7 +1,7 @@
 from hdsr_fewspy.api_calls.time_series.base import GetTimeSeriesBase
 from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
-from hdsr_fewspy.converters.json_to_df_timeseries import response_jsons_to_one_df
+from hdsr_fewspy.converters.json_to_df_time_series import response_jsons_to_one_df
 from hdsr_fewspy.date_frequency import DateFrequencyBuilder
 from typing import List
 from typing import Union
@@ -47,7 +47,7 @@ class GetTimeSeriesSingle(GetTimeSeriesBase):
         date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
             startdate_obj=pd.Timestamp(self.start_time), enddate_obj=pd.Timestamp(self.end_time), frequency=frequency
         )
-        responses = self._download_timeseries(
+        responses = self._download_time_series(
             date_ranges=date_ranges,
             date_range_freq=date_range_freq,
             request_params=self.initial_fews_parameters,
