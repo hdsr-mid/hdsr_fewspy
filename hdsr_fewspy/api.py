@@ -90,7 +90,7 @@ class Api:
         try:
             response = self.get_timezone_id(output_choice=OutputChoices.json_response_in_memory)
             if response.ok:
-                logger.info("PiWebService is running")
+                logger.info(f"PiWebService is running (see test page: '{self.pi_settings.test_url}')")
                 return
             self.__log_not_running_service(err=None, response=response)
         except Exception as err:
@@ -117,7 +117,9 @@ class Api:
             }
             for setting, value in mapper.items():
                 used_value, allowed_values = value
-                assert isinstance(allowed_values, list), f"code error, allowed_values {allowed_values} must be a list"
+                assert isinstance(
+                    allowed_values, list
+                ), f"code error __validate_pi_settings: allowed_values {allowed_values} must be a list"
                 if used_value in allowed_values:
                     continue
                 msg = f"setting='{setting}' used_value='{used_value}' is not in allowed_values='{allowed_values}'"

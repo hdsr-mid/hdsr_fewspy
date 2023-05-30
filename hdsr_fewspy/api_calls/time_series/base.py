@@ -27,6 +27,9 @@ class GetTimeSeriesBase(GetRequest):
     response_text_location_not_found = "Some of the location ids do not exist"
     response_text_parameter_not_found = "Some of the parameters do not exists"
 
+    start_time_all = datetime_to_fews_date_str(date_time=datetime(year=2011, month=1, day=1))
+    end_time_all = datetime_to_fews_date_str(date_time=datetime.now())
+
     def __init__(
         self,
         start_time: Union[datetime, str],
@@ -100,6 +103,14 @@ class GetTimeSeriesBase(GetRequest):
             ApiParameters.start_time,
         ]
 
+    @staticmethod
+    def get_task_uuid(request_params: Dict) -> str:
+        loc = request_params.get("locationIds", "")
+        par = request_params.get("parameterIds", "")
+        qual = request_params.get("qualifierIds", "")
+        task_uuid = f"{loc} {par} {qual}"
+        return task_uuid.strip()
+
     def _download_time_series(
         self,
         date_ranges: List[Tuple[pd.Timestamp, pd.Timestamp]],
@@ -114,6 +125,19 @@ class GetTimeSeriesBase(GetRequest):
         (smaller or larger windows) parameters 'startTime' and 'endTime' again.
         """
         responses = responses if responses else []
+
+        # firstly, check if any time-series exist at all (no start_time and end_time)
+        try:
+            has_time_series = self._get_nr_timestamps_no_start_end(request_params=request_params) > 0
+            if not has_time_series:
+                task_uuid = self.get_task_uuid(request_params=request_params)
+                logger.info(f"skipping since no time-series at all for '{task_uuid}'")
+                return []
+        except (exceptions.LocationIdsDoesNotExistErr, exceptions.ParameterIdsDoesNotExistErr) as err:
+            logger.warning(err)
+            return []
+
+        # secondly, download time-series in little chunks
         for request_index, (data_range_start, data_range_end) in enumerate(date_ranges):
             # update start and end in request params
             request_params["startTime"] = datetime_to_fews_date_str(data_range_start)
@@ -148,12 +172,7 @@ class GetTimeSeriesBase(GetRequest):
                     responses=responses,
                 )
             else:
-                DateFrequencyBuilder.log_progress_download_ts(
-                    data_range_start=data_range_start,
-                    data_range_end=data_range_end,
-                    ts_end=pd.Timestamp(self.end_time),
-                )
-                # ready to download timeseries (with new_date_range_freq)
+                # ready to download time-series (with new_date_range_freq)
                 request_params["onlyHeaders"] = False
                 request_params["showStatistics"] = False
                 response = self.retry_backoff_session.get(
@@ -163,6 +182,12 @@ class GetTimeSeriesBase(GetRequest):
                     logger.error(f"FEWS Server responds {response.text}")
                 else:
                     responses.append(response)
+                DateFrequencyBuilder.log_progress_download_ts(
+                    task=self.get_task_uuid(request_params=request_params),
+                    request_end=data_range_end,
+                    ts_start=pd.Timestamp(self.start_time),
+                    ts_end=pd.Timestamp(self.end_time),
+                )
         return responses
 
     def _get_statistics(self, request_params: Dict) -> ResponseType:
@@ -173,8 +198,15 @@ class GetTimeSeriesBase(GetRequest):
         )
         return response
 
+    def _get_nr_timestamps_no_start_end(self, request_params: Dict) -> int:
+        assert "moduleInstanceIds" in request_params, "code error _get_nr_timestamps_no_start_end"
+        request_params_copy = request_params.copy()
+        request_params_copy["startTime"] = self.start_time_all
+        request_params_copy["endTime"] = self.end_time_all
+        return self._get_nr_timestamps(request_params_copy)
+
     def _get_nr_timestamps(self, request_params: Dict) -> int:
-        assert "moduleInstanceIds" in request_params, "code error GetTimeSeriesBase"
+        assert "moduleInstanceIds" in request_params, "code error _get_nr_timestamps"
         response = self._get_statistics(request_params=request_params)
         msg = f"status_code={response.status_code}, err={response.text}, request_params={request_params}"
         if not response.ok:

@@ -60,9 +60,9 @@ class GetRequest:
         msg = "code error required_request_args"
         for x in self.required_request_args:
             if x not in self.allowed_request_args:
-                raise AssertionError(f"{msg} {x} not in allowed {self.allowed_request_args}")
+                raise AssertionError(f"{msg}: {x} not in allowed {self.allowed_request_args}")
             if x not in all_parameters.keys():
-                raise AssertionError(f"{msg} {x} not in all_parameters {all_parameters.keys()}")
+                raise AssertionError(f"{msg}: {x} not in all_parameters {all_parameters.keys()}")
 
     def validate_output_choice(self, output_choice: str) -> str:
         if output_choice in self.allowed_output_choices:

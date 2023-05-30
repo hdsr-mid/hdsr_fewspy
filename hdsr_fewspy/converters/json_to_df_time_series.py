@@ -198,6 +198,10 @@ def response_jsons_to_one_df(
             _df["location_id"] = time_series_set.location_ids[0]
             _df["parameter_id"] = time_series_set.parameter_ids[0]
             if not df.empty:
-                assert sorted(_df.columns) == sorted(df.columns), "code error response_jsons_to_one_df"
+                assert sorted(_df.columns) == sorted(df.columns), "code error response_jsons_to_one_df: 1"
             df = pd.concat(objs=[df, _df], axis=0)
+    if not df.empty:
+        is_unique_locations = len(df["location_id"].unique()) == 1
+        is_unique_parameters = len(df["parameter_id"].unique()) == 1
+        assert is_unique_locations and is_unique_parameters, "code error response_jsons_to_one_df: 2"
     return df

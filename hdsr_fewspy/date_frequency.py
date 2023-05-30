@@ -47,14 +47,13 @@ class DateFrequencyBuilder:
 
     @staticmethod
     def log_progress_download_ts(
-        data_range_start: pd.Timestamp, data_range_end: pd.Timestamp, ts_end: pd.Timestamp
+        task: str, request_end: pd.Timestamp, ts_start: pd.Timestamp, ts_end: pd.Timestamp
     ) -> None:
-        """Compare request_enddate (which chances over time) with time-series start end (no change over time)."""
-        _end_max_today = min(pd.Timestamp.now(tz=data_range_end.tz), data_range_end)
-        timedelta_total_ts = _end_max_today - data_range_start
-        timedelta_so_far = ts_end - data_range_start
-        progress_percentage = round(timedelta_so_far / timedelta_total_ts * 100, 2)
-        logger.info(f"download time-series progress={progress_percentage}%")
+        """Compare request_end (which chances over time) with time-series start and end (no change over time)."""
+        timedelta_so_far = request_end - ts_start
+        timedelta_total_ts = ts_end - ts_start
+        progress_percentage = int(timedelta_so_far / timedelta_total_ts * 100)
+        logger.info(f"download time-series progress {task} = {progress_percentage}%")
 
     @staticmethod
     def optional_change_date_range_freq(
