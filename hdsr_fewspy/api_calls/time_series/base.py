@@ -199,7 +199,6 @@ class GetTimeSeriesBase(GetRequest):
         return response
 
     def _get_nr_timestamps_no_start_end(self, request_params: Dict) -> int:
-        assert "moduleInstanceIds" in request_params, "code error _get_nr_timestamps_no_start_end"
         request_params_copy = request_params.copy()
         request_params_copy["startTime"] = self.start_time_all
         request_params_copy["endTime"] = self.end_time_all

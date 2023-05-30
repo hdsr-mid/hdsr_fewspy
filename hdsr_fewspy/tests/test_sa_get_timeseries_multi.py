@@ -160,8 +160,8 @@ def test_sa_multi_timeseries_2_ok_json_download(fixture_api_sa_with_download_dir
         output_choice=OutputChoices.json_file_in_download_dir,
     )
     assert len(all_file_paths) == 3
-    assert all_file_paths[0].name == "gettimeseriesmulti_kw215712_qby_20050101t000000z_20050102t000000z_0.json"
-    assert all_file_paths[1].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z_0.json"
+    assert all_file_paths[0].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z_0.json"
+    assert all_file_paths[1].name == "gettimeseriesmulti_kw215712_qby_20050101t000000z_20050102t000000z_0.json"
     assert all_file_paths[2].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_0.json"
 
     mapper_expected_jsons = request_data.get_expected_jsons()

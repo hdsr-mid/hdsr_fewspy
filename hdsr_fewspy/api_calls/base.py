@@ -84,7 +84,6 @@ class GetRequest:
             {
                 '_filtered_fews_parameters': None,
                 '_initial_fews_parameters': None,
-                 'default_request_period': Timedelta('35 days 00:00:00'),
                  'document_format': 'PI_JSON',
                  'document_version': 1.25,
                  'domain': 'localhost',

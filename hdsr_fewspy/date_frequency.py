@@ -65,7 +65,8 @@ class DateFrequencyBuilder:
     ) -> pd.Timedelta:
         """Optional increase or decrease the time-window of a request depending on nr_timestamps found."""
         if nr_timestamps > request_settings.max_request_nr_timestamps:
-            date_range_freq = 0.7 * date_range_freq
+            date_range_freq = 0.5 * date_range_freq
+            logger.info(f"decrease date_range_freq to {date_range_freq}")
         elif nr_timestamps < request_settings.min_request_nr_timestamps:
             if date_range_freq > request_settings.max_request_period:
                 logger.debug(
@@ -82,7 +83,8 @@ class DateFrequencyBuilder:
                 return date_range_freq
 
             try:
-                date_range_freq = 1.3 * date_range_freq
+                date_range_freq = 1.5 * date_range_freq
+                logger.info(f"increase date_range_freq to {date_range_freq}")
             except (OverflowError, pd.errors.OutOfBoundsDatetime) as err:
                 logger.debug(
                     f"could not increase date_range_freq (err={err}). Continue with date_range_freq={date_range_freq}"

@@ -2,7 +2,7 @@
 ----------------
 - handle deprecated requests.packages.urllib3.util.retry.Retry's argument 'method_whitelist'
 - add get_time_series pre check 'does ts exists at all without start_time and end_time' to speed up
-- remove module_instance_id from pi_settings to simplify
+- speed up get_time_series with first attempt whole time-series period
 
 1.10 (2023-5-23)
 ----------------

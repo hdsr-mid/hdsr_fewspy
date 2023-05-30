@@ -173,9 +173,8 @@ def test_sa_single_ts_long_ok_json_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.json_response_in_memory,
     )
-    assert len(responses) == 11
-    assert api.request_settings.default_request_period == pd.Timedelta(days=56)
-    assert api.request_settings.updated_request_period == pd.Timedelta(days=270, hours=7, minutes=13, seconds=52)
+    assert len(responses) == 4
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)
 
 
 def test_sa_single_ts_long_ok_xml_memory(fixture_api_sa_no_download_dir):
@@ -189,9 +188,8 @@ def test_sa_single_ts_long_ok_xml_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.xml_response_in_memory,
     )
-    assert len(responses) == 11
-    assert api.request_settings.default_request_period == pd.Timedelta(days=56)
-    assert api.request_settings.updated_request_period == pd.Timedelta(days=270, hours=7, minutes=13, seconds=52)
+    assert len(responses) == 4
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)
 
 
 def test_sa_single_ts_long_ok_df_memory(fixture_api_sa_no_download_dir):
@@ -205,6 +203,5 @@ def test_sa_single_ts_long_ok_df_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.pandas_dataframe_in_memory,
     )
-    assert len(df_found) == 199251
-    assert api.request_settings.default_request_period == pd.Timedelta(days=56)
-    assert api.request_settings.updated_request_period == pd.Timedelta(days=270, hours=7, minutes=13, seconds=52)
+    assert len(df_found) == 199252
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)

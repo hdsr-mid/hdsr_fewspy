@@ -52,12 +52,13 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
         nr_total = len(cartesian_parameters_list)
         for index, request_params in enumerate(cartesian_parameters_list):
             responses = []
+            request_frequency = pd.Timedelta(self.end_time - self.start_time)
 
             # eventually continue with request_period of last request (avoiding all freq update iterations)
             frequency = (
                 self.request_settings.updated_request_period
                 if self.request_settings.updated_request_period
-                else self.request_settings.default_request_period
+                else request_frequency
             )
             date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
                 startdate_obj=pd.Timestamp(self.start_time),
@@ -134,4 +135,9 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                     for k, v in request_arguments.items():
                         parameters_copy[k] = v
                     result.append(parameters_copy)
+
+        if parameter_ids:
+            # sort by parameterIds to minimize updated date_freq (moving request window)
+            result = sorted(result, key=lambda result_dict: result_dict["parameterIds"])
+
         return result
