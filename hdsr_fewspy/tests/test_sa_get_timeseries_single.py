@@ -3,20 +3,24 @@ from hdsr_fewspy.constants.choices import TimeZoneChoices
 from hdsr_fewspy.converters.utils import fews_date_str_to_datetime
 from hdsr_fewspy.converters.xml_to_python_obj import parse
 from hdsr_fewspy.tests import fixtures_requests
-from hdsr_fewspy.tests.fixtures import fixture_api_sa_no_download_dir
-from hdsr_fewspy.tests.fixtures import fixture_api_sa_with_download_dir
+from hdsr_fewspy.tests.fixtures import fixture_api_sa_raw_no_download_dir
+from hdsr_fewspy.tests.fixtures import fixture_api_sa_validated_no_download_dir
+from hdsr_fewspy.tests.fixtures import fixture_api_sa_work_no_download_dir
+from hdsr_fewspy.tests.fixtures import fixture_api_sa_work_with_download_dir
 
 import pandas as pd
 import pytest
 
 
 # silence flake8
-fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
-fixture_api_sa_with_download_dir = fixture_api_sa_with_download_dir
+fixture_api_sa_work_no_download_dir = fixture_api_sa_work_no_download_dir
+fixture_api_sa_work_with_download_dir = fixture_api_sa_work_with_download_dir
+fixture_api_sa_raw_no_download_dir = fixture_api_sa_raw_no_download_dir
+fixture_api_sa_validated_no_download_dir = fixture_api_sa_validated_no_download_dir
 
 
-def test_sa_single_ts_wrong(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_wrong(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
 
     request_data = fixtures_requests.RequestTimeSeriesMulti1
     # multiple location_ids is not possible
@@ -54,8 +58,8 @@ def test_sa_single_ts_wrong(fixture_api_sa_no_download_dir):
         assert err.args[0] == "Could not convert str 2012-Jan-01 to datetime using format '%Y-%m-%dT%H:%M:%SZ'"
 
 
-def test_sa_single_ts_nan(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_nan(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     responses = api.get_time_series_single(
@@ -68,8 +72,8 @@ def test_sa_single_ts_nan(fixture_api_sa_no_download_dir):
     assert not responses
 
 
-def test_sa_single_ts_short_ok_json_memory(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_short_ok_json_memory(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     responses = api.get_time_series_single(
@@ -89,8 +93,8 @@ def test_sa_single_ts_short_ok_json_memory(fixture_api_sa_no_download_dir):
         assert json_found == json_expected
 
 
-def test_sa_single_ts_short_time_as_strings(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_short_time_as_strings(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     start_time_string = request_data.start_time.strftime(TimeZoneChoices.date_string_format())
@@ -107,8 +111,8 @@ def test_sa_single_ts_short_time_as_strings(fixture_api_sa_no_download_dir):
     assert len(responses) == 1
 
 
-def test_sa_single_ts_short_ok_xml_memory(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_short_ok_xml_memory(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     responses = api.get_time_series_single(
@@ -140,8 +144,8 @@ def test_sa_single_ts_short_ok_xml_memory(fixture_api_sa_no_download_dir):
         assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"] == "2012-01-02"
 
 
-def test_sa_single_ts_short_ok_df_memory(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_short_ok_df_memory(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     df_found = api.get_time_series_single(
@@ -162,8 +166,8 @@ def test_sa_single_ts_short_ok_df_memory(fixture_api_sa_no_download_dir):
     pd.testing.assert_frame_equal(left=df_found, right=df_expected, check_index_type=False)
 
 
-def test_sa_single_ts_long_ok_json_memory(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_long_ok_json_memory(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     responses = api.get_time_series_single(
@@ -173,13 +177,12 @@ def test_sa_single_ts_long_ok_json_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.json_response_in_memory,
     )
-    assert len(responses) == 11
-    assert api.request_settings.default_request_period == pd.Timedelta(days=56)
-    assert api.request_settings.updated_request_period == pd.Timedelta(days=270, hours=7, minutes=13, seconds=52)
+    assert len(responses) == 4
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)
 
 
-def test_sa_single_ts_long_ok_xml_memory(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_long_ok_xml_memory(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     responses = api.get_time_series_single(
@@ -189,13 +192,12 @@ def test_sa_single_ts_long_ok_xml_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.xml_response_in_memory,
     )
-    assert len(responses) == 11
-    assert api.request_settings.default_request_period == pd.Timedelta(days=56)
-    assert api.request_settings.updated_request_period == pd.Timedelta(days=270, hours=7, minutes=13, seconds=52)
+    assert len(responses) == 4
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)
 
 
-def test_sa_single_ts_long_ok_df_memory(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_single_ts_long_ok_df_memory(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     df_found = api.get_time_series_single(
@@ -205,6 +207,37 @@ def test_sa_single_ts_long_ok_df_memory(fixture_api_sa_no_download_dir):
         end_time=request_data.end_time,
         output_choice=OutputChoices.pandas_dataframe_in_memory,
     )
-    assert len(df_found) == 199251
-    assert api.request_settings.default_request_period == pd.Timedelta(days=56)
-    assert api.request_settings.updated_request_period == pd.Timedelta(days=270, hours=7, minutes=13, seconds=52)
+    assert len(df_found) == 199252
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)
+
+
+def test_sa_single_raw_ts_long_ok_df_memory(fixture_api_sa_raw_no_download_dir):
+    """raw data has no data?"""
+    api = fixture_api_sa_raw_no_download_dir
+    request_data = fixtures_requests.RequestTimeSeriesSingleLong
+
+    df_found = api.get_time_series_single(
+        location_id=request_data.location_ids,
+        parameter_id=request_data.parameter_ids,
+        start_time=request_data.start_time,
+        end_time=request_data.end_time,
+        output_choice=OutputChoices.pandas_dataframe_in_memory,
+    )
+    assert len(df_found) == 0
+    assert api.request_settings.updated_request_period is None
+
+
+def test_sa_single_validated_ts_long_ok_df_memory(fixture_api_sa_validated_no_download_dir):
+    """validated data has no data?"""
+    api = fixture_api_sa_validated_no_download_dir
+    request_data = fixtures_requests.RequestTimeSeriesSingleLong
+
+    df_found = api.get_time_series_single(
+        location_id=request_data.location_ids,
+        parameter_id=request_data.parameter_ids,
+        start_time=request_data.start_time,
+        end_time=request_data.end_time,
+        output_choice=OutputChoices.pandas_dataframe_in_memory,
+    )
+    assert len(df_found) == 194444
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)

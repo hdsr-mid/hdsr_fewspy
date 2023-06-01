@@ -47,14 +47,13 @@ class DateFrequencyBuilder:
 
     @staticmethod
     def log_progress_download_ts(
-        data_range_start: pd.Timestamp, data_range_end: pd.Timestamp, ts_end: pd.Timestamp
+        task: str, request_end: pd.Timestamp, ts_start: pd.Timestamp, ts_end: pd.Timestamp
     ) -> None:
-        """Compare request_enddate (which chances over time) with time-series start end (no change over time)."""
-        _end_max_today = min(pd.Timestamp.now(tz=data_range_end.tz), data_range_end)
-        timedelta_total_ts = _end_max_today - data_range_start
-        timedelta_so_far = ts_end - data_range_start
-        progress_percentage = round(timedelta_so_far / timedelta_total_ts * 100, 2)
-        logger.info(f"download time-series progress={progress_percentage}%")
+        """Compare request_end (which chances over time) with time-series start and end (no change over time)."""
+        timedelta_so_far = request_end - ts_start
+        timedelta_total_ts = ts_end - ts_start
+        progress_percentage = int(timedelta_so_far / timedelta_total_ts * 100)
+        logger.info(f"download time-series progress {task} = {progress_percentage}%")
 
     @staticmethod
     def optional_change_date_range_freq(
@@ -66,7 +65,8 @@ class DateFrequencyBuilder:
     ) -> pd.Timedelta:
         """Optional increase or decrease the time-window of a request depending on nr_timestamps found."""
         if nr_timestamps > request_settings.max_request_nr_timestamps:
-            date_range_freq = 0.7 * date_range_freq
+            date_range_freq = 0.5 * date_range_freq
+            logger.info(f"decrease date_range_freq to {date_range_freq}")
         elif nr_timestamps < request_settings.min_request_nr_timestamps:
             if date_range_freq > request_settings.max_request_period:
                 logger.debug(
@@ -83,7 +83,8 @@ class DateFrequencyBuilder:
                 return date_range_freq
 
             try:
-                date_range_freq = 1.3 * date_range_freq
+                date_range_freq = 1.5 * date_range_freq
+                logger.info(f"increase date_range_freq to {date_range_freq}")
             except (OverflowError, pd.errors.OutOfBoundsDatetime) as err:
                 logger.debug(
                     f"could not increase date_range_freq (err={err}). Continue with date_range_freq={date_range_freq}"

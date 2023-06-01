@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class ResponseManager:
     """Relates a output_choice to the related Response Handler."""
 
-    def __init__(self, output_choice: str, request_class: str, output_dir: Path = None):
+    def __init__(self, output_choice: OutputChoices, request_class: str, output_dir: Path = None):
         self.output_choice = output_choice
         self.request_class = request_class  # e.g. gettimeseriesmulti
         self.output_dir = output_dir

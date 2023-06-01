@@ -53,7 +53,7 @@ class RetryBackoffSession:
     backoff_factor: float = 0.3
     status_force_list: Tuple = (500, 502, 504)
     allowed_methods: List[str] = ["HEAD", "GET", "OPTIONS"]  # we do not PUT/PATCH to PiWebService
-    timeout_seconds: int = 6  # /parameters and /filters respond within 5 seconds..
+    timeout_seconds: int = 30  # /parameters and /filters respond within 5 seconds. /locations in 7 seconds
 
     def __init__(
         self,
@@ -108,14 +108,33 @@ class RetryBackoffSession:
     def _retry_session(self) -> requests.Session:
         if self.__retry_session is not None:
             return self.__retry_session
-        retry = Retry(
-            total=self.retries,
-            read=self.retries,
-            connect=self.retries,
-            backoff_factor=self.backoff_factor,
-            method_whitelist=self.allowed_methods,  # method_whitelist deprecated in Retry v2.0, use allowed_methods=
-            status_forcelist=self.status_force_list,
-        )
+        try:
+            # try it the old way
+            retry = Retry(
+                total=self.retries,
+                read=self.retries,
+                connect=self.retries,
+                backoff_factor=self.backoff_factor,
+                method_whitelist=self.allowed_methods,  # method_whitelist deprecated in Retry v2.0
+                status_forcelist=self.status_force_list,
+            )
+        except TypeError as err:
+            expected_err = "__init__() got an unexpected keyword argument 'method_whitelist'"
+            found_err = err.args[0]
+            if found_err != expected_err:
+                from requests.packages import urllib3
+
+                msg = f"code error: error Retry instance is unexpected. urllib3 version = {urllib3.__version__}"
+                raise AssertionError(msg)
+            # try it the new way
+            retry = Retry(
+                total=self.retries,
+                read=self.retries,
+                connect=self.retries,
+                backoff_factor=self.backoff_factor,
+                allowed_methods=self.allowed_methods,
+                status_forcelist=self.status_force_list,
+            )
         adapter = HTTPAdapter(max_retries=retry)
         session = requests.Session()
         session.mount("http://", adapter)

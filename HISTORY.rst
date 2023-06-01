@@ -1,5 +1,12 @@
-1.11 (Unreleased)
+1.12 (Unreleased)
+
+1.11 (2023-6-1)
 ----------------
+- handle deprecated requests.packages.urllib3.util.retry.Retry's argument 'method_whitelist'
+- add get_time_series pre check 'does ts exists at all without start_time and end_time' to speed up
+- speed up get_time_series with first attempt whole time-series period
+- distinguish more predefined DefaultPiSettingsChoices: raw, work and validated
+- add area pi_settings to enable downloading time-series aggregated to areas
 
 1.10 (2023-5-23)
 ----------------

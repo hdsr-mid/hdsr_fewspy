@@ -27,7 +27,7 @@ class GetFilters(GetRequest):
         return [ApiParameters.filter_id, ApiParameters.document_format, ApiParameters.document_version]
 
     @property
-    def allowed_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[OutputChoices]:
         return [
             OutputChoices.json_response_in_memory,
             OutputChoices.xml_response_in_memory,

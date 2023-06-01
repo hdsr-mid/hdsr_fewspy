@@ -38,11 +38,13 @@ class GetTimeSeriesSingle(GetTimeSeriesBase):
         ]
 
     def run(self) -> Union[List[ResponseType], pd.DataFrame]:
+        request_frequency = pd.Timedelta(self.end_time - self.start_time)
         # eventually continue with request_period of last request (avoiding all freq update iterations)
+
         frequency = (
             self.request_settings.updated_request_period
             if self.request_settings.updated_request_period
-            else self.request_settings.default_request_period
+            else request_frequency
         )
         date_ranges, date_range_freq = DateFrequencyBuilder.create_date_ranges_and_frequency_used(
             startdate_obj=pd.Timestamp(self.start_time), enddate_obj=pd.Timestamp(self.end_time), frequency=frequency

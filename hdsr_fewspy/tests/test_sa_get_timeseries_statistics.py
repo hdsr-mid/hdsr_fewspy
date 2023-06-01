@@ -1,16 +1,16 @@
 from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.tests import fixtures_requests
-from hdsr_fewspy.tests.fixtures import fixture_api_sa_no_download_dir
+from hdsr_fewspy.tests.fixtures import fixture_api_sa_work_no_download_dir
 
 import pytest
 
 
 # silence flake8
-fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
+fixture_api_sa_work_no_download_dir = fixture_api_sa_work_no_download_dir
 
 
-def test_sa_time_series_stats_wrong(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_time_series_stats_wrong(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
 
     request_data = fixtures_requests.RequestTimeSeriesMulti1
     # multiple location_ids is not possible
@@ -35,8 +35,8 @@ def test_sa_time_series_stats_wrong(fixture_api_sa_no_download_dir):
         )
 
 
-def test_sa_time_series_stats_2_ok_xml_memory(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_time_series_stats_2_ok_xml_memory(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
     response = api.get_time_series_statistics(
@@ -50,8 +50,8 @@ def test_sa_time_series_stats_2_ok_xml_memory(fixture_api_sa_no_download_dir):
     assert response.status_code == 200
 
 
-def test_sa_time_series_stats_1_ok_json_memory(fixture_api_sa_no_download_dir):
-    api = fixture_api_sa_no_download_dir
+def test_sa_time_series_stats_1_ok_json_memory(fixture_api_sa_work_no_download_dir):
+    api = fixture_api_sa_work_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleShort
 
     response = api.get_time_series_statistics(

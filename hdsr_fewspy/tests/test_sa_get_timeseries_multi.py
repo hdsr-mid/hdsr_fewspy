@@ -1,8 +1,8 @@
 from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.converters.xml_to_python_obj import parse
 from hdsr_fewspy.tests import fixtures_requests
-from hdsr_fewspy.tests.fixtures import fixture_api_sa_no_download_dir
-from hdsr_fewspy.tests.fixtures import fixture_api_sa_with_download_dir
+from hdsr_fewspy.tests.fixtures import fixture_api_sa_work_no_download_dir
+from hdsr_fewspy.tests.fixtures import fixture_api_sa_work_with_download_dir
 
 import json
 import pandas as pd
@@ -10,12 +10,12 @@ import pytest
 
 
 # silence flake8
-fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
-fixture_api_sa_with_download_dir = fixture_api_sa_with_download_dir
+fixture_api_sa_work_no_download_dir = fixture_api_sa_work_no_download_dir
+fixture_api_sa_with_download_dir = fixture_api_sa_work_with_download_dir
 
 
-def test_sa_multi_timeseries_wrong(fixture_api_sa_with_download_dir):
-    api = fixture_api_sa_with_download_dir
+def test_sa_multi_timeseries_wrong(fixture_api_sa_work_with_download_dir):
+    api = fixture_api_sa_work_with_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti1
 
     # start_time is skipped
@@ -61,16 +61,16 @@ def test_sa_multi_timeseries_wrong(fixture_api_sa_with_download_dir):
         )
     except Exception as err:
         msg = (
-            "invalid output_choice 'json_response_in_memory'. GetTimeSeriesMulti has valid_output_choices "
-            "['xml_file_in_download_dir', 'json_file_in_download_dir', 'csv_file_in_download_dir']. See earlier "
-            "logging why we use GetTimeSeriesMulti."
+            "invalid output_choice 'OutputChoices.json_response_in_memory'. GetTimeSeriesMulti has "
+            "valid_output_choices ['xml_file_in_download_dir', 'json_file_in_download_dir', "
+            "'csv_file_in_download_dir']"
         )
         assert err.args[0] == msg
 
 
-def test_sa_multi_timeseries_1_ok_json_download(fixture_api_sa_with_download_dir):
+def test_sa_multi_timeseries_1_ok_json_download(fixture_api_sa_work_with_download_dir):
     """OutputChoices.json_file_in_download_dir."""
-    api = fixture_api_sa_with_download_dir
+    api = fixture_api_sa_work_with_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti1
 
     all_file_paths = api.get_time_series_multi(
@@ -92,9 +92,9 @@ def test_sa_multi_timeseries_1_ok_json_download(fixture_api_sa_with_download_dir
         assert found_json == expected_json
 
 
-def test_sa_multi_timeseries_1_ok_xml_download(fixture_api_sa_with_download_dir):
+def test_sa_multi_timeseries_1_ok_xml_download(fixture_api_sa_work_with_download_dir):
     """OutputChoices.xml_file_in_download_dir."""
-    api = fixture_api_sa_with_download_dir
+    api = fixture_api_sa_work_with_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti1
 
     all_file_paths = api.get_time_series_multi(
@@ -124,9 +124,9 @@ def test_sa_multi_timeseries_1_ok_xml_download(fixture_api_sa_with_download_dir)
         assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"]
 
 
-def test_sa_multi_timeseries_1_ok_csv_download(fixture_api_sa_with_download_dir):
+def test_sa_multi_timeseries_1_ok_csv_download(fixture_api_sa_work_with_download_dir):
     """OutputChoices.csv_file_in_download_dir."""
-    api = fixture_api_sa_with_download_dir
+    api = fixture_api_sa_work_with_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti1
 
     all_file_paths = api.get_time_series_multi(
@@ -147,9 +147,9 @@ def test_sa_multi_timeseries_1_ok_csv_download(fixture_api_sa_with_download_dir)
         pd.testing.assert_frame_equal(left=df_found, right=df_expected)
 
 
-def test_sa_multi_timeseries_2_ok_json_download(fixture_api_sa_with_download_dir):
+def test_sa_multi_timeseries_2_ok_json_download(fixture_api_sa_work_with_download_dir):
     """OutputChoices.json_file_in_download_dir."""
-    api = fixture_api_sa_with_download_dir
+    api = fixture_api_sa_work_with_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti2
 
     all_file_paths = api.get_time_series_multi(
@@ -159,11 +159,10 @@ def test_sa_multi_timeseries_2_ok_json_download(fixture_api_sa_with_download_dir
         end_time=request_data.end_time,
         output_choice=OutputChoices.json_file_in_download_dir,
     )
-    assert len(all_file_paths) == 4
-    assert all_file_paths[0].name == "gettimeseriesmulti_kw215712_qby_20050101t000000z_20050102t000000z_0.json"
-    assert all_file_paths[1].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z_0.json"
+    assert len(all_file_paths) == 3
+    assert all_file_paths[0].name == "gettimeseriesmulti_kw215712_ddy_20050101t000000z_20050102t000000z_0.json"
+    assert all_file_paths[1].name == "gettimeseriesmulti_kw215712_qby_20050101t000000z_20050102t000000z_0.json"
     assert all_file_paths[2].name == "gettimeseriesmulti_kw322613_qby_20050101t000000z_20050102t000000z_0.json"
-    assert all_file_paths[3].name == "gettimeseriesmulti_kw322613_ddy_20050101t000000z_20050102t000000z_0.json"
 
     mapper_expected_jsons = request_data.get_expected_jsons()
     for downloaded_file in all_file_paths:
@@ -173,9 +172,9 @@ def test_sa_multi_timeseries_2_ok_json_download(fixture_api_sa_with_download_dir
         assert found_json == expected_json
 
 
-def test_sa_multi_time_series_2_ok_xml_download(fixture_api_sa_with_download_dir):
+def test_sa_multi_time_series_2_ok_xml_download(fixture_api_sa_work_with_download_dir):
     """OutputChoices.xml_file_in_download_dir."""
-    api = fixture_api_sa_with_download_dir
+    api = fixture_api_sa_work_with_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti2
 
     all_file_paths = api.get_time_series_multi(
@@ -203,9 +202,9 @@ def test_sa_multi_time_series_2_ok_xml_download(fixture_api_sa_with_download_dir
         assert found_events[-1]._attributes["date"] == expected_events[-1]._attributes["date"]
 
 
-def test_sa_multi_timeseries_2_ok_csv_download(fixture_api_sa_with_download_dir):
+def test_sa_multi_timeseries_2_ok_csv_download(fixture_api_sa_work_with_download_dir):
     """OutputChoices.csv_file_in_download_dir."""
-    api = fixture_api_sa_with_download_dir
+    api = fixture_api_sa_work_with_download_dir
     request_data = fixtures_requests.RequestTimeSeriesMulti2
 
     all_file_paths = api.get_time_series_multi(
