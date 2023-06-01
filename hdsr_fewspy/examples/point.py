@@ -21,10 +21,13 @@ def run_example_point():
     # work = 18 csvs (alleen qb)
     # validated = 18 csvs (alleen qb)
 
+    setup_logging()
+    logger.info("start run_example_point")
+
     # prepare api
     dir_here = Path(__file__).parent
     api = hdsr_fewspy.Api(
-        output_directory_root=dir_here, pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.wis_stand_alone_point_validated
+        output_directory_root=dir_here, pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.wis_production_point_validated
     )
 
     # determine locations
@@ -42,4 +45,19 @@ def run_example_point():
     )
 
 
+def setup_logging() -> None:
+    """Adds a configured handler to the root logger: stream."""
+    # handler: stream
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    stream_handler.setFormatter(logging.Formatter(fmt="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S"))
+
+    # root logger (with 1 handler)
+    root_logger = logging.getLogger()
+    root_logger.addHandler(stream_handler)
+    root_logger.setLevel(min([handler.level for handler in root_logger.handlers]))
+    root_logger.info("setup logging done")
+
+
+setup_logging()
 run_example_point()

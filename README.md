@@ -56,8 +56,11 @@ The names of the pi_settings are:
 
 
 ### Usage
+Below you find 9 examples for the 9 different requests. In hdsr_fewspy/examples/ you also find code to download 
+discharge (point), soilmoisture (area), evaporation (area), and precipitation (area) time-series.  
 
 ###### Preparation
+
 1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read topic 
    'GITHUB_PERSONAL_ACCESS_TOKEN' below.
 2. You can create a hdsr_fewspy API in two ways (the first dominates the second): 

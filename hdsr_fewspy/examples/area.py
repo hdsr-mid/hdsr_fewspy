@@ -20,6 +20,7 @@ def run_example_area():
     pandas_df wis_production_area_evaporation_waterwatch
     pandas_df wis_production_area_evaporation_waterwatch 2717 rows  # from 2000 and 2023 (0 rows between 2020 and 2023)
     """
+    logger.info("start run_example_point")
 
     # bodemvocht
     api = hdsr_fewspy.Api(
@@ -95,3 +96,21 @@ def run_example_area():
         output_choice=hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory,
     )
     logger.info(f"pandas_df wis_production_area_evaporation_waterwatch {len(pandas_df)} rows")
+
+
+def setup_logging() -> None:
+    """Adds a configured handler to the root logger: stream."""
+    # handler: stream
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    stream_handler.setFormatter(logging.Formatter(fmt="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S"))
+
+    # root logger (with 1 handler)
+    root_logger = logging.getLogger()
+    root_logger.addHandler(stream_handler)
+    root_logger.setLevel(min([handler.level for handler in root_logger.handlers]))
+    root_logger.info("setup logging done")
+
+
+setup_logging()
+run_example_area()
