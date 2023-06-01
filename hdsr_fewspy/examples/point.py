@@ -21,7 +21,6 @@ def run_example_point():
     # work = 18 csvs (alleen qb)
     # validated = 18 csvs (alleen qb)
 
-    setup_logging()
     logger.info("start run_example_point")
 
     # prepare api
