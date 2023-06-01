@@ -1,7 +1,7 @@
 ### Context
 * Created: April 2023
 * Author: Renier Kramer, renier.kramer@hdsr.nl
-* Python version: >3.7
+* Python version: >=3.7
 
 [hkvfewspy]: https://github.com/HKV-products-services/hkvfewspy
 [fewspy]: https://github.com/d2hydro/fewspy
