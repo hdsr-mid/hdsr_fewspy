@@ -1,15 +1,15 @@
 from hdsr_fewspy.constants.choices import OutputChoices
-from hdsr_fewspy.tests.fixtures import fixture_api_sa_no_download_dir
+from hdsr_fewspy.tests.fixtures import fixture_api_sa_work_no_download_dir
 
 import geopandas as gpd
 
 
 # silence flake8
-fixture_api_sa_no_download_dir = fixture_api_sa_no_download_dir
+fixture_api_sa_work_no_download_dir = fixture_api_sa_work_no_download_dir
 
 
-def test_sa_locations_json(fixture_api_sa_no_download_dir):
-    response = fixture_api_sa_no_download_dir.get_locations(
+def test_sa_locations_json(fixture_api_sa_work_no_download_dir):
+    response = fixture_api_sa_work_no_download_dir.get_locations(
         output_choice=OutputChoices.json_response_in_memory, show_attributes=True
     )
     assert response.status_code == 200
@@ -48,14 +48,14 @@ def test_sa_locations_json(fixture_api_sa_no_download_dir):
         "value": "beg_062",
     }
 
-    response_no_attributes = fixture_api_sa_no_download_dir.get_locations(
+    response_no_attributes = fixture_api_sa_work_no_download_dir.get_locations(
         output_choice=OutputChoices.json_response_in_memory, show_attributes=False
     )
     found_first_location = response_no_attributes.json()["locations"][0]
     assert found_first_location["attributes"] == []
 
 
-def test_sa_locations_pandas(fixture_api_sa_no_download_dir):
+def test_sa_locations_pandas(fixture_api_sa_work_no_download_dir):
     expected_columns = [
         "attributes",
         "description",
@@ -70,7 +70,7 @@ def test_sa_locations_pandas(fixture_api_sa_no_download_dir):
     ]
 
     # show_attributes=True
-    gdf = fixture_api_sa_no_download_dir.get_locations(
+    gdf = fixture_api_sa_work_no_download_dir.get_locations(
         output_choice=OutputChoices.pandas_dataframe_in_memory, show_attributes=True
     )
     assert isinstance(gdf, gpd.GeoDataFrame)
@@ -84,7 +84,7 @@ def test_sa_locations_pandas(fixture_api_sa_no_download_dir):
     assert gdf.iloc[0].attributes[1] == {"name": "TYPE", "type": "text", "id": "TYPE", "value": "Puntmeting"}
 
     # show_attributes=False
-    gdf = fixture_api_sa_no_download_dir.get_locations(
+    gdf = fixture_api_sa_work_no_download_dir.get_locations(
         output_choice=OutputChoices.pandas_dataframe_in_memory, show_attributes=False
     )
     assert isinstance(gdf, gpd.GeoDataFrame)

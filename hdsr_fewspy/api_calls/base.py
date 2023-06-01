@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from enum import Enum
 from hdsr_fewspy.constants.choices import ApiParameters
 from hdsr_fewspy.constants.choices import OutputChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
@@ -17,11 +18,11 @@ from typing import Tuple
 
 
 class GetRequest:
-    def __init__(self, output_choice: str, retry_backoff_session: RetryBackoffSession):
+    def __init__(self, output_choice: OutputChoices, retry_backoff_session: RetryBackoffSession):
         self.retry_backoff_session: RetryBackoffSession = retry_backoff_session
         self.pi_settings: PiSettings = retry_backoff_session.pi_settings
         self.request_settings: RequestSettings = retry_backoff_session.request_settings
-        self.output_choice: str = self.validate_output_choice(output_choice=output_choice)
+        self.output_choice: OutputChoices = self.validate_output_choice(output_choice=output_choice)
         self.output_dir: Optional[Path] = self.validate_output_dir(output_dir=retry_backoff_session.output_dir)
         self.url: str = f"{self.pi_settings.base_url}{self.url_post_fix}/"
         self.pi_settings.document_format = OutputChoices.get_pi_rest_document_format(output_choice)
@@ -51,11 +52,11 @@ class GetRequest:
 
     @property
     @abstractmethod
-    def allowed_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[OutputChoices]:
         """Every GetRequest has its own list with >=1 hdsr_fewspy.constants.choices.OutputChoices."""
         raise NotImplementedError
 
-    def validate_base_constructor(self):
+    def validate_base_constructor(self) -> None:
         all_parameters = self._unpack_all_parameters()
         msg = "code error required_request_args"
         for x in self.required_request_args:
@@ -64,13 +65,26 @@ class GetRequest:
             if x not in all_parameters.keys():
                 raise AssertionError(f"{msg}: {x} not in all_parameters {all_parameters.keys()}")
 
-    def validate_output_choice(self, output_choice: str) -> str:
-        if output_choice in self.allowed_output_choices:
-            return output_choice
-        raise AssertionError(
-            f"invalid output_choice '{output_choice}'. {self.__class__.__name__} has valid_output_choices "
-            f"{self.allowed_output_choices}. See earlier logging why we use {self.__class__.__name__}."
-        )
+    def validate_output_choice(self, output_choice: OutputChoices) -> OutputChoices:
+
+        # check 1: is it a OutputChoices?
+        try:
+            OutputChoices(output_choice.value)
+        except (ValueError, AttributeError):
+            raise AssertionError(
+                f"output_choice '{output_choice}' must be an OutputChoices "
+                f"e.g. 'hdsr_fewspy.OutputChoices.xml_response_in_memory'"
+            )
+
+        # check 2: is OutputChoices allowed?
+        if output_choice not in self.allowed_output_choices:
+            msg = (
+                f"invalid output_choice '{output_choice}'. {self.__class__.__name__} has valid_output_choices "
+                f"{[x.value for x in self.allowed_output_choices]}"
+            )
+            raise AssertionError(msg)
+
+        return output_choice
 
     def validate_output_dir(self, output_dir: Path) -> Path:
         if OutputChoices.needs_output_dir(output_choice=self.output_choice) and not isinstance(output_dir, Path):
@@ -111,7 +125,9 @@ class GetRequest:
                 continue
             elif isinstance(value, PiSettings) or isinstance(value, RequestSettings):
                 for k, v in value.__dict__.items():
-                    all_parameters[k] = v
+                    all_parameters[k] = v.value if isinstance(v, Enum) else v
+            elif isinstance(value, Enum):
+                all_parameters[key] = value.value
             else:
                 all_parameters[key] = value
         return all_parameters
@@ -143,6 +159,7 @@ class GetRequest:
         def _convert_kv(k: str, v) -> Tuple[str, Any]:
             if k in ApiParameters.non_pi_settings_keys_datetime():
                 v = datetime_to_fews_date_str(v)
+            v = v.value if isinstance(v, Enum) else v
             k = snake_to_camel_case(k)
             return k, v
 

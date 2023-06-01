@@ -3,8 +3,10 @@ from datetime import datetime
 from hdsr_fewspy import exceptions
 from hdsr_fewspy.api_calls.base import GetRequest
 from hdsr_fewspy.constants.choices import ApiParameters
+from hdsr_fewspy.constants.choices import DefaultPiSettingsChoices
 from hdsr_fewspy.constants.choices import PiRestDocumentFormatChoices
 from hdsr_fewspy.constants.custom_types import ResponseType
+from hdsr_fewspy.constants.pi_settings import PiSettings
 from hdsr_fewspy.converters.utils import datetime_to_fews_date_str
 from hdsr_fewspy.converters.utils import fews_date_str_to_datetime
 from hdsr_fewspy.converters.xml_to_python_obj import parse
@@ -49,7 +51,13 @@ class GetTimeSeriesBase(GetRequest):
         self.end_time: datetime = self.__validate_time(time=end_time)
         self.location_ids = location_ids
         self.parameter_ids = parameter_ids
-        self.qualifier_ids = qualifier_ids
+
+        # TODO: refactor this organic ugly code
+        retry_backoff_session = kwargs.get("retry_backoff_session")
+
+        self.qualifier_ids = self.__validate_qualifier(
+            qualifier_ids=qualifier_ids, pi_settings=retry_backoff_session.pi_settings
+        )
         self.thinning = thinning
         self.omit_empty_time_series = omit_empty_time_series
         self.drop_missing_values = drop_missing_values
@@ -65,6 +73,31 @@ class GetTimeSeriesBase(GetRequest):
     def __validate_time(time: Union[datetime, str]) -> datetime:
         datetime_obj = fews_date_str_to_datetime(fews_date_str=time) if isinstance(time, str) else time
         return datetime_obj
+
+    @staticmethod
+    def __validate_qualifier(qualifier_ids: List[str], pi_settings: PiSettings) -> List[str]:
+        """For all area related get_time_series we require a qualifier to avoid a response with >1 time-series."""
+        mapper = {
+            DefaultPiSettingsChoices.wis_production_area_soilmoisture.value: ["Lband05cm", "Lband10cm", "Lband20cm"],
+            DefaultPiSettingsChoices.wis_production_area_precipitation_wiwb.value: ["wiwb_merge"],
+            DefaultPiSettingsChoices.wis_production_area_precipitation_radarcorrection.value: ["mfbs_merge"],
+            #
+            DefaultPiSettingsChoices.wis_production_area_evaporation_wiwb_satdata.value: ["RA", "satdata_merge", ""],
+            DefaultPiSettingsChoices.wis_production_area_evaporation_waterwatch.value: [""],
+        }
+        required_qualifiers = mapper.get(pi_settings.settings_name, None)  # noqa
+        if not required_qualifiers:
+            return qualifier_ids
+        assert qualifier_ids is not None, (
+            f"pi_settings '{pi_settings.settings_name}' get_time_series can only be used with a "
+            f"qualifier_id. Choose from {required_qualifiers}"
+        )
+        qualifier_ids_list = [qualifier_ids] if not isinstance(qualifier_ids, list) else qualifier_ids
+        for qualifier_id in qualifier_ids_list:
+            assert (
+                qualifier_id in required_qualifiers
+            ), f"qualifier_id '{qualifier_id}' must be in {required_qualifiers}"
+        return qualifier_ids
 
     @property
     def url_post_fix(self):

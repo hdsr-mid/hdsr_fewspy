@@ -42,7 +42,7 @@ class Api:
         self,
         github_personal_access_token: str = None,
         secrets_env_path: Union[str, Path] = SECRETS_ENV_PATH,
-        pi_settings: Union[PiSettings, str] = None,  # str must be a DefaultPiSettingsChoices
+        pi_settings: Union[PiSettings, DefaultPiSettingsChoices] = None,
         output_directory_root: Union[str, Path] = None,
     ):
         self.secrets = Secrets(
@@ -96,22 +96,24 @@ class Api:
         except Exception as err:
             self.__log_not_running_service(err=err, response=None)
 
-    def __validate_pi_settings(self, pi_settings: Union[PiSettings, str] = None) -> PiSettings:
+    def __validate_pi_settings(self, pi_settings: Union[PiSettings, DefaultPiSettingsChoices] = None) -> PiSettings:
         github_pi_setting_defaults = GithubPiSettingDefaults(self.secrets.github_personal_access_token)
-        is_none = pi_settings is None
-        is_default = isinstance(pi_settings, str) and pi_settings in DefaultPiSettingsChoices.get_all()
-        is_custom = isinstance(pi_settings, PiSettings)
 
-        if is_none:
-            pi_settings = github_pi_setting_defaults.get_pi_settings(DefaultPiSettingsChoices.wis_production)
-        elif is_default:
-            pi_settings = github_pi_setting_defaults.get_pi_settings(settings_name=pi_settings)
-        elif is_custom:
+        if pi_settings is None:
+            pi_settings = github_pi_setting_defaults.get_pi_settings(
+                DefaultPiSettingsChoices.wis_production_point_validated.value
+            )
+            logger.info(f"no pi_settings defined, so using '{pi_settings.settings_name}'")
+        elif isinstance(pi_settings, DefaultPiSettingsChoices):
+            pi_settings = github_pi_setting_defaults.get_pi_settings(settings_name=pi_settings.value)
+            logger.info(f"default pi_settings defined '{pi_settings.settings_name}'")
+        elif isinstance(pi_settings, PiSettings):
+            logger.info(f"custom pi_settings defined '{pi_settings.settings_name}'")
             mapper = {
                 # setting: (used, allowed)
                 "domain": (pi_settings.domain, self.permissions.allowed_domain),
                 "module_instance_id": (pi_settings.module_instance_ids, self.permissions.allowed_module_instance_id),
-                "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all()),
+                "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all_values()),
                 "filter_id": (pi_settings.filter_id, self.permissions.allowed_filter_id),
                 "service": (pi_settings.service, self.permissions.allowed_service),
             }
@@ -133,8 +135,7 @@ class Api:
             raise NotImplementedError(msg)
         return pi_settings
 
-    def get_parameters(self, output_choice: str) -> Union[ResponseType, pd.DataFrame]:
-        """Get FEWS parameters as a pandas DataFrame."""
+    def get_parameters(self, output_choice: OutputChoices) -> Union[ResponseType, pd.DataFrame]:
         # show_attributes does not make a difference in response (both for Pi_JSON and PI_XML)
         api_call = api_calls.GetParameters(
             output_choice=output_choice,
@@ -143,14 +144,14 @@ class Api:
         result = api_call.run()
         return result
 
-    def get_filters(self, output_choice: str) -> ResponseType:
-        """Get FEWS filters as a list with dictionaries."""
+    def get_filters(self, output_choice: OutputChoices) -> ResponseType:
         api_call = api_calls.GetFilters(output_choice=output_choice, retry_backoff_session=self.retry_backoff_session)
         result = api_call.run()
         return result
 
-    def get_locations(self, output_choice: str, show_attributes: bool = True) -> Union[ResponseType, gpd.GeoDataFrame]:
-        """Get FEWS locations as a geopandas GeoDataFrame."""
+    def get_locations(
+        self, output_choice: OutputChoices, show_attributes: bool = True
+    ) -> Union[ResponseType, gpd.GeoDataFrame]:
         api_call = api_calls.GetLocations(
             show_attributes=show_attributes,
             output_choice=output_choice,
@@ -159,19 +160,14 @@ class Api:
         result = api_call.run()
         return result
 
-    def get_qualifiers(self, output_choice: str) -> pd.DataFrame:
-        """Get FEWS qualifiers as Pandas DataFrame
-
-        Returns:
-            df (pandas.DataFrame): Pandas dataframe with index "id" and columns "name" and "group_id".
-        """
+    def get_qualifiers(self, output_choice: OutputChoices) -> pd.DataFrame:
         api_call = api_calls.GetQualifiers(
             output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
         )
         result = api_call.run()
         return result
 
-    def get_timezone_id(self, output_choice: str) -> ResponseType:
+    def get_timezone_id(self, output_choice: OutputChoices) -> ResponseType:
         """Get FEWS timezone_id the FEWS API is running on."""
         api_call = api_calls.GetTimeZoneId(
             output_choice=output_choice, retry_backoff_session=self.retry_backoff_session
@@ -180,9 +176,8 @@ class Api:
         return result
 
     def get_samples(
-        self, output_choice: str, start_time: datetime, end_time: datetime
+        self, output_choice: OutputChoices, start_time: datetime, end_time: datetime
     ) -> Union[ResponseType, pd.DataFrame]:
-        """Get FEWS samples as a pandas DataFrame."""
         api_call = api_calls.GetSamples(
             start_time=start_time,
             end_time=end_time,
@@ -195,7 +190,7 @@ class Api:
 
     def get_time_series_statistics(
         self,
-        output_choice: str,
+        output_choice: OutputChoices,
         #
         start_time: datetime,
         end_time: datetime,
@@ -252,7 +247,7 @@ class Api:
 
     def get_time_series_single(
         self,
-        output_choice: str,
+        output_choice: OutputChoices,
         #
         start_time: Union[datetime, str],
         end_time: Union[datetime, str],
@@ -295,7 +290,7 @@ class Api:
 
     def get_time_series_multi(
         self,
-        output_choice: str,
+        output_choice: OutputChoices,
         #
         start_time: Union[datetime, str],
         end_time: Union[datetime, str],

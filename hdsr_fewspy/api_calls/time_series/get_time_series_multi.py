@@ -86,7 +86,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
         return all_file_paths
 
     @classmethod
-    def _get_cartesian_parameters_list(cls, parameters: Dict) -> List[Dict]:
+    def _get_cartesian_parameters_list(cls, parameters: Dict) -> List[Dict]:  # noqa
         """Create all possible combinations of locationIds, parameterIds, and qualifierIds.
 
         Example input parameters = {

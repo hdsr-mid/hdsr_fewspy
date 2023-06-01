@@ -41,7 +41,7 @@ class PiSettings:
     document_version: float
     filter_id: str
     module_instance_ids: str
-    time_zone: float  # see constants.choices.TimeZoneChoices
+    time_zone: float
     #
     ssl_verify: bool
     document_format: str = None  # updated based on api.output_choice during Api instance
