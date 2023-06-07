@@ -17,7 +17,7 @@ Note that this project only works on HDSR's internal network, so within the VDI.
 two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds client-side authentication, 
 authorisation, and throttling. The latter is to minimize request load on HDSR's internal FEWS instances. 
 
-Hdsr_fewspy API support 9 different API calls that can return 6 different output formats:   
+Hdsr_fewspy API supports 9 different API calls that can return 6 different output formats:   
 1. xml_file_in_download_dir: The xml response is written to a .xml file in your download_dir
 2. json_file_in_download_dir: The json response is written to a .json file in your download_dir
 3. csv_file_in_download_dir: The json response is converted to csv and written to a .csv file in your download_dir
@@ -27,22 +27,21 @@ Hdsr_fewspy API support 9 different API calls that can return 6 different output
 
 API call                      | Supported outputs  | Notes 
 ------------------------------|--------------------|--------
-get_parameters                | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
-get_filters                   | 4, 5               | Returns 1 object (xml/json response)  
-get_locations                 | 4, 5               | Returns 1 object (xml/json response)              
-get_qualifiers                | 4, 6               | Returns 1 object (xml response or dataframe)
-get_timezone_id               | 4, 5               | Returns 1 object (xml/json response)
-get_samples                   | TODO               | Not implemented yet
-get_time_series_single        | 4, 5, 6            | Returns 1 dataframe or a list >=1 xml/json responses     
-get_time_series_multi         | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
-get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json response)
+1. get_parameters                | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
+2. get_filters                   | 4, 5               | Returns 1 object (xml/json response)  
+3. get_locations                 | 4, 5               | Returns 1 object (xml/json response)              
+4. get_qualifiers                | 4, 6               | Returns 1 object (xml response or dataframe)
+5. get_timezone_id               | 4, 5               | Returns 1 object (xml/json response)
+6. get_samples                   | TODO               | Not implemented yet
+7. get_time_series_single        | 4, 5, 6            | Returns 1 dataframe or a list >=1 xml/json responses     
+8. get_time_series_multi         | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
+9. get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json response)
 
 ###### DefaultPiSettingsChoices:
-Several predefined pi_settings exists for point data and for area (e.g. averaged all points within an area). \
-We mainly distinguish three levels of data:
+Several predefined pi_settings exists for point data and for area (e.g. averaged all points within an area). We mainly distinguish three levels of data:
 - raw: raw measurements from field stations. Contains valid and invalid data but lags little time with field measurements. 
 - work: this data is being validated by a HDSR person (data validator CAW). This data might change every day. 
-- validated: data without invalid data. Note that this data is published months after the actual measurement. \
+- validated: data without invalid data. Note that this data is published months after the actual measurement.
 
 The names of the pi_settings are:
 - wis_production_point_raw
