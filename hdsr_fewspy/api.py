@@ -333,6 +333,10 @@ class Api:
         return all_file_paths
 
 
+# TODO: add __repr__ to pi_settings so that users in R can easily sea what pi_settings they are using
+
+# TODO: add url Deltares with flag info
+
 # TODO: don't use strings as urls...
 
 # TODO: Ciska wel interesse wel in:
