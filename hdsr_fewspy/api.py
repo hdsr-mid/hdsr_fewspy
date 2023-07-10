@@ -332,13 +332,12 @@ class Api:
         all_file_paths = api_call.run()
         return all_file_paths
 
+
 # TODO: ensure evaporation examples work (according to Rob they don't return data)
 
 # TODO: add __repr__ to pi_settings so that users in R can easily sea what pi_settings they are using
 
 # TODO: add log statement if no data is returned
-
-# TODO: add url Deltares with flag info
 
 # TODO: don't use strings as urls...
 

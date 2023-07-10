@@ -39,7 +39,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 logger.warning(f"drop_missing_values is not used for output_choice {self.output_choice}")
 
     @property
-    def allowed_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[OutputChoices]:
         return [
             OutputChoices.xml_file_in_download_dir,
             OutputChoices.json_file_in_download_dir,

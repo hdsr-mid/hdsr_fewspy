@@ -25,7 +25,7 @@ class GetTimeSeriesStatistics(GetTimeSeriesSingle):
             logger.warning(f"drop_missing_values is not used for output_choice {self.output_choice}")
 
     @property
-    def allowed_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[OutputChoices]:
         return [
             OutputChoices.json_response_in_memory,
             OutputChoices.xml_response_in_memory,

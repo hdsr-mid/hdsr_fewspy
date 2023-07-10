@@ -1,7 +1,8 @@
 1.12 (Unreleased)
 ----------------
 - add logging to examples
--
+- add timeseries flag description (Deltares url) to readme
+- add __repr__ to PiSettings so that R users can print those settings
 
 1.11 (2023-6-1)
 ----------------

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def run_example_area():
     """
     Get soilmoisture, precipitation and evaporation time-series aggregated to an 'peilgebied' area.
-    Note that the areas (.shp) are old (from 2011)
+    Note that the areas (.shp) are old (from 2011).
 
     code below results in logging:
     pandas_df wis_production_area_soilmoisture 576 rows
@@ -20,6 +20,8 @@ def run_example_area():
     pandas_df wis_production_area_evaporation_waterwatch
     pandas_df wis_production_area_evaporation_waterwatch 2717 rows  # from 2000 and 2023 (0 rows between 2020 and 2023)
     """
+    setup_logging()
+
     logger.info("start run_example_point")
 
     # bodemvocht
@@ -110,7 +112,3 @@ def setup_logging() -> None:
     root_logger.addHandler(stream_handler)
     root_logger.setLevel(min([handler.level for handler in root_logger.handlers]))
     root_logger.info("setup logging done")
-
-
-setup_logging()
-run_example_area()

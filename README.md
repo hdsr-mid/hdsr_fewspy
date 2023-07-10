@@ -10,6 +10,7 @@
 [issues page]: https://github.com/hdsr-mid/hdsr_fewspy/issues
 [github personal token]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 [releases]: https://pypi.org/project/hdsr-fewspy/#history
+[flag details]: https://publicwiki.deltares.nl/display/FEWSDOC/D+Time+Series+Flags
 
 ### Description
 A python project to request data (locations, time-series, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
@@ -58,7 +59,7 @@ The names of the pi_settings are:
 Below you find 9 examples for the 9 different requests. In hdsr_fewspy/examples/ you also find code to download 
 discharge (point), soilmoisture (area), evaporation (area), and precipitation (area) time-series.  
 
-###### Preparation
+#### Preparation
 
 1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read topic 
    'GITHUB_PERSONAL_ACCESS_TOKEN' below.
@@ -74,13 +75,13 @@ pip install hdsr-fewspy
 # or 
 conda install hdsr-fewspy --channel hdsr-mid
 ```
-4. Example simple:
+4. Example simple 'create API instance':
 ```
 import hdsr_fewspy
 
 api = hdsr_fewspy.Api()
 ```
-5. Example sophisticated:
+5. Example sophisticated 'create API instance':
 ```
 import hdsr_fewspy
 
@@ -91,9 +92,11 @@ import hdsr_fewspy
 # pi_settings: hdsr_fewspy.PiSettings 
 # output_directory_root: str or pathlib.path
 
+# option 1
 # For example in case of pi_settings, you can use predefined settings (see topic 'DefaultPiSettingsChoices' above)
 api = hdsr_fewspy.Api(pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.wis_production_point_work)
 
+# option 2
 # Or create your own pi_settings:
 custom_settings = hdsr_fewspy.PiSettings(
    settings_name="does not matter blabla",         
@@ -108,12 +111,16 @@ custom_settings = hdsr_fewspy.PiSettings(
 )
 api = hdsr_fewspy.Api(pi_settings=custom_settings)
 
+# option 3
 # In case you want to download responses to file, then you need to specify an output_directory_root 
 # The files will be downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/<files_will_be_downloaded_here>
 api = hdsr_fewspy.Api(output_directory_root=<path_to_a_dir>)
 ```
 
-###### Examples 9 different API calls (using api option 3 from above)
+#### Examples API calls
+###### Below you see 9 examples using api option 3 above.
+###### Moreover, in hdsr_fewspy/examples/ you find examples for point and area downloads.
+
 1. get_parameters
 ```
 df = api.get_parameters(output_choice=hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory)
@@ -176,10 +183,13 @@ assert TimeZoneChoices.get_tz_float(value="GMT") == TimeZoneChoices.gmt.value ==
 # Not yet implemented
 ```
 7. get_time_series_single
+
+[click here for more info on flags][flag details]
 ```
 # Single means: use max 1 location_id and/or parameter_id and/or qualifier_id. One large call can result in multiple 
 # small calls and therefore multiple responses. If your output_choice is json/xml in memory, then you get a list with 
-# >=1 responses. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.  
+# >=1 responses. Arguments 'flag_threshold' and 'drop_missing_values' have no effect.
+  
 
 responses = api.get_time_series_single(
     location_id = "OW433001",
@@ -231,7 +241,9 @@ df = api.get_time_series_single(
     output_choice = hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory,
 )
 ```
-8. get_time_series_multi 
+8. get_time_series_multi
+
+[click here for more info on flags][flag details]
 ```
 # Multi means: use >=1 location_id and/or parameter_id and/or qualifier_id. The api call below results in 4 unique 
 # location_parameter_qualifier combinations: OW433001_hg0, OW433001_hgd, OW433002_hg0, OW433002_hgd. Per unique 

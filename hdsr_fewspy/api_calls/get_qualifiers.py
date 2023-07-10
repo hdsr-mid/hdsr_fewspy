@@ -27,7 +27,7 @@ class GetQualifiers(GetRequest):
         return "qualifiers"
 
     @property
-    def allowed_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[OutputChoices]:
         return [OutputChoices.xml_response_in_memory]
 
     @property
