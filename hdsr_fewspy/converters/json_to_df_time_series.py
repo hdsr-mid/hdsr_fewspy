@@ -10,8 +10,11 @@ from hdsr_fewspy.converters.utils import dict_to_datetime
 from typing import List
 from typing import Tuple
 
+import logging
 import pandas as pd
 
+
+logger = logging.getLogger(__name__)
 
 DATETIME_KEYS = ["start_date", "end_date"]
 FLOAT_KEYS = ["miss_val", "lat", "lon", "x", "y", "z"]
@@ -200,7 +203,9 @@ def response_jsons_to_one_df(
             if not df.empty:
                 assert sorted(_df.columns) == sorted(df.columns), "code error response_jsons_to_one_df: 1"
             df = pd.concat(objs=[df, _df], axis=0)
-    if not df.empty:
+    if df.empty:
+        logger.warning(f"{len(responses)} response json(s)) resulted in a empty pandas dataframe")
+    else:
         is_unique_locations = len(df["location_id"].unique()) == 1
         is_unique_parameters = len(df["parameter_id"].unique()) == 1
         assert is_unique_locations and is_unique_parameters, "code error response_jsons_to_one_df: 2"

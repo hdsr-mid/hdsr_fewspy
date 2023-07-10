@@ -46,6 +46,9 @@ class PiSettings:
     ssl_verify: bool
     document_format: str = None  # updated based on api.output_choice during Api instance
 
+    def __repr__(self) -> str:
+        return f"{self.all_fields}"
+
     @property
     def base_url(self) -> str:
         """For example:
