@@ -335,9 +335,7 @@ class Api:
 
 # TODO: ensure evaporation examples work (according to Rob they don't return data)
 
-# TODO: add __repr__ to pi_settings so that users in R can easily sea what pi_settings they are using
-
-# TODO: add log statement if no data is returned
+# TODO: updated default pi_settings to new datascience FEWS machine (production)
 
 # TODO: don't use strings as urls...
 
