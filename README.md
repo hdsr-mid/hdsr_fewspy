@@ -28,7 +28,7 @@ Hdsr_fewspy API supports 9 different API calls that can return 6 different outpu
 
 API call                      | Supported outputs  | Notes 
 ------------------------------|--------------------|--------
-1. get_parameters                | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
+1. get_parameters             | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
 2. get_filters                   | 4, 5               | Returns 1 object (xml/json response)  
 3. get_locations                 | 4, 5               | Returns 1 object (xml/json response)              
 4. get_qualifiers                | 4, 6               | Returns 1 object (xml response or dataframe)
