@@ -39,7 +39,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 logger.warning(f"drop_missing_values is not used for output_choice {self.output_choice}")
 
     @property
-    def allowed_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[OutputChoices]:
         return [
             OutputChoices.xml_file_in_download_dir,
             OutputChoices.json_file_in_download_dir,
@@ -82,7 +82,10 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
             all_file_paths.extend(file_paths_created)
             progress_percentage = int((index + 1) / nr_total * 100)
             logger.info(f"get_time_series_multi progress = {progress_percentage}%")
-        logger.info(f"finished download and writing to {len(all_file_paths)} file(s)")
+        if all_file_paths:
+            logger.info(f"finished download and writing to {len(all_file_paths)} file(s)")
+        else:
+            logger.warning("finished download but no data found, so nothing to write to file")
         return all_file_paths
 
     @classmethod

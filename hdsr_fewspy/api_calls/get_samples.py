@@ -1,5 +1,6 @@
 from datetime import datetime
 from hdsr_fewspy.api_calls.base import GetRequest
+from hdsr_fewspy.constants.choices import OutputChoices
 from typing import List
 
 import logging
@@ -27,7 +28,7 @@ class GetSamples(GetRequest):
         return []
 
     @property
-    def allowed_output_choices(self) -> List[str]:
+    def allowed_output_choices(self) -> List[OutputChoices]:
         return []
 
     def run(self):
