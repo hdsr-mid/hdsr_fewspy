@@ -333,10 +333,6 @@ class Api:
         return all_file_paths
 
 
-# TODO: ensure evaporation examples work (according to Rob they don't return data)
-
-# TODO: updated default pi_settings to new datascience FEWS machine (production)
-
 # TODO: don't use strings as urls...
 
 # TODO: Ciska wel interesse wel in:

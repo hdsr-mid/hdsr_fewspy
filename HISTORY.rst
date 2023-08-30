@@ -1,11 +1,15 @@
-1.12 (Unreleased)
+1.13 (Unreleased)
+----------------
+
+1.12 (2023-08-30)
 ----------------
 - add logging to examples
 - add timeseries flag description (Deltares url) to readme
 - add __repr__ to PiSettings so that non-python users (R, etc.) can print those settings
-- TODO: updated default pi_settings to new datascience FEWS machine (production)
+- updated default pi_settings to new datascience FEWS machine (production)
+- add hdsr_fewspy.__version__
 
-1.11 (2023-6-1)
+1.11 (2023-06-01)
 ----------------
 - handle deprecated requests.packages.urllib3.util.retry.Retry's argument 'method_whitelist'
 - add get_time_series pre check 'does ts exists at all without start_time and end_time' to speed up
@@ -13,7 +17,7 @@
 - distinguish more predefined DefaultPiSettingsChoices: raw, work and validated
 - add area pi_settings to enable downloading time-series aggregated to areas
 
-1.10 (2023-5-23)
+1.10 (2023-05-23)
 ----------------
 - bug fix: empty get_time_series response previous request
 - enable start_time and end_time as strings

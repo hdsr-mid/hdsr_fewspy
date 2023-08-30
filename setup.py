@@ -1,14 +1,22 @@
 from os import path
 from setuptools import find_packages
 from setuptools import setup
-
+import re
 
 # read the contents of your README file
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-version = "1.11"
+# read the version from _version.py file
+version_file = "./hdsr_fewspy/_version.py"
+with open(version_file) as file:
+    version_content = file.read()
+    version_match = re.search(string=r"^__version__ = ['\"]([^'\"]*)['\"]", pattern=version_content, flags=re.M)
+    if version_match:
+        version = version_match.group(1)
+    else:
+        raise RuntimeError("Unable to find version string in %s." % (version_file,))
 
 install_requires = [
     "requests",
