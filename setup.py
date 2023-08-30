@@ -10,13 +10,12 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 # read the version from _version.py file
 version_file = "./hdsr_fewspy/_version.py"
-with open(version_file) as file:
-    version_content = file.read()
-    version_match = re.search(string=r"^__version__ = ['\"]([^'\"]*)['\"]", pattern=version_content, flags=re.M)
-    if version_match:
-        version = version_match.group(1)
-    else:
-        raise RuntimeError("Unable to find version string in %s." % (version_file,))
+version_content = open(version_file, "rt").read()
+version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_content, flags=re.M)
+if version_match:
+    version = version_match.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (version_file,))
 
 install_requires = [
     "requests",
