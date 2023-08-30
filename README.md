@@ -28,15 +28,15 @@ Hdsr_fewspy API supports 9 different API calls that can return 6 different outpu
 
 API call                      | Supported outputs  | Notes 
 ------------------------------|--------------------|--------
-1. get_parameters             | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
-2. get_filters                   | 4, 5               | Returns 1 object (xml/json response)  
-3. get_locations                 | 4, 5               | Returns 1 object (xml/json response)              
-4. get_qualifiers                | 4, 6               | Returns 1 object (xml response or dataframe)
-5. get_timezone_id               | 4, 5               | Returns 1 object (xml/json response)
-6. get_samples                   | TODO               | Not implemented yet
-7. get_time_series_single        | 4, 5, 6            | Returns 1 dataframe or a list >=1 xml/json responses     
-8. get_time_series_multi         | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
-9. get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json response)
+1 get_parameters             | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
+2 get_filters                   | 4, 5               | Returns 1 object (xml/json response)  
+3 get_locations                 | 4, 5               | Returns 1 object (xml/json response)              
+4 get_qualifiers                | 4, 6               | Returns 1 object (xml response or dataframe)
+5 get_timezone_id               | 4, 5               | Returns 1 object (xml/json response)
+6 get_samples                   | TODO               | Not implemented yet
+7 get_time_series_single        | 4, 5, 6            | Returns 1 dataframe or a list >=1 xml/json responses     
+8 get_time_series_multi         | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
+9 get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json response)
 
 ###### DefaultPiSettingsChoices:
 Several predefined pi_settings exists for point data and for area (e.g. averaged all points within an area). We mainly distinguish three levels of data:
