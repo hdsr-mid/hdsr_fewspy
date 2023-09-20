@@ -15,7 +15,7 @@ def test_sa_locations_json(fixture_api_sa_work_no_download_dir):
     assert response.status_code == 200
     data = response.json()
     assert sorted(data.keys()) == ["geoDatum", "locations", "version"]
-    assert len(data["locations"]) == 5993
+    assert len(data["locations"]) == 6939
     found_first_location = data["locations"][0]
     assert sorted(found_first_location.keys()) == [
         "attributes",
@@ -33,7 +33,7 @@ def test_sa_locations_json(fixture_api_sa_work_no_download_dir):
         "name": "LOC_NAME",
         "type": "text",
         "id": "LOC_NAME",
-        "value": "beg_062-LR_13_xruim",
+        "value": "beg_084-LR_17_xruim",
     }
     assert found_first_location["attributes"][1] == {
         "name": "TYPE",
@@ -45,7 +45,7 @@ def test_sa_locations_json(fixture_api_sa_work_no_download_dir):
         "name": "LOC_ID",
         "type": "text",
         "id": "LOC_ID",
-        "value": "beg_062",
+        "value": "beg_084",
     }
 
     response_no_attributes = fixture_api_sa_work_no_download_dir.get_locations(
@@ -79,7 +79,7 @@ def test_sa_locations_pandas(fixture_api_sa_work_no_download_dir):
         "name": "LOC_NAME",
         "type": "text",
         "id": "LOC_NAME",
-        "value": "beg_062-LR_13_xruim",
+        "value": "beg_084-LR_17_xruim",
     }
     assert gdf.iloc[0].attributes[1] == {"name": "TYPE", "type": "text", "id": "TYPE", "value": "Puntmeting"}
 

@@ -9,7 +9,7 @@ from hdsr_fewspy.api_calls.time_series.get_time_series_single import GetTimeSeri
 from hdsr_fewspy.api_calls.time_series.get_time_series_statistics import GetTimeSeriesStatistics
 
 
-# silence flake8 errors
+# silence flake8
 GetFilters = GetFilters
 GetLocations = GetLocations
 GetParameters = GetParameters

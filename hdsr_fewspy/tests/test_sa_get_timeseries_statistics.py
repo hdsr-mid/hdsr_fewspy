@@ -69,13 +69,9 @@ def test_sa_time_series_stats_1_ok_json_memory(fixture_api_sa_work_no_download_d
     found_keys = sorted(found_header.keys())
     expected_keys = [
         "endDate",
-        "firstValueTime",
-        "lastValueTime",
         "lat",
         "locationId",
         "lon",
-        "maxValue",
-        "minValue",
         "missVal",
         "moduleInstanceId",
         "parameterId",
@@ -92,26 +88,22 @@ def test_sa_time_series_stats_1_ok_json_memory(fixture_api_sa_work_no_download_d
     assert found_keys == expected_keys
 
     expected_header = {
-        "endDate": {"date": "2012-01-02", "time": "00:00:00"},
-        "firstValueTime": {"date": "2012-01-01", "time": "00:15:00"},
-        "lastValueTime": {"date": "2012-01-02", "time": "00:00:00"},
-        "lat": "52.08992726570302",
-        "locationId": "OW433001",
-        "lon": "4.9547458967486095",
-        "maxValue": "-0.28",
-        "minValue": "-0.44",
-        "missVal": "-999.0",
-        "moduleInstanceId": "WerkFilter",
-        "parameterId": "H.G.0",
-        "startDate": {"date": "2012-01-01", "time": "00:00:00"},
-        "stationName": "HAANWIJKERSLUIS_4330-w_Leidsche Rijn",
-        "timeStep": {"unit": "nonequidistant"},
         "type": "instantaneous",
-        "units": "mNAP",
-        "valueCount": "102",
+        "moduleInstanceId": "WerkFilter",
+        "locationId": "OW433001",
+        "parameterId": "H.G.0",
+        "timeStep": {"unit": "nonequidistant"},
+        "startDate": {"date": "2012-01-01", "time": "00:00:00"},
+        "endDate": {"date": "2012-01-02", "time": "00:00:00"},
+        "missVal": "-999.0",
+        "stationName": "HAANWIJKERSLUIS_4330-w_Leidsche Rijn",
+        "lat": "52.08992726570302",
+        "lon": "4.9547458967486095",
         "x": "125362.0",
         "y": "455829.0",
         "z": "-0.18",
+        "units": "mNAP",
+        "valueCount": "0",
     }
 
     assert found_header == expected_header

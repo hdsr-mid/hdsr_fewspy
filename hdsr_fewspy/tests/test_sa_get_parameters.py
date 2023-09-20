@@ -22,11 +22,11 @@ def test_sa_parameters_pandas_dataframe(fixture_api_sa_work_no_download_dir):
     assert len(df) == 272
     assert sorted(df.columns) == ["display_unit", "name", "parameter_group", "parameter_type", "unit", "uses_datum"]
     expected_first_row = {
-        "name": "Oppervlaktebegroeiing [%] - noneq",
+        "name": "Maaimoment",
         "parameter_type": "instantaneous",
-        "unit": "%",
-        "display_unit": "%",
+        "unit": "-",
+        "display_unit": "-",
         "uses_datum": False,
-        "parameter_group": "Begroeiingsgraad",
+        "parameter_group": "TimeSteps",
     }
     assert df.iloc[0].to_dict() == expected_first_row

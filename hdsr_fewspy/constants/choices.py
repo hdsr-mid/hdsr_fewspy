@@ -6,7 +6,6 @@ from typing import Union
 
 
 class PiRestDocumentFormatChoices(Enum):
-    # TODO: make this a enum.Enum class to improve type hints trough codebase
     xml = "PI_XML"
     json = "PI_JSON"
 
