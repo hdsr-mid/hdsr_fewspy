@@ -11,6 +11,7 @@
 [github personal token]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 [releases]: https://pypi.org/project/hdsr-fewspy/#history
 [flag details]: https://publicwiki.deltares.nl/display/FEWSDOC/D+Time+Series+Flags
+[user and auth settings]: https://github.com/hdsr-mid/hdsr_fewspy_auth 
 
 ### Description
 A python project to request data (locations, time-series, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
@@ -28,15 +29,15 @@ Hdsr_fewspy API supports 9 different API calls that can return 6 different outpu
 
 API call                      | Supported outputs  | Notes 
 ------------------------------|--------------------|--------
-1 get_parameters             | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
-2 get_filters                   | 4, 5               | Returns 1 object (xml/json response)  
-3 get_locations                 | 4, 5               | Returns 1 object (xml/json response)              
-4 get_qualifiers                | 4, 6               | Returns 1 object (xml response or dataframe)
-5 get_timezone_id               | 4, 5               | Returns 1 object (xml/json response)
-6 get_samples                   | TODO               | Not implemented yet
-7 get_time_series_single        | 4, 5, 6            | Returns 1 dataframe or a list >=1 xml/json responses     
-8 get_time_series_multi         | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
-9 get_time_series_statistics    | 4, 5               | Returns 1 object (xml/json response)
+1 get_parameters              | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
+2 get_filters                 | 4, 5               | Returns 1 object (xml/json response)  
+3 get_locations               | 4, 5               | Returns 1 object (xml/json response)              
+4 get_qualifiers              | 4, 6               | Returns 1 object (xml response or dataframe)
+5 get_timezone_id             | 4, 5               | Returns 1 object (xml/json response)
+6 get_samples                 | TODO               | Not implemented yet
+7 get_time_series_single      | 4, 5, 6            | Returns 1 dataframe or a list >=1 xml/json responses     
+8 get_time_series_multi       | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
+9 get_time_series_statistics  | 4, 5               | Returns 1 object (xml/json response)
 
 ###### DefaultPiSettingsChoices:
 Several predefined pi_settings exists for point data and for area (e.g. averaged all points within an area). We mainly distinguish three levels of data:
@@ -44,7 +45,7 @@ Several predefined pi_settings exists for point data and for area (e.g. averaged
 - work: this data is being validated by a HDSR person (data validator CAW). This data might change every day. 
 - validated: data without invalid data. Note that this data is published months after the actual measurement.
 
-The names of the pi_settings are:
+The names of the pi_settings are (see class DefaultPiSettingsChoices):
 - wis_production_point_raw
 - wis_production_point_work
 - wis_production_point_validated
@@ -62,10 +63,13 @@ discharge (point), soilmoisture (area), evaporation (area), and precipitation (a
 #### Preparation
 
 1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read topic 
-   'GITHUB_PERSONAL_ACCESS_TOKEN' below.
-2. You can create a hdsr_fewspy API in two ways (the first dominates the second): 
-   a. or with API argument 'github_personal_access_token'
-   b. or with API argument 'secrets_env_path' (defaults to 'G:/secrets.env'). The .env file must have a row:
+   'GITHUB_PERSONAL_ACCESS_TOKEN' below what to do with this token.
+2. Only once needed: ensure your github username is registered in [[user and auth settings]] permissions.csv file. If 
+   not, ask the maintainer of hdsr_fewspy to fix this.
+3. You can create a hdsr_fewspy API in two ways (the first dominates the second). We advise to use the second: 
+   - with API argument 'github_personal_access_token', thus ```api = hdsr_fewspy.Api(<github_personal_access_token>)```.
+   - or with API argument 'secrets_env_path' (defaults to 'G:/secrets.env'), thus ```api = hdsr_fewspy.Api(<your_secrets_env_path>)```. 
+     The .env file must have a row:
 ```
 GITHUB_PERSONAL_ACCESS_TOKEN=<your_github_token>
 ```
@@ -340,6 +344,19 @@ You can [create a token yourself][[github personal token]]. In short:
    GITHUB_PERSONAL_ACCESS_TOKEN=<your_token>
    
 
+### Development
+For development we request a FEWS webserive instance. The responses should not vary over time. Therefore, we use 
+FEWS stand alone that serves as a reference (D:\FEWS_202202_Peilevaluatie6 on Reken01). 
+1. Start the (reference) FEWS stand alone
+2. Start PiWebservice 
+   a. click with mouse on left side of screen 
+   b. press F12
+   c. select 'Embedded servers'
+   d. select 'start embedded tomcat web services'
+   Now in the log panel you should see something like: "successfully started PiWebservice with test page: blabla"
+3. Activate your conda environment and run tests with command 'pytest'
+
+
 ### License 
 [MIT]
 
@@ -354,7 +371,8 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
-hdsr_fewspy\__init__.py                                              10      0   100%
+hdsr_fewspy\__init__.py                                              12      0   100%
+hdsr_fewspy\_version.py                                               1      0   100%
 hdsr_fewspy\api.py                                                  119     19    84%
 hdsr_fewspy\api_calls\__init__.py                                    18      0   100%
 hdsr_fewspy\api_calls\base.py                                       109     14    87%
@@ -365,7 +383,7 @@ hdsr_fewspy\api_calls\get_qualifiers.py                              50     16  
 hdsr_fewspy\api_calls\get_samples.py                                 25      8    68%
 hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
 hdsr_fewspy\api_calls\time_series\base.py                           151     13    91%
-hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           81      7    91%
+hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           81      6    93%
 hdsr_fewspy\api_calls\time_series\get_time_series_single.py          36      1    97%
 hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      23      2    91%
 hdsr_fewspy\constants\choices.py                                     94      6    94%
@@ -378,7 +396,7 @@ hdsr_fewspy\converters\download.py                                   82      4  
 hdsr_fewspy\converters\json_to_df_time_series.py                    119      7    94%
 hdsr_fewspy\converters\manager.py                                    27      0   100%
 hdsr_fewspy\converters\utils.py                                      45     11    76%
-hdsr_fewspy\converters\xml_to_python_obj.py                         105     27    74%
+hdsr_fewspy\converters\xml_to_python_obj.py                         105     26    75%
 hdsr_fewspy\date_frequency.py                                        47      2    96%
 hdsr_fewspy\examples\area.py                                         30     30     0%
 hdsr_fewspy\examples\point.py                                        22     22     0%
@@ -386,9 +404,9 @@ hdsr_fewspy\exceptions.py                                            14      0  
 hdsr_fewspy\permissions.py                                           68      5    93%
 hdsr_fewspy\retry_session.py                                         77     15    81%
 hdsr_fewspy\secrets.py                                               40      5    88%
-setup.py                                                             10     10     0%
+setup.py                                                             16     16     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1647    236    86%
+TOTAL                                                              1656    240    86%
 ```
 
 ### Conda general tips
