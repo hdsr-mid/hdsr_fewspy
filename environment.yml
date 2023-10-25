@@ -5,6 +5,8 @@ dependencies:
   - python=3.7
   - hdsr-pygithub>=1.12 # on conda channel hdsr-mid
   - requests
+  - rasterstats
+  - rasterio
   - pandas
   - geopandas
   - pathlib
