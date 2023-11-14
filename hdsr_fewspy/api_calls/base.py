@@ -66,7 +66,6 @@ class GetRequest:
                 raise AssertionError(f"{msg}: {x} not in all_parameters {all_parameters.keys()}")
 
     def validate_output_choice(self, output_choice: OutputChoices) -> OutputChoices:
-
         # check 1: is it a OutputChoices?
         try:
             OutputChoices(output_choice.value)

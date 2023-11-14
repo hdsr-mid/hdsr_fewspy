@@ -116,7 +116,11 @@ class TimeSeries:
     """FEWS-PI time series"""
 
     header: Header
-    events: Events = pd.DataFrame(columns=EVENT_COLUMNS).set_index("datetime")
+    events: pd.DataFrame = None
+
+    def __post_init__(self):
+        if self.events is None:
+            self.events = pd.DataFrame(columns=EVENT_COLUMNS).set_index("datetime")
 
     @classmethod
     def from_pi_time_series(

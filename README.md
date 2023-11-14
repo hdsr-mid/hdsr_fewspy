@@ -368,32 +368,30 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 
 ### Test Coverage (release 1.12)
 ```
----------- coverage: platform win32, python 3.7.12-final-0 -----------
+---------- coverage: platform win32, python 3.11.0-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
-hdsr_fewspy\__init__.py                                              12      0   100%
 hdsr_fewspy\_version.py                                               1      0   100%
 hdsr_fewspy\api.py                                                  119     19    84%
-hdsr_fewspy\api_calls\__init__.py                                    18      0   100%
-hdsr_fewspy\api_calls\base.py                                       109     14    87%
+hdsr_fewspy\api_calls\base.py                                       110     14    87%
 hdsr_fewspy\api_calls\get_filters.py                                 25      0   100%
 hdsr_fewspy\api_calls\get_locations.py                               44      2    95%
 hdsr_fewspy\api_calls\get_parameters.py                              40      1    98%
 hdsr_fewspy\api_calls\get_qualifiers.py                              50     16    68%
 hdsr_fewspy\api_calls\get_samples.py                                 25      8    68%
 hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
-hdsr_fewspy\api_calls\time_series\base.py                           151     13    91%
+hdsr_fewspy\api_calls\time_series\base.py                           153     18    88%
 hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           81      6    93%
-hdsr_fewspy\api_calls\time_series\get_time_series_single.py          36      1    97%
+hdsr_fewspy\api_calls\time_series\get_time_series_single.py          36      2    94%
 hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      23      2    91%
-hdsr_fewspy\constants\choices.py                                     94      6    94%
+hdsr_fewspy\constants\choices.py                                    109      6    94%
 hdsr_fewspy\constants\custom_types.py                                 2      0   100%
 hdsr_fewspy\constants\github.py                                       8      0   100%
 hdsr_fewspy\constants\paths.py                                        9      0   100%
-hdsr_fewspy\constants\pi_settings.py                                 80      8    90%
-hdsr_fewspy\constants\request_settings.py                            11      0   100%
+hdsr_fewspy\constants\pi_settings.py                                 76      6    92%
+hdsr_fewspy\constants\request_settings.py                            12      0   100%
 hdsr_fewspy\converters\download.py                                   82      4    95%
-hdsr_fewspy\converters\json_to_df_time_series.py                    119      7    94%
+hdsr_fewspy\converters\json_to_df_time_series.py                    131      8    94%
 hdsr_fewspy\converters\manager.py                                    27      0   100%
 hdsr_fewspy\converters\utils.py                                      45     11    76%
 hdsr_fewspy\converters\xml_to_python_obj.py                         105     26    75%
@@ -401,12 +399,12 @@ hdsr_fewspy\date_frequency.py                                        47      2  
 hdsr_fewspy\examples\area.py                                         30     30     0%
 hdsr_fewspy\examples\point.py                                        22     22     0%
 hdsr_fewspy\exceptions.py                                            14      0   100%
-hdsr_fewspy\permissions.py                                           68      5    93%
-hdsr_fewspy\retry_session.py                                         77     15    81%
+hdsr_fewspy\permissions.py                                           69      5    93%
+hdsr_fewspy\retry_session.py                                         90     25    72%
 hdsr_fewspy\secrets.py                                               40      5    88%
 setup.py                                                             16     16     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1656    240    86%
+TOTAL                                                              1667    255    85%
 ```
 
 ### Conda general tips
