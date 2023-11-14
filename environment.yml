@@ -7,7 +7,6 @@ dependencies:
   - requests
   - pandas
   - geopandas
-  - validators  # to validate pi_settings' base_url and test_url
   - rasterstats
   - rasterio
   - xarray
