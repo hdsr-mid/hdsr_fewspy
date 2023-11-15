@@ -7,7 +7,6 @@ from typing import Dict
 import logging
 import pandas as pd
 import typing
-import validators
 
 
 logger = logging.getLogger(__name__)
@@ -89,11 +88,6 @@ class PiSettings:
             )
             if isinstance(actual_value, str):
                 assert actual_value, f"PiSettings '{field_name}={actual_value}' must cannot be an empty string"
-
-        if not validators.url(value=self.base_url) == True:  # noqa
-            raise AssertionError(f"base_url '{self.base_url}' must be valid")
-        if not validators.url(value=self.test_url) == True:  # noqa
-            raise AssertionError(f"test_url '{self.test_url}' must be valid")
 
     @property
     def all_fields(self) -> Dict:

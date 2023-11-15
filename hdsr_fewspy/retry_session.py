@@ -3,6 +3,7 @@ from hdsr_fewspy.constants.pi_settings import PiSettings
 from hdsr_fewspy.constants.request_settings import RequestSettings
 from pathlib import Path
 from requests.adapters import HTTPAdapter
+from requests.packages import urllib3
 from requests.packages.urllib3.util.retry import Retry
 from time import sleep
 from typing import List
@@ -104,12 +105,10 @@ class RetryBackoffSession:
             logger.warning(f"response_seconds={response_seconds}, status={response.status_code}, url={url}")
         return response
 
-    @property
-    def _retry_session(self) -> requests.Session:
-        if self.__retry_session is not None:
-            return self.__retry_session
+    def __create_retry_session_the_old_way(self) -> urllib3.util.retry.Retry:
+        """Create a Retry session the old way: with arg 'method_whitelist'."""
+        retry = None
         try:
-            # try it the old way
             retry = Retry(
                 total=self.retries,
                 read=self.retries,
@@ -119,14 +118,17 @@ class RetryBackoffSession:
                 status_forcelist=self.status_force_list,
             )
         except TypeError as err:
-            expected_err = "__init__() got an unexpected keyword argument 'method_whitelist'"
+            expected_err = "Retry.__init__() got an unexpected keyword argument 'method_whitelist'"
             found_err = err.args[0]
             if found_err != expected_err:
-                from requests.packages import urllib3
-
                 msg = f"code error: error Retry instance is unexpected. urllib3 version = {urllib3.__version__}"
-                raise AssertionError(msg)
-            # try it the new way
+                logger.warning(f"_retry_session old way does not work: {msg}")
+        return retry
+
+    def __create_retry_session_the_new_way(self) -> urllib3.util.retry.Retry:
+        """Create a Retry session the new way: with arg 'allowed_methods' instead of 'method_whitelist'."""
+        retry = None
+        try:
             retry = Retry(
                 total=self.retries,
                 read=self.retries,
@@ -135,6 +137,20 @@ class RetryBackoffSession:
                 allowed_methods=self.allowed_methods,
                 status_forcelist=self.status_force_list,
             )
+        except TypeError as err:
+            logger.warning(f"__create_retry_session_the_new_way does not work: {err}")
+        return retry
+
+    @property
+    def _retry_session(self) -> requests.Session:
+        if self.__retry_session is not None:
+            return self.__retry_session
+
+        retry = self.__create_retry_session_the_new_way()
+        if not retry:
+            retry = self.__create_retry_session_the_new_way()
+        assert isinstance(retry, urllib3.util.retry.Retry), "Could not create a Retry session"
+
         adapter = HTTPAdapter(max_retries=retry)
         session = requests.Session()
         session.mount("http://", adapter)

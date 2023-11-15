@@ -27,7 +27,7 @@ class GetLocations(GetRequest):
 
     @property
     def allowed_request_args(self) -> List[str]:
-        # possible args but we left out on purpose: paramterGroupId, includeLocationRelations, includeTimeDependency,
+        # possible args but we left out on purpose: parameterGroupId, includeLocationRelations, includeTimeDependency,
         return [
             ApiParameters.filter_id,
             ApiParameters.parameter_ids,
@@ -68,6 +68,11 @@ class GetLocations(GetRequest):
             # handle geometry and crs
             gdf = gpd.GeoDataFrame(data=df)
             gdf["geometry"] = xy_array_to_point(xy_array=gdf[["x", "y"]].values)
+            # TODO: FutureWarning: You are adding a column named 'geometry' to a GeoDataFrame constructed without an
+            #  active geometry column. Currently, this automatically sets the active geometry column to 'geometry' but
+            #  in the future that will no longer happen. Instead, either provide geometry to the GeoDataFrame
+            #  constructor (GeoDataFrame(... geometry=GeoSeries()) or use `set_geometry('geometry')` to explicitly
+            #  set the active geometry column. gdf["geometry"] = xy_array_to_point(xy_array=gdf[["x", "y"]].values)
             gdf.crs = geo_datum_to_crs(response.json()["geoDatum"])
 
         else:
