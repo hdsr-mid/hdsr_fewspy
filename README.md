@@ -1,7 +1,7 @@
 ### Context
 * Created: April 2023
 * Author: Renier Kramer, renier.kramer@hdsr.nl
-* Python version: >=3.7
+* Python version: >=3.8
 
 [hkvfewspy]: https://github.com/HKV-products-services/hkvfewspy
 [fewspy]: https://github.com/d2hydro/fewspy
@@ -201,6 +201,7 @@ responses = api.get_time_series_single(
     start_time = "2012-01-01T00:00:00Z",                                      # or as datetime.datetime(year=2012, month=1, day=1)
     end_time = "2012-01-02T00:00:00Z",                                        # or as datetime.datetime(year=2012, month=1, day=2)
     output_choice = hdsr_fewspy.OutputChoices.xml_response_in_memory
+    only_value_and_flag = True,                                               # returns timeseries with {timestamp, value, flag}. Only for output_choices dataframe and csv 
 )
 
 print(responses[0].text)
@@ -243,6 +244,7 @@ df = api.get_time_series_single(
     drop_missing_values = True,
     flag_threshold = 6,  # all flags 6 and higher are removed from dataframe
     output_choice = hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory,
+    only_value_and_flag = True,                                               # returns timeseries with {timestamp, value, flag}. Only for output_choices dataframe and csv
 )
 ```
 8. get_time_series_multi

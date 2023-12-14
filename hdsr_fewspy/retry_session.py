@@ -119,9 +119,9 @@ class RetryBackoffSession:
                 status_forcelist=self.status_force_list,
             )
         except TypeError as err:
-            expected_err = "__init__() got an unexpected keyword argument 'method_whitelist'"
             found_err = err.args[0]
-            if found_err != expected_err:
+            is_expected_err = "unexpected keyword argument" in found_err and "method_whitelist" in found_err
+            if not is_expected_err:
                 from requests.packages import urllib3
 
                 msg = f"code error: error Retry instance is unexpected. urllib3 version = {urllib3.__version__}"

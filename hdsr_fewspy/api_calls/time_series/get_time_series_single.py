@@ -61,6 +61,9 @@ class GetTimeSeriesSingle(GetTimeSeriesBase):
         assert self.output_choice == OutputChoices.pandas_dataframe_in_memory, "code error GetTimeSeriesSingle"
         # parse the response to dataframe
         df = response_jsons_to_one_df(
-            responses=responses, drop_missing_values=self.drop_missing_values, flag_threshold=self.flag_threshold
+            responses=responses,
+            drop_missing_values=self.drop_missing_values,
+            flag_threshold=self.flag_threshold,
+            only_value_and_flag=self.only_value_and_flag,
         )
         return df
