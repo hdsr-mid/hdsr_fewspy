@@ -218,7 +218,6 @@ def test_sa_single_ts_long_ok_df_memory(fixture_api_sa_work_no_download_dir):
 
 
 def test_sa_single_raw_ts_long_ok_df_memory(fixture_api_sa_raw_no_download_dir):
-    """raw data has no data?"""
     api = fixture_api_sa_raw_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
@@ -234,7 +233,6 @@ def test_sa_single_raw_ts_long_ok_df_memory(fixture_api_sa_raw_no_download_dir):
 
 
 def test_sa_single_validated_ts_long_ok_df_memory(fixture_api_sa_validated_no_download_dir):
-    """validated data has no data?"""
     api = fixture_api_sa_validated_no_download_dir
     request_data = fixtures_requests.RequestTimeSeriesSingleLong
 
@@ -245,5 +243,23 @@ def test_sa_single_validated_ts_long_ok_df_memory(fixture_api_sa_validated_no_do
         end_time=request_data.end_time,
         output_choice=OutputChoices.pandas_dataframe_in_memory,
     )
+    assert sorted(df_found.columns) == ["flag", "location_id", "parameter_id", "value"]
+    assert len(df_found) == 194444
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)
+
+
+def test_sa_single_validated_ts_long_ok_df_memory_all_fields(fixture_api_sa_validated_no_download_dir):
+    api = fixture_api_sa_validated_no_download_dir
+    request_data = fixtures_requests.RequestTimeSeriesSingleLong
+
+    df_found = api.get_time_series_single(
+        location_id=request_data.location_ids,
+        parameter_id=request_data.parameter_ids,
+        start_time=request_data.start_time,
+        end_time=request_data.end_time,
+        output_choice=OutputChoices.pandas_dataframe_in_memory,
+        only_value_and_flag=False,
+    )
+    assert sorted(df_found.columns) == ["date", "flag", "location_id", "parameter_id", "time", "value"]
     assert len(df_found) == 194444
     assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)

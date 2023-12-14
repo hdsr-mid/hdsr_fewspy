@@ -259,6 +259,8 @@ class Api:
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
+        #
+        only_value_and_flag: bool = True,
     ) -> Union[List[ResponseType], pd.DataFrame]:
         """Single means: use max 1 location_id and/or parameter_id and/or qualifier_id.
 
@@ -282,6 +284,7 @@ class Api:
             drop_missing_values=drop_missing_values,
             flag_threshold=flag_threshold,
             #
+            only_value_and_flag=only_value_and_flag,
             output_choice=output_choice,
             retry_backoff_session=self.retry_backoff_session,
         )
@@ -302,6 +305,8 @@ class Api:
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
+        #
+        only_value_and_flag: bool = True,
     ) -> List[Path]:
         """Multi means: use >=1 location_id and/or parameter_id and/or qualifier_id.
 

@@ -5,13 +5,39 @@ from typing import List
 from typing import Union
 
 
-class PiRestDocumentFormatChoices(Enum):
+class ChoicesBase(Enum):
+    @classmethod
+    def get_all_values(cls):
+        return [x.value for x in cls.__members__.values()]
+
+    @classmethod
+    def is_member_value(cls, value: str):
+        return value in cls.get_all_values()
+
+
+class PiRestDocumentFormatChoices(ChoicesBase):
     xml = "PI_XML"
     json = "PI_JSON"
 
-    @classmethod
-    def get_all(cls):
-        return [x for x in cls.__members__.values()]
+
+class TimeSeriesDateTimeKeys(ChoicesBase):
+    start_date = "start_date"
+    end_date = "end_date"
+
+
+class TimeSeriesFloatKeys(ChoicesBase):
+    miss_val = "miss_val"
+    lat = "lat"
+    lon = "lon"
+    x = "x"
+    y = "y"
+    z = "z"
+
+
+class TimeSeriesEventColumns(ChoicesBase):
+    datetime = "datetime"
+    value = "value"
+    flag = "flag"
 
 
 class DefaultPiSettingsChoices(Enum):
@@ -22,7 +48,7 @@ class DefaultPiSettingsChoices(Enum):
     requesting 3 time-series for one location. The module_instance_id's are:
      - ImportOpvlWater = raw data
      - WerkFilter = this data is being validated by HDSR person (data validator CAW). This data might change every day
-     - MetingenFilter = validated data  reeksen. This data is months behind the current situation.
+     - MetingenFilter = validated data reeksen. This data is months behind the current situation.
     """
 
     # TODO: add efcis choices

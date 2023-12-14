@@ -1,5 +1,13 @@
-1.13 (Unreleased)
+1.14 (Unreleased)
 ----------------
+
+1.13 (2023-12-14)
+----------------
+- delete dependency validators
+- improve instantiating Retry session
+- fix dataclass TimeSeries field events default value
+- enable other fields in timeseries response than {timestamp, value, flag}
+- release for python 3.8 and 3.12
 
 1.12 (2023-08-30)
 ----------------

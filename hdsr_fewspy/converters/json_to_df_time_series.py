@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
-from hdsr_fewspy.constants.choices import TimeZoneChoices
+from hdsr_fewspy.constants import choices
 from hdsr_fewspy.constants.custom_types import ResponseType
 from hdsr_fewspy.converters.utils import camel_to_snake_case
 from hdsr_fewspy.converters.utils import dict_to_datetime
@@ -16,9 +16,9 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-DATETIME_KEYS = ["start_date", "end_date"]
-FLOAT_KEYS = ["miss_val", "lat", "lon", "x", "y", "z"]
-EVENT_COLUMNS = ["datetime", "value", "flag"]
+col_value = choices.TimeSeriesEventColumns.value.value
+col_flag = choices.TimeSeriesEventColumns.flag.value
+col_datetime = choices.TimeSeriesEventColumns.datetime.value
 
 
 @dataclass
@@ -53,9 +53,9 @@ class Header:
 
         def _convert_kv(k: str, v) -> Tuple:
             k = camel_to_snake_case(k)
-            if k in DATETIME_KEYS:
+            if choices.TimeSeriesDateTimeKeys.is_member_value(value=k):
                 v = dict_to_datetime(v)
-            if k in FLOAT_KEYS:
+            elif choices.TimeSeriesFloatKeys.is_member_value(value=k):
                 v = float(v)
             return k, v
 
@@ -74,39 +74,42 @@ class Events(pd.DataFrame):
         missing_value: float,
         drop_missing_values: bool,
         flag_threshold: int,
+        only_value_and_flag: bool,
         tz_offset: float = None,
     ) -> Events:
         """Parse Events from FEWS PI events dict."""
 
+        # convert list with dicts to dataframe. All dicts keys, also unexpected, will be a df column
         df = Events(data=pi_events)
 
         # set datetime
         if tz_offset is not None:
-            df["datetime"] = pd.to_datetime(df["date"]) + pd.to_timedelta(df["time"]) - pd.Timedelta(hours=tz_offset)
+            df[col_datetime] = pd.to_datetime(df["date"]) + pd.to_timedelta(df["time"]) - pd.Timedelta(hours=tz_offset)
         else:
-            df["datetime"] = pd.to_datetime(df["date"]) + pd.to_timedelta(df["time"])
+            df[col_datetime] = pd.to_datetime(df["date"]) + pd.to_timedelta(df["time"])
 
         # set value to numeric
-        df["value"] = pd.to_numeric(df["value"])
+        df[col_value] = pd.to_numeric(df[col_value])
         if drop_missing_values:
             # remove missings
-            df = df.loc[df["value"] != missing_value]
+            df = df.loc[df[col_value] != missing_value]
 
-        # drop columns and add missing columns
-        drop_cols = [i for i in df.columns if i not in EVENT_COLUMNS]
-        df.drop(columns=drop_cols, inplace=True)
-        nan_cols = [i for i in EVENT_COLUMNS if i not in df.columns]
+        if only_value_and_flag:
+            # drop columns and add missing columns
+            drop_cols = [i for i in df.columns if i not in choices.TimeSeriesEventColumns.get_all_values()]
+            df.drop(columns=drop_cols, inplace=True)
+        nan_cols = [i for i in choices.TimeSeriesEventColumns.get_all_values() if i not in df.columns]
         df[nan_cols] = pd.NA
 
         # set flag to numeric
-        df["flag"] = pd.to_numeric(df["flag"])
+        df[col_flag] = pd.to_numeric(df[col_flag])
         if flag_threshold:
-            # remove rows that have a unreliable flag: A flag_threshold of 6 means that only values with a
+            # remove rows that have an unreliable flag: A flag_threshold of 6 means that only values with a
             # flag < 6 will be included
-            df = df.loc[df["flag"] < flag_threshold]
+            df = df.loc[df[col_flag] < flag_threshold]
 
         # set datetime to index
-        df.set_index("datetime", inplace=True)
+        df.set_index(col_datetime, inplace=True)
 
         return df
 
@@ -116,11 +119,22 @@ class TimeSeries:
     """FEWS-PI time series"""
 
     header: Header
-    events: Events = pd.DataFrame(columns=EVENT_COLUMNS).set_index("datetime")
+    events: Events = None
+
+    def __post_init__(self):
+        if self.events is None:
+            # self.events = pd.DataFrame(columns=EVENT_COLUMNS).set_index("datetime")  # noqa
+            columns = choices.TimeSeriesEventColumns.get_all_values()
+            self.events = pd.DataFrame(columns=columns).set_index(col_datetime)  # noqa
 
     @classmethod
     def from_pi_time_series(
-        cls, pi_time_series: dict, drop_missing_values: bool, flag_threshold: int, time_zone: float = None
+        cls,
+        pi_time_series: dict,
+        drop_missing_values: bool,
+        flag_threshold: int,
+        only_value_and_flag: bool,
+        time_zone: float = None,
     ) -> TimeSeries:
         header = Header.from_pi_header(pi_header=pi_time_series["header"])
         kwargs = dict(header=header)
@@ -131,6 +145,7 @@ class TimeSeries:
                 tz_offset=time_zone,
                 drop_missing_values=drop_missing_values,
                 flag_threshold=flag_threshold,
+                only_value_and_flag=only_value_and_flag,
             )
         dc_timeseries = TimeSeries(**kwargs)
         return dc_timeseries
@@ -146,12 +161,14 @@ class TimeSeriesSet:
         return len(self.time_series)
 
     @classmethod
-    def from_pi_time_series(cls, pi_time_series: dict, drop_missing_values: bool, flag_threshold: int) -> TimeSeriesSet:
+    def from_pi_time_series(
+        cls, pi_time_series: dict, drop_missing_values: bool, flag_threshold: int, only_value_and_flag: bool
+    ) -> TimeSeriesSet:
         kwargs = dict()
         kwargs["version"] = pi_time_series.get("version", None)
 
-        time_zone = pi_time_series.get("timeZone", TimeZoneChoices.get_hdsr_default())
-        time_zone_float = TimeZoneChoices.get_tz_float(value=time_zone)
+        time_zone = pi_time_series.get("timeZone", choices.TimeZoneChoices.get_hdsr_default())
+        time_zone_float = choices.TimeZoneChoices.get_tz_float(value=time_zone)
         kwargs["time_zone"] = time_zone_float
 
         time_series = pi_time_series.get("timeSeries", [])
@@ -161,6 +178,7 @@ class TimeSeriesSet:
                 time_zone=kwargs["time_zone"],
                 drop_missing_values=drop_missing_values,
                 flag_threshold=flag_threshold,
+                only_value_and_flag=only_value_and_flag,
             )
             for i in time_series
         ]
@@ -188,13 +206,16 @@ class TimeSeriesSet:
 
 
 def response_jsons_to_one_df(
-    responses: List[ResponseType], drop_missing_values: bool, flag_threshold: int
+    responses: List[ResponseType], drop_missing_values: bool, flag_threshold: int, only_value_and_flag: bool
 ) -> pd.DataFrame:
     df = pd.DataFrame(data=None)
     for index, response in enumerate(responses):
         data = response.json()
         time_series_set = TimeSeriesSet.from_pi_time_series(
-            pi_time_series=data, drop_missing_values=drop_missing_values, flag_threshold=flag_threshold
+            pi_time_series=data,
+            drop_missing_values=drop_missing_values,
+            flag_threshold=flag_threshold,
+            only_value_and_flag=only_value_and_flag,
         )
         for time_series in time_series_set.time_series:
             _df = time_series.events
