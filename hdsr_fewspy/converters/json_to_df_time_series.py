@@ -218,12 +218,10 @@ def response_jsons_to_one_df(
             only_value_and_flag=only_value_and_flag,
         )
         for time_series in time_series_set.time_series:
-            _df = time_series.events
-            _df["location_id"] = time_series_set.location_ids[0]
-            _df["parameter_id"] = time_series_set.parameter_ids[0]
-            if not df.empty:
-                assert sorted(_df.columns) == sorted(df.columns), "code error response_jsons_to_one_df: 1"
-            df = pd.concat(objs=[df, _df], axis=0)
+            new_df = time_series.events
+            new_df["location_id"] = time_series_set.location_ids[0]
+            new_df["parameter_id"] = time_series_set.parameter_ids[0]
+            df = pd.concat(objs=[df, new_df], axis=0)
     if df.empty:
         logger.warning(f"{len(responses)} response json(s)) resulted in a empty pandas dataframe")
     else:

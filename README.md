@@ -1,7 +1,7 @@
 ### Context
 * Created: April 2023
 * Author: Renier Kramer, renier.kramer@hdsr.nl
-* Python version: >=3.8
+* Python version: >=3.7
 
 [hkvfewspy]: https://github.com/HKV-products-services/hkvfewspy
 [fewspy]: https://github.com/d2hydro/fewspy
@@ -201,7 +201,6 @@ responses = api.get_time_series_single(
     start_time = "2012-01-01T00:00:00Z",                                      # or as datetime.datetime(year=2012, month=1, day=1)
     end_time = "2012-01-02T00:00:00Z",                                        # or as datetime.datetime(year=2012, month=1, day=2)
     output_choice = hdsr_fewspy.OutputChoices.xml_response_in_memory
-    only_value_and_flag = True,                                               # returns timeseries with {timestamp, value, flag}. Only for output_choices dataframe and csv 
 )
 
 print(responses[0].text)
@@ -236,6 +235,10 @@ print(responses[0].text)
 # If your output_choice is dataframe, then all responses are collected in one dataframe. Arguments 'flag_threshold' 
 # and 'drop_missing_values' do have effect.
 
+# Note that argument only_value_and_flag=True returns timeseries with {timestamp, value, flag}. 
+# This only affects output_choices dataframe and csv. 
+# only_value_and_flag=False returns also fields like {comment, etc}.
+
 df = api.get_time_series_single(
     location_id = "OW433001",
     parameter_id = "H.G.0",
@@ -244,7 +247,7 @@ df = api.get_time_series_single(
     drop_missing_values = True,
     flag_threshold = 6,  # all flags 6 and higher are removed from dataframe
     output_choice = hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory,
-    only_value_and_flag = True,                                               # returns timeseries with {timestamp, value, flag}. Only for output_choices dataframe and csv
+    only_value_and_flag = True,                                               
 )
 ```
 8. get_time_series_multi
@@ -269,7 +272,6 @@ print(list_with_donwloaded_csv_filepaths)
 # <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z_0.json
 # <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_0.json
 # <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433002_hg0_20120101t000000z_20120102t000000z_1.json
-
 
 # If output_choice is csv to file, then all responses per unique combi are grouped in one csv file. Arguments 
 # 'flag_threshold' and 'drop_missing_values' do have effect.
@@ -347,7 +349,7 @@ You can [create a token yourself][[github personal token]]. In short:
    
 
 ### Development
-For development we request a FEWS webserive instance. The responses should not vary over time. Therefore, we use 
+For development, we request a FEWS SA webservice instance. The responses should not vary over time. Therefore, we use 
 FEWS stand alone that serves as a reference (D:\FEWS_202202_Peilevaluatie6 on Reken01). 
 1. Start the (reference) FEWS stand alone
 2. Start PiWebservice 
@@ -368,7 +370,7 @@ FEWS stand alone that serves as a reference (D:\FEWS_202202_Peilevaluatie6 on Re
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (release 1.12)
+### Test Coverage (release 1.14)
 ```
 ---------- coverage: platform win32, python 3.7.12-final-0 -----------
 Name                                                              Stmts   Miss  Cover
@@ -384,19 +386,19 @@ hdsr_fewspy\api_calls\get_parameters.py                              40      1  
 hdsr_fewspy\api_calls\get_qualifiers.py                              50     16    68%
 hdsr_fewspy\api_calls\get_samples.py                                 25      8    68%
 hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
-hdsr_fewspy\api_calls\time_series\base.py                           151     13    91%
+hdsr_fewspy\api_calls\time_series\base.py                           156     15    90%
 hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           81      6    93%
 hdsr_fewspy\api_calls\time_series\get_time_series_single.py          36      1    97%
-hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      23      2    91%
-hdsr_fewspy\constants\choices.py                                     94      6    94%
+hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      24      2    92%
+hdsr_fewspy\constants\choices.py                                    111      5    95%
 hdsr_fewspy\constants\custom_types.py                                 2      0   100%
 hdsr_fewspy\constants\github.py                                       8      0   100%
 hdsr_fewspy\constants\paths.py                                        9      0   100%
-hdsr_fewspy\constants\pi_settings.py                                 80      8    90%
+hdsr_fewspy\constants\pi_settings.py                                 75      6    92%
 hdsr_fewspy\constants\request_settings.py                            11      0   100%
-hdsr_fewspy\converters\download.py                                   82      4    95%
-hdsr_fewspy\converters\json_to_df_time_series.py                    119      7    94%
-hdsr_fewspy\converters\manager.py                                    27      0   100%
+hdsr_fewspy\converters\download.py                                   83      4    95%
+hdsr_fewspy\converters\json_to_df_time_series.py                    122      7    94%
+hdsr_fewspy\converters\manager.py                                    31      2    94%
 hdsr_fewspy\converters\utils.py                                      45     11    76%
 hdsr_fewspy\converters\xml_to_python_obj.py                         105     26    75%
 hdsr_fewspy\date_frequency.py                                        47      2    96%
@@ -408,7 +410,7 @@ hdsr_fewspy\retry_session.py                                         77     15  
 hdsr_fewspy\secrets.py                                               40      5    88%
 setup.py                                                             16     16     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1656    240    86%
+TOTAL                                                              1682    241    86%
 ```
 
 ### Conda general tips
