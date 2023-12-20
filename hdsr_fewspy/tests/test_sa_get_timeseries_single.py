@@ -250,7 +250,7 @@ def test_sa_single_validated_ts_long_ok_df_memory(fixture_api_sa_validated_no_do
 
 def test_sa_single_validated_ts_long_ok_df_memory_all_fields(fixture_api_sa_validated_no_download_dir):
     api = fixture_api_sa_validated_no_download_dir
-    request_data = fixtures_requests.RequestTimeSeriesSingleLong
+    request_data = fixtures_requests.RequestTimeSeriesSingleLongWithComment
 
     df_found = api.get_time_series_single(
         location_id=request_data.location_ids,
@@ -260,6 +260,6 @@ def test_sa_single_validated_ts_long_ok_df_memory_all_fields(fixture_api_sa_vali
         output_choice=OutputChoices.pandas_dataframe_in_memory,
         only_value_and_flag=False,
     )
-    assert sorted(df_found.columns) == ["date", "flag", "location_id", "parameter_id", "time", "value"]
-    assert len(df_found) == 194444
-    assert api.request_settings.updated_request_period == pd.Timedelta(days=365, hours=6, minutes=0, seconds=0)
+    assert sorted(df_found.columns) == ["comment", "date", "flag", "location_id", "parameter_id", "time", "value"]
+    assert len(df_found) == 101616
+    assert api.request_settings.updated_request_period == pd.Timedelta(days=2083, hours=4, minutes=30, seconds=0)
