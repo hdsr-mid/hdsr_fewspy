@@ -109,23 +109,6 @@ class Api:
             logger.info(f"default pi_settings defined '{pi_settings.settings_name}'")
         elif isinstance(pi_settings, PiSettings):
             logger.info(f"custom pi_settings defined '{pi_settings.settings_name}'")
-            mapper = {
-                # setting: (used, allowed)
-                "domain": (pi_settings.domain, self.permissions.allowed_domain),
-                "module_instance_id": (pi_settings.module_instance_ids, self.permissions.allowed_module_instance_id),
-                "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all_values()),
-                "filter_id": (pi_settings.filter_id, self.permissions.allowed_filter_id),
-                "service": (pi_settings.service, self.permissions.allowed_service),
-            }
-            for setting, value in mapper.items():
-                used_value, allowed_values = value
-                assert isinstance(
-                    allowed_values, list
-                ), f"code error __validate_pi_settings: allowed_values {allowed_values} must be a list"
-                if used_value in allowed_values:
-                    continue
-                msg = f"setting='{setting}' used_value='{used_value}' is not in allowed_values='{allowed_values}'"
-                raise exceptions.PiSettingsError(msg)
         else:
             default_options = DefaultPiSettingsChoices.get_all()
             msg = (
@@ -133,6 +116,26 @@ class Api:
                 f"custom PiSettings (see README.ml example how to create one)"
             )
             raise NotImplementedError(msg)
+
+        mapper = {
+            # setting: (used, allowed)
+            "domain": (pi_settings.domain, self.permissions.allowed_domain),
+            "module_instance_id": (pi_settings.module_instance_ids, self.permissions.allowed_module_instance_id),
+            "timezone": (pi_settings.time_zone, TimeZoneChoices.get_all_values()),
+            "filter_id": (pi_settings.filter_id, self.permissions.allowed_filter_id),
+            "service": (pi_settings.service, self.permissions.allowed_service),
+        }
+
+        for setting, value in mapper.items():
+            used_value, allowed_values = value
+            if not isinstance(allowed_values, list):
+                msg = f"code error __validate_pi_settings: allowed_values {allowed_values} must be a list"
+                raise AssertionError(msg)
+            if used_value in allowed_values:
+                continue
+            msg = f"setting='{setting}' used_value='{used_value}' is not in allowed_values='{allowed_values}'"
+            raise exceptions.PiSettingsError(msg)
+
         return pi_settings
 
     def get_parameters(self, output_choice: OutputChoices) -> Union[ResponseType, pd.DataFrame]:

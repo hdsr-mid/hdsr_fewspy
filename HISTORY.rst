@@ -30,7 +30,7 @@
 - distinguish more predefined DefaultPiSettingsChoices: raw, work and validated
 - add area pi_settings to enable downloading time-series aggregated to areas
 
-1.10 (2023-05-23)
+1.10 (2023-05-23)F
 ----------------
 - bug fix: empty get_time_series response previous request
 - enable start_time and end_time as strings
