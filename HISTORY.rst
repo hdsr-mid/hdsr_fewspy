@@ -1,5 +1,6 @@
 1.15 (Unreleased)
 ----------------
+- fix check auth permissions
 
 1.14 (2023-12-20)
 ----------------
