@@ -1,5 +1,5 @@
 import logging
-from typing import List, Union
+from typing import List
 import requests
 from wiwb.api_calls import Request
 from dataclasses import dataclass, field
@@ -19,7 +19,10 @@ class GetVariables(Request):
 
     @property
     def json(self) -> dict:
-        return {"DataSourceCodes": self.data_source_codes, "VariableCodes": self.variable_codes}
+        return {
+            "DataSourceCodes": self.data_source_codes,
+            "VariableCodes": self.variable_codes,
+        }
 
     def run(self) -> List[str]:
         response = requests.post(self.url, headers=self.auth.headers, json=self.json)

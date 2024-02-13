@@ -11,8 +11,19 @@ def flatten_stats(stats_dict: List[str], stats: List[str]) -> List[float]:
 
 
 def sample_geoseries(
-    values: ndarray, geometries: Union[List, GeoSeries], affine: Affine, nodata: float, stats: List[str]
+    values: ndarray,
+    geometries: Union[List, GeoSeries],
+    affine: Affine,
+    nodata: float,
+    stats: List[str],
 ) -> List[float]:
-    stats_dict = zonal_stats(geometries, values, affine=affine, nodata=nodata, stats=" ".join(stats), boundless=True)
+    stats_dict = zonal_stats(
+        geometries,
+        values,
+        affine=affine,
+        nodata=nodata,
+        stats=" ".join(stats),
+        boundless=True,
+    )
 
     return flatten_stats(stats_dict, stats)

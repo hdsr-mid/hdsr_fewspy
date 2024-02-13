@@ -4,9 +4,7 @@ from dataclasses import dataclass, field
 from typing import List, Tuple, Union
 from collections.abc import Iterable
 from geopandas import GeoSeries
-from shapely.geometry import Point, Polygon
-from datetime import date, timedelta
-import logging
+from datetime import date
 import pandas as pd
 from wiwb.converters import snake_to_pascal_case
 import pyproj
@@ -17,7 +15,13 @@ import tempfile
 import xarray
 
 
-FILE_SUFFICES = {"geotiff": "zip", "aaigrid": "hdf5", "hdf5": "hdf5", "netcdf4.cf1p6": "nc", "netcdf4.cf1p6.zip": "zip"}
+FILE_SUFFICES = {
+    "geotiff": "zip",
+    "aaigrid": "hdf5",
+    "hdf5": "hdf5",
+    "netcdf4.cf1p6": "nc",
+    "netcdf4.cf1p6.zip": "zip",
+}
 
 TIME_INTERVAL = ["Days", "Hours", "Minutes"]
 
@@ -40,10 +44,14 @@ class Extent:
 
     def __post_init__(self):
         if self.width <= 0:
-            raise ValueError(f"'xll' ({self.xll}) should be smaller than 'xur' ({self.xur})")
+            raise ValueError(
+                f"'xll' ({self.xll}) should be smaller than 'xur' ({self.xur})"
+            )
 
         if self.height <= 0:
-            raise ValueError(f"'yll' ({self.yll}) should be smaller than 'yur' ({self.yur})")
+            raise ValueError(
+                f"'yll' ({self.yll}) should be smaller than 'yur' ({self.yur})"
+            )
 
         self.correct_bounds()
 
@@ -79,14 +87,14 @@ class Extent:
         # alter bounds
         if self.width < min_width_height:
             logger.warning(
-                f"""Width of bounds < min_width ({self.width < min_width_height}). {self.xll} and {self.xur} will be adjusted"""
+                f"""Width of bounds < min_width ({self.width < min_width_height}). {self.xll} and {self.xur} will be adjusted"""  # noqa:E501
             )
             self.xll -= (min_width_height - self.width) / 2
             self.xur += (min_width_height - self.width) / 2
 
         if self.height < min_width_height:
             logger.warning(
-                f"""Height of bounds < min_height ({self.height < min_width_height}). {self.yll} and {self.yur} will be adjusted"""
+                f"""Height of bounds < min_height ({self.height < min_width_height}). {self.yll} and {self.yur} will be adjusted"""  # noqa:E501
             )
             self.yll -= (min_width_height - self.height) / 2
             self.yur += (min_width_height - self.height) / 2
@@ -153,7 +161,11 @@ class Exporter:
     settings: Union[ExporterSettings, None] = None
 
     def json(self):
-        return {snake_to_pascal_case(k): v for k, v in self.__dict__.items() if v is not None}
+        return {
+            snake_to_pascal_case(k): v
+            for k, v in self.__dict__.items()
+            if v is not None
+        }
 
 
 @dataclass
@@ -210,7 +222,12 @@ class GetGrids(Request):
     @property
     def file_name(self):
         stem = "_".join(
-            [self.data_source_code, self.variable_code, self.start_date.isoformat(), self.end_date.isoformat()]
+            [
+                self.data_source_code,
+                self.variable_code,
+                self.start_date.isoformat(),
+                self.end_date.isoformat(),
+            ]
         )
         suffix = FILE_SUFFICES[self.data_format_code]
         return f"{stem}.{suffix}"
@@ -224,11 +241,11 @@ class GetGrids(Request):
             if not isinstance(self.geometries, GeoSeries):
                 self.geometries = GeoSeries(self.geometries)
 
-            if not all(i.geom_type in IMPLEMENTED_GEOMETRY_TYPES for i in self.geometries):
+            if not all(
+                i.geom_type in IMPLEMENTED_GEOMETRY_TYPES for i in self.geometries
+            ):
                 raise ValueError(
-                    f"""
-                                Only geometries of type {IMPLEMENTED_GEOMETRY_TYPES} are allowed. Got types {list(set(self.geometries.geom_type))}
-                                """
+                    f"Only geometries of type {IMPLEMENTED_GEOMETRY_TYPES} are allowed. Got types {list(set(self.geometries.geom_type))}"  # noqa:E501
                 )
             self.bounds = tuple(self.geometries.total_bounds)
         else:
@@ -237,13 +254,17 @@ class GetGrids(Request):
 
     def run(self):
         self._response = None
-        self._response = requests.post(self.url, headers=self.auth.headers, json=self.body.json())
+        self._response = requests.post(
+            self.url, headers=self.auth.headers, json=self.body.json()
+        )
 
         if not self._response.ok:
             self._response.raise_for_status()
 
     def write_tempfile(self):
-        with tempfile.NamedTemporaryFile(suffix=FILE_SUFFICES[self.data_format_code], delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            suffix=FILE_SUFFICES[self.data_format_code], delete=False
+        ) as tmp_file:
             tmp_file_path = Path(tmp_file.name)
             tmp_file.write(self._response.content)
         return tmp_file_path
@@ -255,7 +276,9 @@ class GetGrids(Request):
 
         # check if geometries are set
         if self.geometries is None:
-            raise TypeError("""'geometries' is None, should be list or GeoSeries. Set it first""")
+            raise TypeError(
+                """'geometries' is None, should be list or GeoSeries. Set it first"""
+            )
 
         # check if data_format_code is netcdf
         if self.data_format_code != "netcdf4.cf1p6":
@@ -270,7 +293,9 @@ class GetGrids(Request):
         temp_file = self.write_tempfile()
 
         # read temp-source for sampling
-        with xarray.open_dataset(temp_file, decode_coords="all", engine="netcdf4") as ds:
+        with xarray.open_dataset(
+            temp_file, decode_coords="all", engine="netcdf4"
+        ) as ds:
             nodata = ds[self.variable_code].attrs.get("_FillValue")
             affine = ds.rio.transform()
             data = {
@@ -297,7 +322,9 @@ class GetGrids(Request):
                 geom_index = [i for i in range(0, len(self.geometries))]
             else:
                 geom_index = self.geometries.index
-            columns = pd.MultiIndex.from_product(iterables=[geom_index, stats], names=["index", "stats"])
+            columns = pd.MultiIndex.from_product(
+                iterables=[geom_index, stats], names=["index", "stats"]
+            )
 
         return pd.DataFrame.from_dict(data, orient="index", columns=columns)
 
