@@ -103,9 +103,13 @@ class CsvDownloadDir(DownloadBase):
         location_parameter_qualifier combi in get_time_series_multi."""
         drop_missing_values: bool = kwargs["drop_missing_values"]
         flag_threshold: int = kwargs["flag_threshold"]
+        only_value_and_flag: bool = kwargs["only_value_and_flag"]
         file_name_base = self._get_base_file_name(request_class=self.request_class, file_name_values=file_name_values)
         df = response_jsons_to_one_df(
-            responses=responses, drop_missing_values=drop_missing_values, flag_threshold=flag_threshold
+            responses=responses,
+            drop_missing_values=drop_missing_values,
+            flag_threshold=flag_threshold,
+            only_value_and_flag=only_value_and_flag,
         )
         if df.empty:
             return []

@@ -78,6 +78,7 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
                 file_name_values=file_name_values,
                 drop_missing_values=self.drop_missing_values,
                 flag_threshold=self.flag_threshold,
+                only_value_and_flag=self.only_value_and_flag,
             )
             all_file_paths.extend(file_paths_created)
             progress_percentage = int((index + 1) / nr_total * 100)

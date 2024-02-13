@@ -20,7 +20,11 @@ class GetTimeSeriesStatistics(GetTimeSeriesSingle):
         if self.qualifier_ids:
             assert isinstance(self.qualifier_ids, str) and "," not in self.qualifier_ids
 
-        logger.warning(f"flag_threshold is not used for output_choice {self.output_choice}")
+        if self.flag_threshold:
+            logger.warning(
+                f"flag_threshold {self.flag_threshold} is not used for get_statisitcsoutput_choice {self.output_choice}"
+            )
+
         if self.drop_missing_values == True:  # noqa
             logger.warning(f"drop_missing_values is not used for output_choice {self.output_choice}")
 

@@ -38,12 +38,14 @@ class GetTimeSeriesBase(GetRequest):
         end_time: Union[datetime, str],
         location_ids: Union[List[str], str],
         parameter_ids: Union[List[str], str],
-        qualifier_ids: Union[List[str], str] = None,
-        thinning: int = None,
-        omit_empty_time_series: bool = True,
+        qualifier_ids: Union[List[str], str],
+        thinning: int,
+        omit_empty_time_series: bool,
         #
         drop_missing_values: bool = False,
         flag_threshold: int = 6,
+        #
+        only_value_and_flag: bool = True,
         *args,
         **kwargs,
     ):
@@ -62,8 +64,10 @@ class GetTimeSeriesBase(GetRequest):
         self.omit_empty_time_series = omit_empty_time_series
         self.drop_missing_values = drop_missing_values
         self.flag_threshold = flag_threshold
+        self.only_value_and_flag = only_value_and_flag
         #
         self.__validate_constructor_base()
+        #
         super().__init__(*args, **kwargs)
 
     def __validate_constructor_base(self):
@@ -98,6 +102,11 @@ class GetTimeSeriesBase(GetRequest):
                 qualifier_id in required_qualifiers
             ), f"qualifier_id '{qualifier_id}' must be in {required_qualifiers}"
         return qualifier_ids
+
+    @staticmethod
+    def __validate_only_value_flag(only_value_flag: bool, **kwargs) -> bool:
+        print(1)
+        return True
 
     @property
     def url_post_fix(self):

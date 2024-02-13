@@ -85,6 +85,22 @@ class RequestTimeSeriesSingleLong(RequestTimeSeriesBase):
         return Path("not used in test")
 
 
+class RequestTimeSeriesSingleLongWithComment(RequestTimeSeriesBase):
+    """Long time-series"""
+
+    # OW433001 H.G.O loopt van 29 sep 2011 tm 17 jan 2023 (filters: WIS/Werkfilter, WIS/Metingenfilter, HDSR/CAW)
+    location_ids = "OW102902"
+    parameter_ids = "H.G.0"
+    start_time = datetime(year=2011, month=9, day=19, hour=2, minute=0)
+    end_time = datetime(year=2023, month=2, day=14, hour=11, minute=0)
+
+    @classmethod
+    def file_dir_expected_files(cls) -> Path:
+        return Path("not used in test")
+
+    location_id = "OW102902"
+
+
 class RequestTimeSeriesSingleNaN(RequestTimeSeriesBase):
     """Location does not exists"""
 

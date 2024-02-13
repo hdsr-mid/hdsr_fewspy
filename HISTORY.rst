@@ -1,6 +1,19 @@
-1.13 (Unreleased)
+1.15 (Unreleased)
 ----------------
 - use 3.7 <= python <= 3.11
+
+1.14 (2023-12-20)
+----------------
+- handle different timeseries event parameters (e.g. 'comment') in case of not 'only_value_and_flag'
+- release for python 3.7 till 3.12
+
+1.13 (2023-12-14)
+----------------
+- delete dependency validators
+- improve instantiating Retry session
+- fix dataclass TimeSeries field events default value
+- enable other fields in timeseries response than {timestamp, value, flag} by adding 'only_value_and_flag'
+- release for python 3.8 and 3.12
 
 1.12 (2023-08-30)
 ----------------
