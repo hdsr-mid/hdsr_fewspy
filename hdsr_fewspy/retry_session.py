@@ -38,7 +38,7 @@ class RetryBackoffSession:
 
     status_force_list:
     A set of integer HTTP status codes that we should force a retry on. A retry is initiated if the
-    request method is in allowed_methods and the response status code is in status_forcelist.
+    request method is in allowed_methods and the response status code is in status_force-list.
 
     method_whitelist:
     A list with HTTP methods that we allow
@@ -46,7 +46,7 @@ class RetryBackoffSession:
 
     timeout_seconds:
     How long to wait for the server to send data before giving up? This arg is here and in can be defined on
-    on a per-request basis (self.get(url=x, timeout_seconds=y)
+    a per-request basis (self.get(url=x, timeout_seconds=y)
     """
 
     retries: int = 2
