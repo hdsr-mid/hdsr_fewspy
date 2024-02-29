@@ -1,0 +1,50 @@
+1. ik zie een globals.py -> dit is built in name. ik zou dat bestand hernoemen ;) ik doe vaak constants.py
+2. ik zie een .vscode/ folder. -> toevoegen aan je .gitignore. Handmatig verwijderen in github.com 
+3. dep 'jwt' kan wel, maar moet dan wel uit pip komen
+
+4.
+            if (epsg is None) and (geoseries.crs is not None):
+                epsg = geoseries.crs.to_epsg()  <-- epsg wordt niet gebruikt
+            # if epsg, but geometries.crs, we set geometries.crs from crs
+            elif (epsg is not None) and (geoseries.crs is None):  <-- moet dit niet if zijn ipv elif
+                geoseries.crs = epsg
+
+5. ik mis in je readme.md nog een voorbeeld van hoe instance van wiwb.Api maken
+api = Api() -> geeft ValueError: Invalid 'client_id': 'None'. Provide at init or specify 'wiwb_client_id' as os environment variable
+
+6. ik zou hernoemen
+GetGrids -> Grids
+GetGrids.run() -> Grids.download() ?
+GetGrids.write() -> Grids.write_to_nc() of Grids.write_to_disk() ?
+
+
+
+
+ 
+
+Verder gewoon wat ongevraagde tips:
+---------------------------------------------
+
+1. Ik start de naam van variabelen/properties die een bool teruggeven vaak met 'has_',  'is_' of 'can_'. 
+Dat leest wat intiutiever :)
+Dus bijv van 
+```
+@property
+def token_valid(self) -> bool:
+	pass
+```
+naar
+```
+@property
+def is_token_valid(self) -> bool:
+	pass
+```
+
+2.
+in auth.py heb je Auth.get_token
+ik zou dat veranderen naar 
+Auth._get_token, want volgens mij wordt die methode alleen in class Auth gebruikt toch?
+overigens, type hint moet volgens mij None zijn ipv str ;)
+
+3.
+

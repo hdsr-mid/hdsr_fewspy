@@ -1,0 +1,21 @@
+channels:
+  - conda-forge
+  - hdsr-mid
+dependencies:
+  - python<=3.12
+  - requests
+  - geopandas
+  - pandas
+  - black
+  - pytest
+  - pytest-cov
+  - netcdf4
+  - rasterstats
+  - rasterio
+  - setuptools
+  - xarray
+  - rioxarray
+  - twine
+  - pip
+  - pip:
+    - jwt

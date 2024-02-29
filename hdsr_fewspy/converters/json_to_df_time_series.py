@@ -223,7 +223,7 @@ def response_jsons_to_one_df(
             new_df["parameter_id"] = time_series_set.parameter_ids[0]
             df = pd.concat(objs=[df, new_df], axis=0)
     if df.empty:
-        logger.warning(f"{len(responses)} response json(s)) resulted in a empty pandas dataframe")
+        logger.warning(f"{len(responses)} response json(s) resulted in a empty pandas dataframe")
     else:
         is_unique_locations = len(df["location_id"].unique()) == 1
         is_unique_parameters = len(df["parameter_id"].unique()) == 1

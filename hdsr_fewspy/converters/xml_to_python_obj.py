@@ -6,6 +6,7 @@ Partially inspired by xml2obj (http://code.activestate.com/recipes/149368-xml2ob
 Author: Christian Stefanescu (http://0chris.com)
 License: MIT License - http://www.opensource.org/licenses/mit-license.php
 """
+
 from typing import Any
 from xml.sax import handler
 from xml.sax import make_parser
