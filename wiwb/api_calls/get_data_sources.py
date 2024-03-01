@@ -1,12 +1,9 @@
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Dict
-from wiwb.api_calls.base import Request
-from wiwb.globals import PRIMARY_STRUCTURE_TYPES
-
-import logging
 import requests
-
+import logging
+from typing import Dict
+from wiwb.api_calls import Request
+from dataclasses import dataclass, field
+from wiwb.constants import PRIMARY_STRUCTURE_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +12,9 @@ logger = logging.getLogger(__name__)
 class GetDataSources(Request):
     """GetDataSources request"""
 
-    primary_structure_types: PRIMARY_STRUCTURE_TYPES = field(default_factory=lambda: ["Grid"])
+    primary_structure_types: PRIMARY_STRUCTURE_TYPES = field(
+        default_factory=lambda: ["Grid"]
+    )
 
     @property
     def url_post_fix(self) -> str:

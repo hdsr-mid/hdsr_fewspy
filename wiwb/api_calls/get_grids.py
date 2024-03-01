@@ -1,28 +1,23 @@
-# %%
-from dataclasses import dataclass
-from dataclasses import field
-from datetime import date
-from geopandas import GeoSeries
-from pathlib import Path
-from shapely.geometry import MultiPolygon
-from shapely.geometry import Point
-from shapely.geometry import Polygon
-from typing import Iterable
-from typing import List
-from typing import Literal
-from typing import Tuple
-from typing import Union
-from wiwb.api_calls.base import Request
-from wiwb.converters import snake_to_pascal_case
-from wiwb.globals import FILE_SUFFICES
-from wiwb.globals import get_defaults
-from wiwb.sample import sample_netcdf
-
 import logging
+from wiwb.api_calls import Request
+from dataclasses import dataclass, field, InitVar
+from typing import Iterable, List, Tuple, Union
+from geopandas import GeoSeries
+from pandas import DataFrame
+from shapely.geometry import Point, Polygon, MultiPolygon
+from datetime import date
+from wiwb.converters import snake_to_pascal_case
 import pyproj
 import requests
+from wiwb.sample import sample_netcdf
+from pathlib import Path
 import tempfile
-
+from wiwb.constants import (
+    get_defaults,
+    FILE_SUFFICES,
+    DATA_FORMAT_CODES,
+    INTERVAL_TYPES,
+)
 
 logger = logging.getLogger(__name__)
 defaults = get_defaults()
@@ -30,7 +25,7 @@ defaults = get_defaults()
 
 @dataclass
 class Extent:
-    f"""Extent for Settings in request body.
+    f"""Extent for Settings in request body in correct epsg: {defaults.crs}.
 
     Parameters
     ----------
@@ -42,22 +37,23 @@ class Extent:
         The x-coordinate of the upper-right corner of the extent. Defaults to {defaults.bounds[2]}.
     yur : float
         The y-coordinate of the upper-right corner of the extent. Defaults to {defaults.bounds[3]}.
-    epsg : int
-        The EPSG code representing the coordinate reference system (CRS) of the extent. Defaults to {defaults.crs}
     """
 
     xll: float = defaults.bounds[0]
     yll: float = defaults.bounds[1]
     xur: float = defaults.bounds[2]
     yur: float = defaults.bounds[3]
-    epsg: int = defaults.crs
 
     def __post_init__(self):
         if self.width <= 0:
-            raise ValueError(f"'xll' ({self.xll}) should be smaller than 'xur' ({self.xur})")
+            raise ValueError(
+                f"'xll' ({self.xll}) should be smaller than 'xur' ({self.xur})"
+            )
 
         if self.height <= 0:
-            raise ValueError(f"'yll' ({self.yll}) should be smaller than 'yur' ({self.yur})")
+            raise ValueError(
+                f"'yll' ({self.yll}) should be smaller than 'yur' ({self.yur})"
+            )
 
         self.correct_bounds()
 
@@ -72,6 +68,10 @@ class Extent:
     @property
     def crs(self):
         return pyproj.CRS(self.epsg)
+
+    @property
+    def epsg(self):
+        return defaults.crs
 
     @property
     def spatial_reference(self):
@@ -107,7 +107,6 @@ class Extent:
 
     def json(self):
         dict = self.__dict__.copy()
-        dict.pop("epsg")
         dict["spatial_reference"] = self.spatial_reference
         return {snake_to_pascal_case(k): v for k, v in dict.items()}
 
@@ -132,10 +131,20 @@ class Interval:
 
     """
 
-    type: Literal["Days", "Hours", "Minutes"]
+    type: INTERVAL_TYPES
     value: int
 
+    def __post_init__(self):
+        self.validate()
+
+    def validate(self):
+        if self.type not in INTERVAL_TYPES.__args__:
+            raise ValueError(
+                f"{self.type} not a valid interval-type: {INTERVAL_TYPES.__args__}"
+            )
+
     def json(self):
+        self.validate()
         return {snake_to_pascal_case(k): v for k, v in self.__dict__.items()}
 
 
@@ -214,22 +223,36 @@ class ExporterSettings:
 
 @dataclass
 class Exporter:
-    """WIWB exporter
+    f"""WIWB exporter
 
     Parameters
     ----------
-    data_format_code: str, optional
+    data_format_code: {DATA_FORMAT_CODES}, optional
         data-format code to export data to. Defaults to geotiff
     settings: ExporterSettings
         WIWB exporter settings
 
     """
 
-    data_format_code: str = "geotiff"
+    data_format_code: DATA_FORMAT_CODES = "geotiff"
     settings: Union[ExporterSettings, None] = None
 
+    def __post_init__(self):
+        self.validate()
+
+    def validate(self):
+        if self.data_format_code not in DATA_FORMAT_CODES.__args__:
+            raise ValueError(
+                f"{self.data_format_code} not a valid data-format-code: {DATA_FORMAT_CODES.__args__}"
+            )
+
     def json(self):
-        return {snake_to_pascal_case(k): v for k, v in self.__dict__.items() if v is not None}
+        self.validate()
+        return {
+            snake_to_pascal_case(k): v
+            for k, v in self.__dict__.items()
+            if v is not None
+        }
 
 
 @dataclass
@@ -256,29 +279,27 @@ class GetGrids(Request):
     end_date: date
     unzip: bool = True
     interval: Tuple[str, int] = ("Hours", 1)
-    data_format_code: str = "geotiff"
-    epsg: Union[int, None] = defaults.crs  # epsg always before geometries so crs can be alligned
-    geometries: GeoSeries | Iterable[Union[Point, Polygon, MultiPolygon]] | None = (
-        None  # geometries always before bounds
+    data_format_code: DATA_FORMAT_CODES = "geotiff"
+    geometries: InitVar[
+        GeoSeries | Iterable[Union[Point, Polygon, MultiPolygon]] | None
+    ] = None
+    bounds: InitVar[Union[Tuple[float, float, float, float], None]] = defaults.bounds
+
+    _response: Union[requests.Response, None] = field(
+        init=False, default=None, repr=False
     )
-    bounds: Union[Tuple[float, float, float, float], None] = defaults.bounds
-    _response: Union[requests.Response, None] = None
+    _geoseries: int = field(init=False, default=None)
+    _bounds: Union[Tuple[float, float, float, float], None] = field(
+        init=False, default=None
+    )
 
-    # handles specific preperation of properties
-    def __setattr__(self, prop, val):
-        if prop == "geometries":
-            val = self._to_geoseries(val)
-        if prop == "epsg":
-            geoseries = self._reproject_geoseries(epsg=val)
-            if geoseries is not None:
-                self.geometries = geoseries
-        if prop == "bounds":
-            val = self._get_bounds(val)
-        super().__setattr__(prop, val)
+    def __post_init__(self, geometries, bounds):
+        self.set_geometries(geometries)
+        self.set_bounds(bounds)
 
-    def __post_init__(self):
-        if self.epsg is None:
-            raise ValueError("epsg can not be None. Specify geometries with crs or set epsg directly")
+    @property
+    def epsg(self):
+        return defaults.crs
 
     @property
     def crs(self):
@@ -291,7 +312,7 @@ class GetGrids(Request):
             self.end_date,
             [self.variable_code],
             interval=Interval(*self.interval),
-            extent=Extent(*self.bounds, epsg=self.epsg),
+            extent=Extent(*self.bounds),
         )
 
         reader = Reader(self.data_source_code, settings=reader_settings)
@@ -299,6 +320,10 @@ class GetGrids(Request):
         exporter = Exporter(data_format_code=self.data_format_code)
 
         return RequestBody(readers=[reader], exporter=exporter)
+
+    @property
+    def bounds(self):  # noqa:F811
+        return self._bounds
 
     @property
     def file_name(self):
@@ -312,6 +337,10 @@ class GetGrids(Request):
         )
         suffix = FILE_SUFFICES[self.data_format_code]
         return f"{stem}.{suffix}"
+
+    @property
+    def geoseries(self) -> GeoSeries:
+        return self._geoseries
 
     @property
     def url_post_fix(self) -> str:
@@ -328,7 +357,12 @@ class GetGrids(Request):
                 geometries = GeoSeries(geometries)
 
             # Check if geometries are Point, Polygon, or MultiPolygon
-            if not all((i in ["Point", "Polygon", "MultiPolygon"] for i in geometries.geom_type)):
+            if not all(
+                (
+                    i in ["Point", "Polygon", "MultiPolygon"]
+                    for i in geometries.geom_type
+                )
+            ):
                 raise ValueError(
                     f"Geometries must be Point, Polygon, or MultiPolygon, got {geometries.geom_type.unique()}"
                 )
@@ -336,56 +370,113 @@ class GetGrids(Request):
         geometries = self._reproject_geoseries(geoseries=geometries)
         return geometries
 
-    def _reproject_geoseries(self, geoseries: GeoSeries | None = None, epsg: int | None = None):
-        if geoseries is None:
-            geoseries = self.geometries
-        if epsg is None:
-            epsg = self.epsg
-
-        if geoseries is not None:
-            # if no epsg, but geometries, we set crs from geometries
-            if (epsg is None) and (geoseries.crs is not None):
-                epsg = geoseries.crs.to_epsg()
-            # if epsg, but geometries.crs, we set geometries.crs from crs
-            elif (epsg is not None) and (geoseries.crs is None):
-                geoseries.crs = epsg
-            # if epsg and geometries.crs we reproject geometies to epsg
-            elif (epsg is not None) and (geoseries.crs is not None):
-                geoseries = geoseries.to_crs(epsg)
-            else:
-                raise ValueError("Either specify epsg or provide geoseries with crs. Both are None")
-
+    def _reproject_geoseries(self, geoseries: GeoSeries | None = None):
+        """Set or reproject geoseries to self.epsg"""
+        if geoseries.crs is None:
+            logger.warning(f"no crs specified in geoseries, will be set to {self.epsg}")
+            geoseries.crs = self.epsg
+        else:
+            geoseries = geoseries.to_crs(self.epsg)
         return geoseries
 
     def _get_bounds(self, bounds: Union[Tuple[float, float, float, float], None]):
-        if self.geometries is not None:  # if geometries are specified, we'll get bounds from geometries
-            bounds = tuple(self.geometries.total_bounds)
+        if (
+            self._geoseries is not None
+        ):  # if geometries are specified, we'll get bounds from geometries
+            bounds = tuple(self._geoseries.total_bounds)
             if bounds is None:
-                logger.warning("bounds will be ignored as long as geometries are not None")
+                logger.warning(
+                    "bounds will be ignored as long as geometries are not None"
+                )
         elif bounds is None:  # if geometries aren't specified, user has to set bounds
-            raise ValueError("""Specify either 'geometries' or 'bounds', both are None""")
+            raise ValueError(
+                """Specify either 'geometries' or 'bounds', both are None"""
+            )
         return bounds
 
     def run(self):
         self._response = None
-        self._response = requests.post(self.url, headers=self.auth.headers, json=self.body.json())
+        self._response = requests.post(
+            self.url, headers=self.auth.headers, json=self.body.json()
+        )
 
         if not self._response.ok:
             self._response.raise_for_status()
 
+    def set_geometries(
+        self, geometries: GeoSeries | Iterable[Union[Point, Polygon, MultiPolygon]]
+    ) -> GeoSeries:
+        """Set a list or GeoSeries with Point, Polygon or MultiPolygon values. Handles conversion to
+        GeoSeries and reprojection
+
+        Parameters
+        ----------
+        geometries : GeoSeries | Iterable[Union[Point, Polygon, MultiPolygon]]
+            A list or GeoSeries with Point, Polygon and Multipolygon objects
+
+        Returns
+        -------
+        GeoSeries
+            GeoSeries set to GetGrids
+        """
+
+        geoseries = self._to_geoseries(geometries)
+        self._geoseries = geoseries
+        return self.geoseries
+
+    def set_bounds(
+        self, bounds: Tuple[float, float, float, float]
+    ) -> Tuple[float, float, float, float]:
+        """Set new bounds values. Fits bounds to geoseries.bounds
+
+        Parameters
+        ----------
+        bounds : Tuple[float, float, float, float]
+            Bounds tuple
+
+        Returns
+        -------
+        Tuple[float, float, float, float]
+            bounds set to GetGrids
+        """
+
+        bounds = self._get_bounds(bounds)
+        self._bounds = bounds
+        return self._bounds
+
     def write_tempfile(self):
-        with tempfile.NamedTemporaryFile(suffix=FILE_SUFFICES[self.data_format_code], delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            suffix=FILE_SUFFICES[self.data_format_code], delete=False
+        ) as tmp_file:
             tmp_file_path = Path(tmp_file.name)
             tmp_file.write(self._response.content)
         return tmp_file_path
 
-    def sample(self, stats: Union[str, List[str]] = "mean"):
-        if isinstance(stats, str):
-            stats = [stats]
+    def sample(self, stats: str | List[str] = "mean") -> DataFrame:
+        """Sample statistics per geometry
+
+        Parameters
+        ----------
+        stats : str | List[str]
+            statistics to sample, provided as list of statistics or a string with one statistic. defaults to mean
+
+            All stats in rasterstats.zonal_stats are available: https://pythonhosted.org/rasterstats/manual.html#statistics
+            Common values are:
+                - mean: average value of all cells in polygon
+                - max: maximum value of all cells in polygon
+                - min: minimum value of all cells in polygon
+                - percentile_#: percentile value of all cells in polygon. E.g. percentile_50, gives 50th percentile (median) value
+
+            Notes:
+            - Providing multiple values, will create a multi-index column in your dataframe
+            - Providing multiple statistics, as specified above, doesn't make much sense as it will always return the same value
+        """  # noqa:E501
 
         # check if geometries are set
-        if self.geometries is None:
-            raise TypeError("""'geometries' is None, should be list or GeoSeries. Set it first""")
+        if self._geoseries is None:
+            raise TypeError(
+                """'geometries' is None, should be list or GeoSeries. Set it first"""
+            )
 
         # check if data_format_code is netcdf
         if self.data_format_code != "netcdf4.cf1p6":
@@ -403,14 +494,14 @@ class GetGrids(Request):
         df = sample_netcdf(
             nc_file=temp_file,
             variable_code=self.variable_code,
-            geometries=self.geometries,
+            geometries=self.geoseries,
             stats=stats,
             unlink=True,
         )
 
         return df
 
-    def write(self, output_dir: Union[str, Path]):
+    def to_directory(self, output_dir: Union[str, Path]):
         """Write response.content to an output-file"""
         if self._response is None:
             self.run()

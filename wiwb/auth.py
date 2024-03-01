@@ -1,17 +1,12 @@
 """Authorization for the WIWB API"""
 
-from dataclasses import dataclass
-from dataclasses import field
-from datetime import datetime
-from datetime import timedelta
-from datetime import UTC
-from typing import Union
-from wiwb.globals import AUTH_URL
-from wiwb.globals import CLIENT_ID
-from wiwb.globals import CLIENT_SECRET
+from dataclasses import dataclass, field
 
+from typing import Union
+from datetime import datetime, timedelta, UTC
 import jwt
 import requests
+from wiwb.constants import AUTH_URL, CLIENT_ID, CLIENT_SECRET
 
 
 @dataclass
@@ -63,17 +58,17 @@ class Auth:
             )
 
         # get a token to get started
-        self.get_token()
+        self._get_token()
 
     @property
     def token(self) -> str:
         """Return a valid WIWB access token."""
-        if not self.token_valid:
-            self.get_token()
+        if not self.is_token_valid:
+            self._get_token()
         return self._token
 
     @property
-    def token_valid(self) -> bool:
+    def is_token_valid(self) -> bool:
         """Check if current token is still valid."""
         token_decoded = jwt.decode(self._token, options={"verify_signature": False})
         token_exp_datetime = datetime.fromtimestamp(token_decoded["exp"], UTC)
@@ -90,7 +85,7 @@ class Auth:
             "Authorization": "Bearer " + self.token,
         }
 
-    def get_token(self) -> str:
+    def _get_token(self) -> str:
         """Get, and store, a fresh WIWB access token"""
         response = requests.post(
             self.url,

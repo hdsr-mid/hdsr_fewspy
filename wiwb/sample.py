@@ -1,15 +1,13 @@
-from affine import Affine
-from datetime import date
-from geopandas import GeoSeries
-from numpy import ndarray
-from pathlib import Path
-from rasterstats import zonal_stats
-from typing import List
-from typing import Union
-
 import numpy as np
-import pandas as pd
+from numpy import ndarray
+from rasterstats import zonal_stats
+from geopandas import GeoSeries
+from affine import Affine
+from typing import List, Union
 import xarray
+import pandas as pd
+from pathlib import Path
+from datetime import date
 
 
 def flatten_stats(stats_dict: List[str], stats: List[str]) -> List[float]:
@@ -23,6 +21,11 @@ def sample_geoseries(
     nodata: float,
     stats: Union[str, List[str]] = "mean",
 ) -> List[float]:
+
+    # we work with lists to flatten_stats
+    if isinstance(stats, str):
+        stats = [stats]
+
     stats_dict = zonal_stats(
         geometries,
         values,
@@ -91,17 +94,22 @@ def sample_netcdf(
             nc_file.unlink()
 
     # create columns
+    if isinstance(stats, str):
+        stats = [stats]
+
     if len(stats) == 1:
         columns = geometries.index
     else:
         geom_index = geometries.index
-        columns = pd.MultiIndex.from_product(iterables=[geom_index, stats], names=["index", "stats"])
+        columns = pd.MultiIndex.from_product(
+            iterables=[geom_index, stats], names=["index", "stats"]
+        )
 
     return pd.DataFrame.from_dict(data, orient="index", columns=columns)
 
 
-def sample_nc_dir(
-    dir: Path | str,
+def sample_netcdfs(
+    nc_files: list[Path],
     variable_code: str,
     geometries: Union[List, GeoSeries],
     stats: Union[str, List[str]] = "mean",
@@ -112,8 +120,8 @@ def sample_nc_dir(
 
     Parameters
     ----------
-    dir : Path | str
-        Directory with netcdf files
+    nc_files : list[Path]
+        A list of netcdf-files
     variable_code : str
         Variable in NetCDF file to sample
     geometries : Union[List, GeoSeries]
@@ -125,37 +133,28 @@ def sample_nc_dir(
     end_date: date | None
         end date for selection, by default None
 
-    Raises
+    Returns
     ------
     pd.DataFrame
-        Pandas DataFram☺e with statistics per timestamp per geometry
+        Pandas DataFrame with statistics per timestamp per geometry
     """
-    nc_files = list(Path(dir).glob("*.nc"))
+
+    if len(nc_files) == 0:
+        raise FileNotFoundError(
+            f"directory {dir.absolute().resolve()} does not contain NetCDF files"
+        )
 
     # read all transforms to see if dataset is consistent
-    transforms = list(set(xarray.open_dataset(file).rio.transform() for file in nc_files))
+    transforms = list(
+        set(xarray.open_dataset(file).rio.transform() for file in nc_files)
+    )
     if len(transforms) == 1:
         with xarray.open_dataset(nc_files[0], decode_coords="all") as ds:
             geometries = geometries.to_crs(ds.rio.crs)
     else:
-        raise ValueError(f"Files do not have one consistent transform. Got {transforms}")
-
-    dfs = []
-
-    for index, nc_file in enumerate(nc_files):
-        try:
-            df = sample_netcdf(
-                nc_file,
-                variable_code,
-                geometries,
-                stats=stats,
-                start_date=start_date,
-                end_date=end_date,
-                unlink=False,
-            )
-            dfs.append(df)
-        except Exception as err:
-            print(err)
+        raise ValueError(
+            f"Files do not have one consistent transform. Got {transforms}"
+        )
 
     dfs = [
         sample_netcdf(
@@ -172,4 +171,47 @@ def sample_nc_dir(
     dfs = [i for i in dfs if not i.empty]
     df = pd.concat(dfs).sort_index()
 
+    return df
+
+
+def sample_nc_dir(
+    dir: Path | str,
+    variable_code: str,
+    geometries: Union[List, GeoSeries],
+    stats: Union[str, List[str]] = "mean",
+    start_date: date | None = None,
+    end_date: date | None = None,
+):
+    """Sample over a directory of netcdf-files
+
+    Parameters
+    ----------
+    dir : Path | str
+        Directory with netcdf files
+    variable_code : str
+        Variable in NetCDF file to sample
+    geometries : Union[List, GeoSeries]
+        geometries to sample
+    stats : List[str]
+        statistics to sample
+    start_date : date | None
+        start date for selection, by default None
+    end_date: date | None
+        end date for selection, by default None
+
+    Returns
+    ------
+    pd.DataFrame
+        Pandas DataFrame with statistics per timestamp per geometry
+    """
+    nc_files = list(Path(dir).glob("*.nc"))
+
+    df = sample_netcdfs(
+        nc_files,
+        variable_code=variable_code,
+        geometries=geometries,
+        stats=stats,
+        start_date=start_date,
+        end_date=end_date,
+    )
     return df
