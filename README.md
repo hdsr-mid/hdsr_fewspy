@@ -18,6 +18,7 @@ A python project to request data (locations, time-series, etc.) from a HDSR FEWS
 Note that this project only works on HDSR's internal network, so within the VDI. The project combines the best from 
 two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds client-side authentication, 
 authorisation, and throttling. The latter is to minimize request load on HDSR's internal FEWS instances. 
+For detailed info visit the [Deltares FEWS wiki][Deltares FEWS PI].  
 
 Hdsr_fewspy API supports 9 different API calls that can return 6 different output formats:   
 1. xml_file_in_download_dir: The xml response is written to a .xml file in your download_dir
@@ -173,7 +174,6 @@ df = fixture_api_sa_no_download_dir.get_qualifiers(output_choice=hdsr_fewspy.Out
 # ruim    ruim (max 70%)     None
 # ...etc...
 ```
-
 5. get_timezone_id
 ```
 response = api.get_timezone_id(output_choice=hdsr_fewspy.OutputChoices.json_response_in_memory)
@@ -242,12 +242,15 @@ print(responses[0].text)
 df = api.get_time_series_single(
     location_id = "OW433001",
     parameter_id = "H.G.0",
-    start_time = "2012-01-01T00:00:00Z",                                      # or as datetime.datetime(year=2012, month=1, day=1)
-    end_time = "2012-01-02T00:00:00Z",                                        # or as datetime.datetime(year=2012, month=1, day=2)
+    qualifier_id = "",                       # defaults to ""
+    start_time = "2012-01-01T00:00:00Z",     # or as datetime.datetime(year=2012, month=1, day=1)
+    end_time = "2012-01-02T00:00:00Z",       # or as datetime.datetime(year=2012, month=1, day=2)
     drop_missing_values = True,
-    flag_threshold = 6,  # all flags 6 and higher are removed from dataframe
-    output_choice = hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory,
-    only_value_and_flag = True,                                               
+    flag_threshold = 6,                      # all flags 6 and higher are removed from dataframe
+    thinning = None,                         # [integer: ms/pixel] defaults to None. See Deltares wiki (link above)
+    omit_empty_time_series = True,           # [bool] defaults to True
+    only_value_and_flag = True,              # [bool] defaults to True                          
+    output_choice = hdsr_fewspy.OutputChoices.pandas_dataframe_in_memory,       
 )
 ```
 8. get_time_series_multi
@@ -267,6 +270,7 @@ list_with_donwloaded_csv_filepaths = api.get_time_series_multi(
     end_time = "2012-01-02T00:00:00Z",                                        # or as datetime.datetime(year=2012, month=1, day=2)
     output_choice = hdsr_fewspy.OutputChoices.xml_file_in_download_dir,
 )
+# This api call accepts same arguments as get_time_series_single
 
 print(list_with_donwloaded_csv_filepaths)
 # <output_directory_root>/hdsr_fewspy_<datetime>/gettimeseriesmulti_ow433001_hg0_20120101t000000z_20120102t000000z_0.json
