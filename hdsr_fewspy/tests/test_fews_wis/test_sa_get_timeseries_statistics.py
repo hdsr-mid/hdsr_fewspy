@@ -1,6 +1,6 @@
 from hdsr_fewspy.constants.choices import OutputChoices
-from hdsr_fewspy.tests import fixtures_requests
-from hdsr_fewspy.tests.fixtures import fixture_api_sa_work_no_download_dir
+from hdsr_fewspy.tests.test_fews_wis import fixtures_requests
+from hdsr_fewspy.tests.test_fews_wis.fixtures import fixture_api_sa_work_no_download_dir
 
 import pytest
 

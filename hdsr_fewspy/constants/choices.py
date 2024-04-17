@@ -51,7 +51,9 @@ class DefaultPiSettingsChoices(Enum):
      - MetingenFilter = validated data reeksen. This data is months behind the current situation.
     """
 
-    # TODO: add efcis choices
+    efcis_production_point_fc = "efcis_production_point_fc"
+    efcis_production_point_bio = "efcis_production_point_bio"
+    
     wis_production_point_raw = "wis_production_point_raw"
     wis_production_point_work = "wis_production_point_work"
     wis_production_point_validated = "wis_production_point_validated"
