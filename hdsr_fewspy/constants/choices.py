@@ -51,9 +51,9 @@ class DefaultPiSettingsChoices(Enum):
      - MetingenFilter = validated data reeksen. This data is months behind the current situation.
     """
 
-    efcis_production_point_fc = "efcis_production_point_fc"
-    efcis_production_point_bio = "efcis_production_point_bio"
-    
+    efcis_production_point_fysische_chemie = "efcis_production_point_fysische_chemie"
+    efcis_production_point_biologie = "efcis_production_point_biologie"
+
     wis_production_point_raw = "wis_production_point_raw"
     wis_production_point_work = "wis_production_point_work"
     wis_production_point_validated = "wis_production_point_validated"
@@ -95,6 +95,13 @@ class DefaultPiSettingsChoices(Enum):
     @classmethod
     def get_all(cls) -> List[DefaultPiSettingsChoices]:
         return [x for x in cls.__members__.values()]
+
+    @property
+    def is_fews_efcis(self):
+        return self in {self.efcis_production_point_fysische_chemie, self.efcis_production_point_biologie}
+
+    def is_fews_wis(self):
+        return not self.is_fews_efcis
 
 
 class OutputChoices(Enum):

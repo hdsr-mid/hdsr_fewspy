@@ -14,11 +14,12 @@
 [user and auth settings]: https://github.com/hdsr-mid/hdsr_fewspy_auth 
 
 ### Description
-A python project to request data (locations, time-series, etc.) from a HDSR FEWS PiWebService: FEWS-WIS or FEWS-EFCIS. 
-Note that this project only works on HDSR's internal network, so within the VDI. The project combines the best from 
-two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds client-side authentication, 
-authorisation, and throttling. The latter is to minimize request load on HDSR's internal FEWS instances. 
-For detailed info visit the [Deltares FEWS wiki][Deltares FEWS PI].  
+A python project to request data (locations, time-series, etc.) from FEWS-WIS (waterquantity) and FEWS-EFCIS (waterquality). \
+This project only works in HDSR's internal network, so within the VDI or virtual machine within the network.  \
+It combines the best from two existing fewspy projects: [fewspy] and [hkvfewspy]. On top of that it adds 
+client-side authentication, authorisation, and throttling. 
+The latter is to minimize request load on HDSR's internal FEWS instances. \
+For detailed info on requesting FEWS APIs visit the [Deltares FEWS wiki][Deltares FEWS PI].  
 
 Hdsr_fewspy API supports 9 different API calls that can return 6 different output formats:   
 1. xml_file_in_download_dir: The xml response is written to a .xml file in your download_dir
@@ -28,17 +29,17 @@ Hdsr_fewspy API supports 9 different API calls that can return 6 different outpu
 5. json_response_in_memory: the json response is returned memory meaning you get a list with one or more responses        
 6. pandas_dataframe_in_memory: the json response is converted to a pandas dataframe meaning you get one dataframe 
 
-API call                      | Supported outputs  | Notes 
-------------------------------|--------------------|--------
-1 get_parameters              | 4, 5, 6            | Returns 1 object (xml/json response or dataframe) 
-2 get_filters                 | 4, 5               | Returns 1 object (xml/json response)  
-3 get_locations               | 4, 5               | Returns 1 object (xml/json response)              
-4 get_qualifiers              | 4, 6               | Returns 1 object (xml response or dataframe)
-5 get_timezone_id             | 4, 5               | Returns 1 object (xml/json response)
-6 get_samples                 | TODO               | Not implemented yet
-7 get_time_series_single      | 4, 5, 6            | Returns 1 dataframe or a list >=1 xml/json responses     
-8 get_time_series_multi       | 1, 2, 3            | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier)
-9 get_time_series_statistics  | 4, 5               | Returns 1 object (xml/json response)
+API call                      | Supported outputs | Notes                                                                                                   |
+------------------------------|-------------------|---------------------------------------------------------------------------------------------------------|
+1 get_parameters              | 4, 5, 6           | Returns 1 object (xml/json response or dataframe)                                                       |
+2 get_filters                 | 4, 5              | Returns 1 object (xml/json response)                                                                    |
+3 get_locations               | 4, 5              | Returns 1 object (xml/json response)                                                                    |
+4 get_qualifiers              | 4, 6              | Returns 1 object (xml response or dataframe)                                                            |
+5 get_timezone_id             | 4, 5              | Returns 1 object (xml/json response)                                                                    |
+6 get_samples                 | 4                 | Returns 1 object (xml response)                                                                         |
+7 get_time_series_single      | 4, 5, 6           | Returns 1 dataframe or a list >=1 xml/json responses                                                    |
+8 get_time_series_multi       | 1, 2, 3           | Returns a list with downloaded files (1 .csv or >=1 .xml/.json per unique location_parameter_qualifier) |
+9 get_time_series_statistics  | 4, 5              | Returns 1 object (xml/json response)                                                                    |
 
 ###### DefaultPiSettingsChoices:
 Several predefined pi_settings exists for point data and for area (e.g. averaged all points within an area). We mainly distinguish three levels of data:
@@ -58,7 +59,7 @@ The names of the pi_settings are (see class DefaultPiSettingsChoices):
 
 
 ### Usage
-Below you find 9 examples for the 9 different requests. In hdsr_fewspy/examples/ you also find code to download 
+Below you find 10 examples for the 9 different requests. In hdsr_fewspy/examples/ you also find code to download 
 discharge (point), soilmoisture (area), evaporation (area), and precipitation (area) time-series.  
 
 #### Preparation
@@ -98,8 +99,13 @@ import hdsr_fewspy
 # output_directory_root: str or pathlib.path
 
 # option 1
-# For example in case of pi_settings, you can use predefined settings (see topic 'DefaultPiSettingsChoices' above)
+# For example in case of pi_settings, you can use predefined settings, see topic 'DefaultPiSettingsChoices' above
+# To list all DefaultPiSettingsChoices:
+hdsr_fewspy.DefaultPiSettingsChoices.get_all( 
+# For fews-wis api, use a DefaultPiSettingsChoices that starts with 'wis_', for example:
 api = hdsr_fewspy.Api(pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.wis_production_point_work)
+# For fews-efcis api, use a DefaultPiSettingsChoices that starts with 'efics_', for example:
+api = hdsr_fewspy.Api(pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.efcis_production_point_biologie)
 
 # option 2
 # Or create your own pi_settings:
@@ -184,7 +190,40 @@ assert TimeZoneChoices.get_tz_float(value="GMT") == TimeZoneChoices.gmt.value ==
 ```
 6. get_samples
 ```
-# Not yet implemented
+# Note: only sample data exists in FEWS-EFCIS
+api = hdsr_fewspy.Api(pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.efcis_production_point_biologie)
+response = api.get_samples(output_choice=hdsr_fewspy.OutputChoices.xml_response_in_memory)
+
+print(response.text)
+# <Samples xmlns="http://www.wldelft.nl/fews/PI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:fs="http://www.wldelft.nl/fews/fs" xmlns:qualifierId="http://www.wldelft.nl/fews/qualifierId" xsi:schemaLocation="http://www.wldelft.nl/fews/PI https://fewsdocs.deltares.nl/schemas/version1.0/pi-schemas/pi_samples.xsd" version="1.34">
+# <timeZone>0.0</timeZone>
+# <sample id="2020_00090e">
+# <header>
+# <moduleInstanceId>Import_EFCIS_dump</moduleInstanceId>
+# <locationId>20924</locationId>
+# <sampleDate date="2020-01-09" time="09:57:00"/>
+# <lat>51.98814213752072</lat>
+# <lon>5.243994665879352</lon>
+# <x>145163.0</x>
+# <y>444426.0</y>
+# </header>
+# <properties>
+# <string key="activiteit" value="Automatische FTP import"/>
+# <string key="namespace" value="NL14"/>
+# </properties>
+# <table>
+# <row parameterId="WNS1042" qualifierId:q1="WNS1042" qualifierId:q2="GH_34" qualifierId:q3="HH_492" qualifierId:q4="ACO_39" qualifierId:q5="MCO_39" qualifierId:q6="PC_1569" flag="0" value="0.71" unit="mg/l"/>
+# <row parameterId="WNS1078" qualifierId:q1="WNS1078" qualifierId:q2="GH_34" qualifierId:q3="HH_492" qualifierId:q4="ACO_39" qualifierId:q5="MCO_39" qualifierId:q6="PC_1582" flag="0" value="0.01" detection="<" unit="ug/l"/>
+# <row parameterId="WNS1085" qualifierId:q1="WNS1085" qualifierId:q2="GH_34" qualifierId:q3="HH_492" qualifierId:q4="ACO_39" qualifierId:q5="MCO_39" qualifierId:q6="PC_1584" flag="0" value="0.01" detection="<" unit="ug/l"/>
+# <row parameterId="WNS1230" qualifierId:q1="WNS1230" qualifierId:q2="GH_16" qualifierId:q3="HH_492" qualifierId:q4="ACO_39" qualifierId:q5="MCO_39" qualifierId:q6="PC_1721" flag="0" value="0" unit="DIMSLS"/>
+# ...
+# <row parameterId="WNS742" qualifierId:q1="WNS742" qualifierId:q2="GH_34" qualifierId:q3="HH_492" qualifierId:q4="ACO_39" qualifierId:q5="MCO_39" qualifierId:q6="PC_1248" flag="0" value="3" unit="ug/l"/>
+# <row parameterId="WNS814" qualifierId:q1="WNS814" qualifierId:q2="GH_34" qualifierId:q3="HH_492" qualifierId:q4="ACO_39" qualifierId:q5="MCO_39" qualifierId:q6="PC_1257" flag="0" value="0.01" detection="<" unit="ug/l"/>
+# <row parameterId="WNS8372" qualifierId:q1="WNS8372" qualifierId:q2="GH_20" qualifierId:q3="HH_492" qualifierId:q4="ACO_39" qualifierId:q5="MCO_39" qualifierId:q6="PC_1725" flag="0" value="5" detection="<" unit="%"/>
+# <row parameterId="WNS9756" qualifierId:q1="WNS9756" qualifierId:q2="GH_191" qualifierId:q3="HH_492" qualifierId:q4="ACO_39" qualifierId:q5="MCO_39" flag="0" value="100" unit="-"/>
+# </table>
+# </sample>
+# </Samples>
 ```
 7. get_time_series_single
 
@@ -376,32 +415,30 @@ All contributions, bug reports, documentation improvements, enhancements and ide
 
 ### Test Coverage (release 1.14)
 ```
----------- coverage: platform win32, python 3.7.12-final-0 -----------
+---------- coverage: platform win32, python 3.12.0-final-0 -----------
 Name                                                              Stmts   Miss  Cover
 -------------------------------------------------------------------------------------
-hdsr_fewspy\__init__.py                                              12      0   100%
 hdsr_fewspy\_version.py                                               1      0   100%
-hdsr_fewspy\api.py                                                  119     19    84%
-hdsr_fewspy\api_calls\__init__.py                                    18      0   100%
-hdsr_fewspy\api_calls\base.py                                       109     14    87%
+hdsr_fewspy\api.py                                                  121     18    85%
+hdsr_fewspy\api_calls\base.py                                       110     14    87%
 hdsr_fewspy\api_calls\get_filters.py                                 25      0   100%
 hdsr_fewspy\api_calls\get_locations.py                               44      2    95%
 hdsr_fewspy\api_calls\get_parameters.py                              40      1    98%
 hdsr_fewspy\api_calls\get_qualifiers.py                              50     16    68%
-hdsr_fewspy\api_calls\get_samples.py                                 25      8    68%
+hdsr_fewspy\api_calls\get_samples.py                                 41      4    90%
 hdsr_fewspy\api_calls\get_timezone_id.py                             26      1    96%
-hdsr_fewspy\api_calls\time_series\base.py                           156     15    90%
-hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           81      6    93%
-hdsr_fewspy\api_calls\time_series\get_time_series_single.py          36      1    97%
+hdsr_fewspy\api_calls\time_series\base.py                           161     15    91%
+hdsr_fewspy\api_calls\time_series\get_time_series_multi.py           82      6    93%
+hdsr_fewspy\api_calls\time_series\get_time_series_single.py          37      1    97%
 hdsr_fewspy\api_calls\time_series\get_time_series_statistics.py      24      2    92%
-hdsr_fewspy\constants\choices.py                                    111      5    95%
+hdsr_fewspy\constants\choices.py                                    134      5    96%
 hdsr_fewspy\constants\custom_types.py                                 2      0   100%
 hdsr_fewspy\constants\github.py                                       8      0   100%
 hdsr_fewspy\constants\paths.py                                        9      0   100%
-hdsr_fewspy\constants\pi_settings.py                                 75      6    92%
-hdsr_fewspy\constants\request_settings.py                            11      0   100%
+hdsr_fewspy\constants\pi_settings.py                                 76      6    92%
+hdsr_fewspy\constants\request_settings.py                            12      0   100%
 hdsr_fewspy\converters\download.py                                   83      4    95%
-hdsr_fewspy\converters\json_to_df_time_series.py                    122      7    94%
+hdsr_fewspy\converters\json_to_df_time_series.py                    131      7    95%
 hdsr_fewspy\converters\manager.py                                    31      2    94%
 hdsr_fewspy\converters\utils.py                                      45     11    76%
 hdsr_fewspy\converters\xml_to_python_obj.py                         105     26    75%
@@ -409,12 +446,12 @@ hdsr_fewspy\date_frequency.py                                        47      2  
 hdsr_fewspy\examples\area.py                                         30     30     0%
 hdsr_fewspy\examples\point.py                                        22     22     0%
 hdsr_fewspy\exceptions.py                                            14      0   100%
-hdsr_fewspy\permissions.py                                           68      5    93%
+hdsr_fewspy\permissions.py                                           69      5    93%
 hdsr_fewspy\retry_session.py                                         77     15    81%
 hdsr_fewspy\secrets.py                                               40      5    88%
 setup.py                                                             16     16     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1682    241    86%
+TOTAL                                                              1713    236    86%
 ```
 
 ### Conda general tips

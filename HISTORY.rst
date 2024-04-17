@@ -1,6 +1,11 @@
-1.15 (Unreleased)
+1.16 (Unreleased)
+----------------
+-
+
+1.15 (2024-04-17)
 ----------------
 - fix check auth permissions
+- enable communication with FEWS-EFCIS webservice
 - add get_samples
 
 1.14 (2023-12-20)
@@ -32,7 +37,7 @@
 - distinguish more predefined DefaultPiSettingsChoices: raw, work and validated
 - add area pi_settings to enable downloading time-series aggregated to areas
 
-1.10 (2023-05-23)F
+1.10 (2023-05-23)
 ----------------
 - bug fix: empty get_time_series response previous request
 - enable start_time and end_time as strings

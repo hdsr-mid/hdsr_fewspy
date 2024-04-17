@@ -4,7 +4,7 @@ import hdsr_fewspy
 import pytest
 
 
-def test_prod_area_wrong():
+def test_wis_prod_area_wrong():
     api = hdsr_fewspy.Api(
         pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.wis_production_area_soilmoisture,
     )
@@ -21,7 +21,7 @@ def test_prod_area_wrong():
     assert err.value.args[0] == "qualifier_id 'does_not_exist' must be in ['Lband05cm', 'Lband10cm', 'Lband20cm']"
 
 
-def test_prod_area():
+def test_wis_prod_area():
     api = hdsr_fewspy.Api(
         pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.wis_production_area_soilmoisture,
     )
