@@ -1,8 +1,4 @@
-1.16 (Unreleased)
-----------------
--
-
-1.15 (2024-04-17)
+1.15 (Unreleased)
 ----------------
 - fix check auth permissions
 - enable communication with FEWS-EFCIS webservice

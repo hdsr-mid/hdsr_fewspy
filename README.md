@@ -56,17 +56,19 @@ The names of the pi_settings are (see class DefaultPiSettingsChoices):
 - wis_production_area_precipitation_radarcorrection
 - wis_production_area_evaporation_wiwb_satdata
 - wis_production_area_evaporation_waterwatch
+- efcis_production_point_fysische_chemie
+- efcis_production_point_biologie
 
 
 ### Usage
 Below you find 10 examples for the 9 different requests. In hdsr_fewspy/examples/ you also find code to download 
-discharge (point), soilmoisture (area), evaporation (area), and precipitation (area) time-series.  
+discharge (point), soil moisture (area), evaporation (area), and precipitation (area) time-series.  
 
 #### Preparation
 
 1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read topic 
    'GITHUB_PERSONAL_ACCESS_TOKEN' below what to do with this token.
-2. Only once needed: ensure your github username is registered in [[user and auth settings]] permissions.csv file. If 
+2. Only once needed: ensure your github username is registered in [user and auth settings] permissions.csv file. If 
    not, ask the maintainer of hdsr_fewspy to fix this.
 3. You can create a hdsr_fewspy API in two ways (the first dominates the second). We advise to use the second: 
    - with API argument 'github_personal_access_token', thus ```api = hdsr_fewspy.Api(<github_personal_access_token>)```.
@@ -75,19 +77,19 @@ discharge (point), soilmoisture (area), evaporation (area), and precipitation (a
 ```
 GITHUB_PERSONAL_ACCESS_TOKEN=<your_github_token>
 ```
-3. Only once per project: install hdsr_fewspy dependency:
+4. Only once per project: install hdsr_fewspy dependency:
 ```
 pip install hdsr-fewspy 
 # or 
 conda install hdsr-fewspy --channel hdsr-mid
 ```
-4. Example simple 'create API instance':
+5. Example simple 'create API instance':
 ```
 import hdsr_fewspy
 
 api = hdsr_fewspy.Api()
 ```
-5. Example sophisticated 'create API instance':
+6. Example sophisticated 'create API instance':
 ```
 import hdsr_fewspy
 
