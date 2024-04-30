@@ -38,6 +38,8 @@ class GetTimeSeriesSingle(GetTimeSeriesBase):
         ]
 
     def run(self) -> Union[List[ResponseType], pd.DataFrame]:
+        self._ensure_efcis_omits_empty_timeseries()
+
         request_frequency = pd.Timedelta(self.end_time - self.start_time)
         # eventually continue with request_period of last request (avoiding all freq update iterations)
 

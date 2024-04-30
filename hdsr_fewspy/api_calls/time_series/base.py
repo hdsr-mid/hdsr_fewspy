@@ -105,7 +105,6 @@ class GetTimeSeriesBase(GetRequest):
 
     @staticmethod
     def __validate_only_value_flag(only_value_flag: bool, **kwargs) -> bool:
-        print(1)
         return True
 
     @property
@@ -144,6 +143,12 @@ class GetTimeSeriesBase(GetRequest):
             ApiParameters.parameter_ids,
             ApiParameters.start_time,
         ]
+
+    def _ensure_efcis_omits_empty_timeseries(self):
+        """When requesting FEWS-EFCIS, then OmitEmptyTimeSerie must be TRUE. Otherwise, response time will be > hours"""
+        settings_choice = DefaultPiSettingsChoices(self.pi_settings.settings_name)
+        if settings_choice.is_fews_efcis:
+            assert self.omit_empty_time_series, "Fews-EFCIS requires omit_empty_time_series=True"
 
     @staticmethod
     def get_task_uuid(request_params: Dict) -> str:

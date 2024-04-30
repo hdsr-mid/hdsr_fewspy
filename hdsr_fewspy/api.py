@@ -179,11 +179,19 @@ class Api:
         return result
 
     def get_samples(
-        self, output_choice: OutputChoices, start_time: datetime, end_time: datetime
+        self,
+        output_choice: OutputChoices,
+        #
+        start_time: datetime,
+        end_time: datetime,
+        location_id: str = None,
+        sample_id: str = None,
     ) -> Union[ResponseType, pd.DataFrame]:
         api_call = api_calls.GetSamples(
             start_time=start_time,
             end_time=end_time,
+            location_ids=location_id,
+            sample_ids=sample_id,
             #
             output_choice=output_choice,
             retry_backoff_session=self.retry_backoff_session,

@@ -47,6 +47,8 @@ class GetTimeSeriesMulti(GetTimeSeriesBase):
         ]
 
     def run(self) -> List[Path]:
+        self._ensure_efcis_omits_empty_timeseries()
+
         all_file_paths = []
         cartesian_parameters_list = self._get_cartesian_parameters_list(parameters=self.initial_fews_parameters)
         nr_total = len(cartesian_parameters_list)
