@@ -40,6 +40,8 @@ setup(
     long_description=long_description,
     author="Renier Kramer",
     author_email="renier.kramer@hdsr.nl",
+    maintainer="Roger de Crook",
+    maintainer_email="rogerdecrook@hdsr.nl",
     url="https://github.com/hdsr-mid/hdsr_fewspy",
     download_url=f"https://github.com/hdsr-mid/hdsr_fewspy/archive/v{version}.tar.gz",
     keywords=["hdsr", "fews", "api", "fewspy", "wis"],
