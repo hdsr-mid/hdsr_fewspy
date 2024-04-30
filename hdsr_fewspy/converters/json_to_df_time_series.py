@@ -9,6 +9,7 @@ from hdsr_fewspy.converters.utils import camel_to_snake_case
 from hdsr_fewspy.converters.utils import dict_to_datetime
 from typing import List
 from typing import Tuple
+from typing import Dict
 
 import logging
 import pandas as pd
@@ -68,6 +69,36 @@ class Events(pd.DataFrame):
     """FEWS-PI events in pandas DataFrame"""
 
     @classmethod
+    def ensure_flattened_pi_events(cls, pi_events: list) -> List[Dict]:
+        """
+        from
+            [{ 'date': '2019-01-01', 'time': '00:00:00', 'value': '-0.474', 'flag': '0',
+                    'flagSourceColumn': {'fs:PRIMAIR': 'OK', 'fs:VISUEEL': 'OK'}
+            }, {blabla}]
+        to
+            [{ 'date': '2019-01-01', 'time': '00:00:00', 'value': '-0.474', 'flag': '0',
+                'fs:PRIMAIR': 'OK', 'fs:VISUEEL': 'OK'}
+            ,{}]
+        """
+        has_nested_data = False
+        if pi_events:
+            first_event = pi_events[0]
+            has_nested_data = any([True for k, v in first_event.items() if isinstance(v, dict)])
+        if has_nested_data:
+            flattened_pi_events = [0] * len(pi_events)
+            for index, data in enumerate(pi_events):
+                flattened_dict = {}
+                for k, v in data.items():
+                    if isinstance(v, dict):
+                        for _k, _v in v.items():
+                            flattened_dict[_k] = _v
+                    else:
+                        flattened_dict[k] = v
+                flattened_pi_events[index] = flattened_dict
+            pi_events = flattened_pi_events
+        return pi_events
+
+    @classmethod
     def from_pi_events(
         cls,
         pi_events: list,
@@ -78,6 +109,7 @@ class Events(pd.DataFrame):
         tz_offset: float = None,
     ) -> Events:
         """Parse Events from FEWS PI events dict."""
+        pi_events = cls.ensure_flattened_pi_events(pi_events)
 
         # convert list with dicts to dataframe. All dicts keys, also unexpected, will be a df column
         df = Events(data=pi_events)

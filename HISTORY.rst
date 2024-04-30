@@ -1,12 +1,13 @@
 1.16 (Unreleased)
 ------------------------
-- 
+-  
 
 1.15 (2024-04-30)
 ------------------------
 - fix check auth permissions
 - enable communication with FEWS-EFCIS webservice
 - add get_samples
+- ensure flattened pi-events (timeseries events responses are suddenly nested dict)
 
 1.14 (2023-12-20)
 ------------------------
