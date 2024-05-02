@@ -3,7 +3,7 @@ channels:
   - hdsr-mid
 dependencies:
   - python>=3.7,<=3.10
-  - hdsr-pygithub>=1.15 # on conda channel hdsr-mid
+  - hdsr-pygithub>=1.17 # on conda channel hdsr-mid
   - requests
   - geopandas
   - pandas
