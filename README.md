@@ -382,7 +382,7 @@ You can [create a token yourself][[github personal token]]. In short:
 1. Login github.com with your account (user + password)
 2. Ensure you have at least read-permission for the hdsr-mid repo(s) you want to interact with. To verify, browse to 
    the specific repo. If you can open it, then you have at least read-permission. If not, please contact 
-   renier.kramer@hdsr.nl to get access.
+   roger.de.crook@hdsr.nl to get access.
 3. Create a token:
    1. On github.com, go to your profile settings (click your icon right upper corner and 'settings' in the dropdown).
    2. Click 'developer settings' (left lower corner).

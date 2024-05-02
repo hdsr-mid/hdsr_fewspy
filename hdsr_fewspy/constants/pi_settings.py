@@ -20,8 +20,8 @@ class PiSettings:
             settings_name='whatever you want',
             document_version="1.25",
             ssl_verify=True,
-            domain="webwis-prd01.ad.hdsr.nl",
-            port=8081,
+            domain="<your_domain>",
+            port=<port_number>,
             service="OwdPiService",
             filter_id="owdapi-opvlwater-noneq",
             module_instance_ids="WerkFilter",
@@ -52,7 +52,7 @@ class PiSettings:
     def base_url(self) -> str:
         """For example:
         - http://localhost:8081/FewsWebServices/rest/fewspiservice/v1/
-        - http://webwis-prd01.ad.hdsr.nl:8081/OwdPiService/rest/fewspiservice/v1/
+        - http://<production domain + port>/OwdPiService/rest/fewspiservice/v1/
         """
         return f"http://{self.domain}:{self.port}/{self.service}/rest/fewspiservice/v1/"
 
@@ -60,7 +60,7 @@ class PiSettings:
     def test_url(self) -> str:
         """For example:
         - http://localhost:8081/FewsWebServices/test/fewspiservicerest/test.html
-        - http://webwis-prd01.ad.hdsr.nl:8081/OwdPiService/test/fewspiservicerest/test.html
+        - http://<production domain + port>/OwdPiService/test/fewspiservicerest/test.html
         """
         return f"http://{self.domain}:{self.port}/{self.service}/test/fewspiservicerest/test.html"
 
