@@ -378,7 +378,7 @@ print(response.text)
 # }       
 ```
 
-######  GITHUB_PERSONAL_ACCESS_TOKEN
+####  GITHUB_PERSONAL_ACCESS_TOKEN
 A github personal token (a long hash) has to be created once and updated when it expires. You can have maximum 1 token.
 This token is related to your github user account, so you don't need a token per repo/organisation/etc. 
 You can [create a token yourself][[github personal token]]. In short:
