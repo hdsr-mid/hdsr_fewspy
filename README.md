@@ -13,7 +13,6 @@
 [releases]: https://pypi.org/project/hdsr-fewspy/#history
 [flag details]: https://publicwiki.deltares.nl/display/FEWSDOC/D+Time+Series+Flags
 [user and auth settings]: https://github.com/hdsr-mid/hdsr_fewspy_auth 
-[github_personal_access_token]: hhttps://github.com/hdsr-mid/hdsr_fewspy?tab=readme-ov-file#github_personal_access_token
 
 
 ### Description
@@ -69,7 +68,7 @@ discharge (point), soil moisture (area), evaporation (area), and precipitation (
 
 #### Preparation
 
-1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read [github_personal_access_token] below to
+1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read [github_personal_access_token](#github-personal-access-token) below to
    know what to do with this token.
 2. Only once needed: ensure your github username is registered in [user and auth settings] permissions.csv file. If 
    not, ask the maintainer of hdsr_fewspy to fix this.
@@ -132,6 +131,7 @@ api = hdsr_fewspy.Api(pi_settings=custom_settings)
 # The files will be downloaded in a subdir: output_directory_root/hdsr_fewspy_<datetime>/<files_will_be_downloaded_here>
 api = hdsr_fewspy.Api(output_directory_root=<path_to_a_dir>)
 ```
+
 
 #### Examples API calls
 ###### Below you see 9 examples using api option 3 above.
