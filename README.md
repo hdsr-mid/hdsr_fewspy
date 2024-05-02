@@ -13,6 +13,8 @@
 [releases]: https://pypi.org/project/hdsr-fewspy/#history
 [flag details]: https://publicwiki.deltares.nl/display/FEWSDOC/D+Time+Series+Flags
 [user and auth settings]: https://github.com/hdsr-mid/hdsr_fewspy_auth 
+[github_personal_access_token]: hhttps://github.com/hdsr-mid/hdsr_fewspy?tab=readme-ov-file#github_personal_access_token
+
 
 ### Description
 A python project to request data (locations, time-series, etc.) from FEWS-WIS (waterquantity) and FEWS-EFCIS (waterquality). \
@@ -67,8 +69,8 @@ discharge (point), soil moisture (area), evaporation (area), and precipitation (
 
 #### Preparation
 
-1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read topic 
-   'GITHUB_PERSONAL_ACCESS_TOKEN' below what to do with this token.
+1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read [github_personal_access_token] below to
+   know what to do with this token.
 2. Only once needed: ensure your github username is registered in [user and auth settings] permissions.csv file. If 
    not, ask the maintainer of hdsr_fewspy to fix this.
 3. You can create a hdsr_fewspy API in two ways (the first dominates the second). We advise to use the second: 
