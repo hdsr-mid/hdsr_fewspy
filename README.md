@@ -68,7 +68,7 @@ discharge (point), soil moisture (area), evaporation (area), and precipitation (
 
 #### Preparation
 
-1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read [github_personal_access_token](#github-personal-access-token) below to
+1. Only once needed: ensure you have a github account with a GITHUB_PERSONAL_ACCESS_TOKEN. Read [github_personal_access_token](#github_personal_access_token) below to
    know what to do with this token.
 2. Only once needed: ensure your github username is registered in [user and auth settings] permissions.csv file. If 
    not, ask the maintainer of hdsr_fewspy to fix this.
