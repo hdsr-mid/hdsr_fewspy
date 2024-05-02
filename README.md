@@ -1,6 +1,7 @@
 ### Context
 * Created: April 2023
 * Author: Renier Kramer, renier.kramer@hdsr.nl
+* Maintainer: Roger de Crook, roger.de.crook@hdsr.nl
 * Python version: >=3.7
 
 [hkvfewspy]: https://github.com/HKV-products-services/hkvfewspy
