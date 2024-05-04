@@ -351,29 +351,5 @@ class Api:
 
 # TODO: don't use strings as urls...
 
-# TODO: Ciska wel interesse wel in:
-#  --------------------------------
-#  get_samples (grote request)
-#  - Deltares is hier begin 2024 klaar. Nu geeft FEWS EFICS piwebservice na 2 of 5 minuten een timeout
-#  get_timeseries (grote request)
-#  - altijd start + end
-#  - altijd omitEmptyTimeSeries op True anders geeft ie minimaal weken aan tijdseries terug
-#  - vaak filter_id
-#  - soms parameter_id, location_id, moduleinstance_id
-#  - heel soms qualifier_id
-#  get_parameters (middlegrote request = 400 parameters)
-#  get_locations (kleine request = 300 locaties)
-
-# TODO: Ciska geen interesse in: get_qualifiers
-
 # TODO: check of properties goed meekomen in get_timeseries in PI_JSON (in PI_XML gaat het goed) -> Ciska:" bij
 #  EFICS werkt niet helemaal lekker. bij get_samples gaat het helemaal fout"
-
-# TODO: van potentieel grote naar kleine request belasting: get_samples, get_timeseries,
-#  get_qualifiers (25 groepen * 100k regels per groep), get_parameters (4000), get_locations (300)
-
-# TODO: use onlyHeader=True kan voor get_timeseries en get_samples (beide hebben ook start + eind).
-#  Echter, get_qualifiers heeft dat niet. FEWS-WIS response is snel (<1sec). FEWS-EFICS duurt lang (8 sec)
-#  get_lcoations duurt 7 sec. Voorstel Ciska: alleen func get_timeseries + get_samples via PiWebService. De andere
-#  request disabelen: logger.info('Stuur ciska.overbeek@hdsr.nl een mailtje of dat lijstje mag, dan krijg je er ook
-#  nog meer info bij) die lijstjes worden 2 a 3 per jaar script + handmatig ge-update...

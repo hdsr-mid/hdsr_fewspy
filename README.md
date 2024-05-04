@@ -195,7 +195,7 @@ assert TimeZoneChoices.get_tz_float(value="GMT") == TimeZoneChoices.gmt.value ==
 ```
 6. get_samples
 ```
-# Note: only sample data exists in FEWS-EFCIS
+# Note: only FEWS-EFCIS contains sample data
 api = hdsr_fewspy.Api(pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.efcis_production_point_biologie)
 response = api.get_samples(output_choice=hdsr_fewspy.OutputChoices.xml_response_in_memory)
 
@@ -418,7 +418,7 @@ FEWS stand alone that serves as a reference (D:\FEWS_202202_Peilevaluatie6 on Re
 ### Contributions
 All contributions, bug reports, documentation improvements, enhancements and ideas are welcome on the [issues page].
 
-### Test Coverage (release 1.14)
+### Test Coverage (release 1.16)
 ```
 ---------- coverage: platform win32, python 3.12.0-final-0 -----------
 Name                                                              Stmts   Miss  Cover
@@ -443,7 +443,7 @@ hdsr_fewspy\constants\paths.py                                        9      0  
 hdsr_fewspy\constants\pi_settings.py                                 76      6    92%
 hdsr_fewspy\constants\request_settings.py                            12      0   100%
 hdsr_fewspy\converters\download.py                                   83      4    95%
-hdsr_fewspy\converters\json_to_df_time_series.py                    131      7    95%
+hdsr_fewspy\converters\json_to_df_time_series.py                    151      7    95%
 hdsr_fewspy\converters\manager.py                                    31      2    94%
 hdsr_fewspy\converters\utils.py                                      45     11    76%
 hdsr_fewspy\converters\xml_to_python_obj.py                         105     26    75%
@@ -456,7 +456,7 @@ hdsr_fewspy\retry_session.py                                         77     15  
 hdsr_fewspy\secrets.py                                               40      5    88%
 setup.py                                                             16     16     0%
 -------------------------------------------------------------------------------------
-TOTAL                                                              1713    236    86%
+TOTAL                                                              1733    236    86%
 ```
 
 ### Conda general tips

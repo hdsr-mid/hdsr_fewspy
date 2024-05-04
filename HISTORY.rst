@@ -1,9 +1,10 @@
 1.17 (Unreleased)
 ------------------------
 
-1.16 (2024-05-02)
+1.16 (2024-05-05)
 ------------------------
-- update email adresses, add maintainer
+- update email addresses, add maintainer
+- improve readme get_samples
 
 1.15 (2024-04-30)
 ------------------------

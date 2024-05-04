@@ -7,9 +7,9 @@ from hdsr_fewspy.constants import choices
 from hdsr_fewspy.constants.custom_types import ResponseType
 from hdsr_fewspy.converters.utils import camel_to_snake_case
 from hdsr_fewspy.converters.utils import dict_to_datetime
+from typing import Dict
 from typing import List
 from typing import Tuple
-from typing import Dict
 
 import logging
 import pandas as pd
