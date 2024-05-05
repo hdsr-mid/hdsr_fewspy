@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import hdsr_fewspy
-import pytest
+
 
 def test_wis_prod_point():
     api = hdsr_fewspy.Api(
