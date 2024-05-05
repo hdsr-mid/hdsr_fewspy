@@ -1,5 +1,9 @@
-1.17 (Unreleased)
+1.18 (Unreleased)
 ------------------------
+
+1.17 (2024-05-05)
+------------------------
+- fix deprecation warning by using gdf.set_geometry()
 
 1.16 (2024-05-05)
 ------------------------
