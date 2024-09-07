@@ -114,7 +114,7 @@ api = hdsr_fewspy.Api(pi_settings=hdsr_fewspy.DefaultPiSettingsChoices.efcis_pro
 # option 2
 # Or create your own pi_settings:
 custom_settings = hdsr_fewspy.PiSettings(
-   settings_name="does not matter blabla",         
+   settings_name="choose from settings.csv in hdsr_fewspy_auth",         
    document_version=1.25,
    ssl_verify=True,
    domain="localhost",

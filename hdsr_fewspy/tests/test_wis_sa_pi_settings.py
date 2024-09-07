@@ -26,7 +26,7 @@ def test_wis_sa_pi_settings(fixture_api_wis_sa_work_no_download_dir):
 
 def test_wis_sa_custom_pi_settings():
     custom_settings = PiSettings(
-        settings_name="does not matter blabla",
+        settings_name="wis_stand_alone_point_work",
         document_version=1.25,
         ssl_verify=True,
         domain="localhost",
